@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>EVKERK 内容后台</title>
+  <style>
+    :root{font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;--bg:#f4f1eb;--paper:#fff;--ink:#20231f;--muted:#6d716a;--line:#ddd7ce;--dark:#20241f;--ok:#32633f}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink)}.shell{width:min(900px,calc(100% - 24px));margin:0 auto;padding:24px 0 80px}.top{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:20px}.top h1{font-size:24px;margin:0}.top a{color:inherit}.status{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--paper);color:var(--muted);font-size:13px}.tabs{display:flex;gap:8px;overflow:auto;margin:20px 0}.tabs button{border:1px solid var(--line);background:var(--paper);padding:10px 14px;border-radius:999px;white-space:nowrap;font-weight:750}.tabs button.active{background:var(--dark);color:#fff;border-color:var(--dark)}.panel{display:none}.panel.active{display:block}.card{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:20px;margin-bottom:16px}.card h2{margin:0 0 16px;font-size:20px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.full{grid-column:1/-1}label{display:grid;gap:6px;font-size:13px;font-weight:750}input,textarea,select{width:100%;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:10px;padding:12px;font:inherit;font-size:16px}textarea{resize:vertical;min-height:110px}.actions{display:flex;gap:10px;align-items:center;margin-top:16px}.btn{border:0;border-radius:10px;padding:12px 16px;background:var(--dark);color:#fff;font-weight:850;cursor:pointer}.btn.secondary{background:#fff;color:var(--ink);border:1px solid var(--line)}.msg{font-size:13px;color:var(--muted)}.token{display:flex;gap:8px}.token input{flex:1}.hint{font-size:12px;color:var(--muted);line-height:1.55}.ok{color:var(--ok)}@media(max-width:640px){.grid{grid-template-columns:1fr}.full{grid-column:auto}.top{align-items:flex-start;flex-direction:column}.token{flex-direction:column}}
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <div class="top"><div><h1>EVKERK 内容后台</h1><div class="hint">只处理自动化覆盖不到的内容。</div></div><a href="/">返回官网</a></div>
+    <div class="card">
+      <label>后台 Token</label>
+      <div class="token"><input id="token" type="password" autocomplete="current-password" placeholder="INGEST_TOKEN / SYNC_TOKEN"><button class="btn secondary" id="saveToken">记住</button></div>
+      <p class="hint">保存在本机浏览器，不上传到页面源码。正式上线后会再加 Cloudflare Access。</p>
+    </div>
+    <div class="status" id="health">正在检查后端状态…</div>
+
+    <div class="tabs">
+      <button class="active" data-tab="announcement">发布公告</button>
+      <button data-tab="sermon">补充讲道</button>
+      <button data-tab="sync">日历同步</button>
+    </div>
+
+    <section class="panel active" id="announcement">
+      <form class="card" id="announcementForm">
+        <h2>公告</h2>
+        <div class="grid">
+          <label>中文标题<input name="title_zh" required></label>
+          <label>荷兰文标题<input name="title_nl"></label>
+          <label class="full">中文内容<textarea name="body_zh" required></textarea></label>
+          <label class="full">荷兰文内容<textarea name="body_nl"></textarea></label>
+          <label>开始时间<input name="starts_at" type="datetime-local"></label>
+          <label>结束时间<input name="ends_at" type="datetime-local"></label>
+          <label>优先级<select name="priority"><option value="0">普通</option><option value="10">重要</option><option value="20">置顶</option></select></label>
+          <label>状态<select name="status"><option value="published">立即发布</option><option value="draft">草稿</option></select></label>
+        </div>
+        <div class="actions"><button class="btn" type="submit">保存公告</button><span class="msg" id="announcementMsg"></span></div>
+      </form>
+    </section>
+
+    <section class="panel" id="sermon">
+      <form class="card" id="sermonForm">
+        <h2>讲道</h2>
+        <div class="grid">
+          <label>日期<input name="sermon_date" type="date" required></label>
+          <label>讲员<input name="speaker"></label>
+          <label>中文标题<input name="title_zh" required></label>
+          <label>荷兰文标题<input name="title_nl"></label>
+          <label class="full">经文<input name="scripture"></label>
+          <label class="full">中文摘要<textarea name="summary_zh"></textarea></label>
+          <label class="full">荷兰文摘要<textarea name="summary_nl"></textarea></label>
+          <label>YouTube<input name="youtube_url" type="url"></label>
+          <label>音频<input name="audio_url" type="url"></label>
+          <label class="full">文字稿<input name="transcript_url" type="url"></label>
+          <label>状态<select name="status"><option value="published">发布</option><option value="draft">草稿</option></select></label>
+        </div>
+        <div class="actions"><button class="btn" type="submit">保存讲道</button><span class="msg" id="sermonMsg"></span></div>
+      </form>
+    </section>
+
+    <section class="panel" id="sync">
+      <div class="card">
+        <h2>Google Calendar</h2>
+        <p class="hint">正常情况下 Cloudflare 每 30 分钟自动同步一次。只有临时改时间、刚加活动又想马上看到时，才需要点这里。</p>
+        <div class="actions"><button class="btn" id="syncNow" type="button">立即同步</button><span class="msg" id="syncMsg"></span></div>
+      </div>
+    </section>
+  </main>
+  <script>
+    (()=>{
+      const token=document.getElementById('token');
+      token.value=localStorage.getItem('evkerk-admin-token')||'';
+      document.getElementById('saveToken').onclick=()=>{localStorage.setItem('evkerk-admin-token',token.value.trim());document.getElementById('health').textContent='Token 已保存在这台设备。'};
+      document.querySelectorAll('[data-tab]').forEach(btn=>btn.onclick=()=>{document.querySelectorAll('[data-tab]').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');document.getElementById(btn.dataset.tab).classList.add('active')});
+      const auth=()=>({'Authorization':`Bearer ${token.value.trim()}`,'Content-Type':'application/json','Accept':'application/json'});
+      async function post(url,data){const r=await fetch(url,{method:'POST',headers:auth(),body:JSON.stringify(data||{})});const body=await r.json().catch(()=>({}));if(!r.ok||body.ok===false)throw new Error(body.error||`HTTP ${r.status}`);return body}
+      function data(form){const out=Object.fromEntries(new FormData(form));for(const k of Object.keys(out))if(out[k]==='')delete out[k];return out}
+      document.getElementById('announcementForm').onsubmit=async e=>{e.preventDefault();const msg=document.getElementById('announcementMsg');msg.textContent='保存中…';try{await post('/api/ingest/announcement',data(e.currentTarget));msg.textContent='已保存';msg.className='msg ok';e.currentTarget.reset()}catch(err){msg.textContent=err.message;msg.className='msg'}};
+      document.getElementById('sermonForm').onsubmit=async e=>{e.preventDefault();const msg=document.getElementById('sermonMsg');msg.textContent='保存中…';try{await post('/api/ingest/sermon',data(e.currentTarget));msg.textContent='已保存';msg.className='msg ok';e.currentTarget.reset()}catch(err){msg.textContent=err.message;msg.className='msg'}};
+      document.getElementById('syncNow').onclick=async()=>{const msg=document.getElementById('syncMsg');msg.textContent='同步中…';try{const body=await post('/api/sync/calendar',{});msg.textContent=body.skipped?`未执行：${body.reason}`:`完成：${body.synced||0} 个事件`;msg.className='msg ok'}catch(err){msg.textContent=err.message;msg.className='msg'}};
+      fetch('/api/health').then(r=>r.json()).then(b=>{document.getElementById('health').textContent=`后端：${b.ok?'正常':'异常'} · 数据库：${b.db?'已连接':'待连接'} · 日历：${b.calendar?'已连接':'待连接'}`}).catch(()=>{document.getElementById('health').textContent='后端尚未部署。'});
+    })();
+  </script>
+</body>
+</html>
