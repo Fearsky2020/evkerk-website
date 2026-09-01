@@ -1,3 +1,5 @@
+import { handleSinanApi } from './sinan-ops.js';
+
 const TZ = 'Europe/Amsterdam';
 
 function json(data, status = 200) {
@@ -252,8 +254,9 @@ async function syncCalendar(env) {
 }
 
 async function handleApi(request, env, url) {
+  if (url.pathname.startsWith('/api/sinan/')) return handleSinanApi(request, env, url);
   if (request.method === 'GET' && url.pathname === '/api/health') {
-    return json({ ok: true, db: Boolean(env.DB), calendar: Boolean(env.CHURCH_CALENDAR_ICS_URL) });
+    return json({ ok: true, db: Boolean(env.DB), calendar: Boolean(env.CHURCH_CALENDAR_ICS_URL), sinan: Boolean(env.SINAN_TOKEN) });
   }
   if (request.method === 'GET' && url.pathname === '/api/events') return json({ ok: true, events: await listEvents(env) });
   if (request.method === 'GET' && url.pathname === '/api/sermons') return json({ ok: true, sermons: await listSermons(env) });
