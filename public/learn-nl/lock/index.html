@@ -12,11 +12,12 @@
   <link rel="icon" href="../icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="./lock.css?v=3">
   <link rel="stylesheet" href="./brand-fix.css?v=1">
+  <link rel="stylesheet" href="./no-speech.css?v=1">
 </head>
 <body>
   <header class="lock-header">
     <a class="brand brand-horizontal" href="/" aria-label="TAALVIA 首页">
-      <img src="../logo-horizontal.svg" alt="TAALVIA · Leer Nederlands. Verbind werelden.">
+      <img src="../logo-approved.svg" alt="TAALVIA · Leer Nederlands. Verbind werelden.">
     </a>
     <a class="back-link" href="/learn/">学习主页</a>
   </header>
@@ -27,7 +28,7 @@
         <p class="eyebrow">3 WOORDEN · ELKE DAG</p>
         <h1>每次拿起手机，<span>顺手记一个荷兰词。</span></h1>
         <p>每天只给 3 个不同单词。当天固定，反复出现；第二天再换一组。第一版不需要安装原生 App。</p>
-        <div class="hero-badges"><span>5000 高频词源</span><span>本机学习记录</span><span>荷兰语发音</span></div>
+        <div class="hero-badges"><span>5000 高频词源</span><span>本机学习记录</span><span>大字锁屏卡</span></div>
       </div>
 
       <article class="phone-preview" aria-label="今日锁屏单词卡">
@@ -35,7 +36,6 @@
         <div class="word-stage" id="wordStage" aria-live="polite">
           <span class="word-meta" id="wordMeta">WOORD 1 / 3</span>
           <h2 id="wordDutch">laden…</h2>
-          <button class="speak-word" id="speakWordButton" type="button" aria-label="播放荷兰语发音"><span class="speaker-icon">🔊</span><span>听发音</span></button>
           <p class="word-type" id="wordType"></p>
           <p class="wordZh" id="wordZh"></p>
           <div class="example" id="wordExample">
@@ -80,14 +80,9 @@
           <input id="showExample" type="checkbox">
         </label>
         <label class="setting-row">
-          <span><strong>切词自动发音</strong><small>打开后，在页面里切换到新单词会自动朗读一次。</small></span>
-          <input id="autoSpeak" type="checkbox">
-        </label>
-        <label class="setting-row">
           <span><strong>锁屏通知</strong><small>Android / 已安装网页应用可用；浏览器权限仍由系统控制。</small></span>
           <input id="lockNotify" type="checkbox">
         </label>
-        <p class="micro" id="speechStatus">会优先使用设备里的荷兰语语音。</p>
         <p class="micro" id="settingsStatus">设置只保存在这台设备。</p>
       </article>
 
@@ -128,6 +123,6 @@
   </footer>
 
   <script src="./lock.js?v=1" defer></script>
-  <script src="./speech.js?v=1" defer></script>
+  <script src="./fit-word.js?v=1" defer></script>
 </body>
 </html>
