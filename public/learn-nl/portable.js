@@ -58,12 +58,12 @@ function injectPortable(){
       <article class="portable-card">
         <div class="portable-head">
           <div><p class="eyebrow">ZONDER ACCOUNT · 0€</p><h2>不注册，也别丢学习进度。</h2></div>
-          <p class="zh-help">先把“账号同步”这个花钱又复杂的东西绕过去：学习记录留在本机，需要换设备时导出一个备份文件，再在新设备恢复。</p>
+          <p class="zh-help">学习记录留在本机，需要换设备时导出一个备份文件，再在新设备恢复。难度选择也会一起备份。</p>
         </div>
         <div class="portable-grid">
           <div class="portable-box">
             <h3>📦 学习进度备份</h3>
-            <p class="zh-help">包含生词本、FSRS 复习、听力/测验成绩、本周任务和页面偏好；不包含麦克风录音，也不会上传服务器。</p>
+            <p class="zh-help">包含难度、生词本、FSRS 复习、听力/测验成绩、本周任务和页面偏好；不包含麦克风录音，也不会上传服务器。</p>
             <div class="portable-actions">
               <button class="btn primary" id="exportProgress" type="button">导出备份</button>
               <label class="btn secondary portable-import">恢复备份<input id="importProgress" type="file" accept="application/json,.json"></label>
@@ -156,20 +156,23 @@ function loadOptionalLayer(cssHref, marker, moduleHref, label){
 }
 
 function initFirstLessonLayer(){
-  loadOptionalLayer('./first-lesson.css?v=1', 'data-first-lesson', './first-lesson.js?v=1', 'First lesson onboarding');
+  loadOptionalLayer('./first-lesson.css?v=2', 'data-first-lesson', './first-lesson.js?v=2', 'First lesson onboarding');
 }
-
+function initLevelPickerLayer(){
+  loadOptionalLayer('./level-picker.css?v=1', 'data-level-picker', './level-picker.js?v=1', 'Learning level picker');
+}
 function initOpenTaalLayer(){
   loadOptionalLayer('./opentaal-spell.css?v=1', 'data-opentaal-spell', './opentaal-spell.js?v=1', 'OpenTaal spelling layer');
 }
 
 function markVersion(){
   const footer = document.querySelector('.learn-footer .zh-help');
-  if (footer) footer.textContent = '为在荷兰生活的中文用户制作 · v0.10 preview';
+  if (footer) footer.textContent = '为在荷兰生活的中文用户制作 · v0.11 preview';
 }
 
 function init(){
   initFirstLessonLayer();
+  initLevelPickerLayer();
   injectPortable();
   initBackup();
   initNetwork();
