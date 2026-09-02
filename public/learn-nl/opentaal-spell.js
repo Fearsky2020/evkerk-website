@@ -100,7 +100,7 @@ function initOpenTaalSpell() {
   if (!input) return;
   const host = ensureHintHost(input);
   const source = document.querySelector('.smart-source');
-  if (source) source.textContent = 'OpenTaal 拼写助手使用约 288 KB 的常见拼写修正表：只在输入荷兰语时按需加载，首次成功后缓存到浏览器；搜索结果现在还能一键收藏并自动进入 FSRS 生词复习。';
+  if (source) source.textContent = 'OpenTaal 拼写助手使用约 288 KB 的常见拼写修正表：只在输入荷兰语时按需加载，首次成功后缓存到浏览器；不把 5 MB / 40 万词完整词库塞进手机。';
   let timer = null;
 
   input.addEventListener('input', () => {
@@ -124,10 +124,22 @@ function initOpenTaalSpell() {
   });
 }
 
+function wireOptionalLayer(cssHref, cssMarker, moduleHref, label) {
+  if (!document.querySelector(`link[${cssMarker}]`)) {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = cssHref;
+    link.setAttribute(cssMarker, '1');
+    document.head.appendChild(link);
+  }
+  import(moduleHref).catch(error => console.warn(`${label} unavailable.`, error));
+}
+
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initOpenTaalSpell, { once: true });
 } else {
   initOpenTaalSpell();
 }
 
-import('./learning-loop.js').catch(error => console.warn('Learning loop unavailable.', error));
+wireOptionalLayer('./learning-loop.css?v=1', 'data-learning-loop', './learning-loop.js?v=1', 'Learning loop');
+wireOptionalLayer('./daily-plan.css?v=1', 'data-daily-plan', './daily-plan.js?v=1', 'Daily study plan');
