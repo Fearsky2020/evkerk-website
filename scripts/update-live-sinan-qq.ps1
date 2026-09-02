@@ -103,7 +103,7 @@ if (-not (Test-Path (Join-Path $root "sinan\channels\qq_church_service.py"))) {
   throw "Update completed but qq_church_service.py is missing."
 }
 
-Write-Host "" 
+Write-Host ""
 Write-Host "LIVE SINAN QQ UPDATE PASSED." -ForegroundColor Green
 Write-Host "The existing $TaskName task is running the updated church-aware gateway."
-Write-Host "Now test in private QQ: 帮我发个测试公告：教会网站自动更新测试成功。"
+Write-Host "Now test the church announcement flow in private QQ."
