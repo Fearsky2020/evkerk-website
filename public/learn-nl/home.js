@@ -21,8 +21,28 @@
     });
   });
 
+  // Keep TAALVIA Lock visible as a product feature without redesigning the
+  // existing homepage navigation. The lock page itself remains isolated under
+  // /lock/ and owns its PWA/service-worker scope.
+  const desktopNav = document.querySelector('.desktop-nav');
+  if (desktopNav && !desktopNav.querySelector('a[href="/lock/"]')) {
+    const link = document.createElement('a');
+    link.href = '/lock/';
+    link.textContent = '锁屏单词';
+    const about = desktopNav.querySelector('a[href="#about"]');
+    desktopNav.insertBefore(link, about || null);
+  }
+
   const menu = document.querySelector('.menu-button');
   const mobile = document.getElementById('mobileNav');
+  if (mobile && !mobile.querySelector('a[href="/lock/"]')) {
+    const link = document.createElement('a');
+    link.href = '/lock/';
+    link.textContent = '锁屏单词';
+    const learn = mobile.querySelector('a[href="/learn/"]');
+    mobile.insertBefore(link, learn || null);
+  }
+
   menu?.addEventListener('click', () => {
     const open = menu.getAttribute('aria-expanded') !== 'true';
     menu.setAttribute('aria-expanded', String(open));
@@ -34,8 +54,8 @@
   }));
 
   // The former preview used a root-scoped learning service worker. Remove only
-  // that legacy scope so the brand homepage remains independent; /learn/ will
-  // register its own scoped worker on first visit.
+  // that legacy scope so the brand homepage remains independent; /learn/ and
+  // /lock/ own their own scoped workers.
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.getRegistrations().then(registrations => {
       registrations.forEach(registration => {
