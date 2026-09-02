@@ -35,6 +35,13 @@ function scLocalStorage(){
   try { localStorage.setItem(key,'ok'); const ok = localStorage.getItem(key) === 'ok'; localStorage.removeItem(key); return scResult('本地学习存储', ok?'pass':'fail', ok?'localStorage 可读写':'写入后读取失败'); }
   catch (error) { return scResult('本地学习存储','fail',error.message); }
 }
+function scLearningLevel(){
+  try {
+    const value = JSON.parse(localStorage.getItem('learn-nl-level-v1') || '"daily"');
+    const ok = ['start','daily','natural'].includes(value);
+    return scResult('学习难度状态', ok?'pass':'warn', ok?`当前 ${value}`:`未知等级 ${String(value)}`);
+  } catch (error) { return scResult('学习难度状态','warn',error.message); }
+}
 async function scServiceWorker(){
   if (!('serviceWorker' in navigator)) return scResult('PWA Service Worker','warn','当前浏览器不支持 Service Worker');
   try {
@@ -44,7 +51,7 @@ async function scServiceWorker(){
   } catch (error) { return scResult('PWA Service Worker','warn',error.message); }
 }
 async function scCoreAssets(){
-  const assets = ['./app.js?v=1','./practice.js?v=2','./smart-tools.js?v=1','./weekly-practice.js?v=1','./portable.js?v=1','./opentaal-spell.js?v=1','./learning-loop.js?v=1','./daily-plan.js?v=1','./weekly-review.js?v=1','./self-check.js?v=1'];
+  const assets = ['./app.js?v=1','./practice.js?v=2','./smart-tools.js?v=1','./weekly-practice.js?v=1','./portable.js?v=1','./opentaal-spell.js?v=1','./learning-loop.js?v=1','./daily-plan.js?v=1','./weekly-review.js?v=1','./self-check.js?v=1','./first-lesson.js?v=2','./level-picker.js?v=1'];
   const failed = [];
   await Promise.all(assets.map(async path => {
     try { const response = await fetch(path,{cache:'no-store'}); if (!response.ok) failed.push(`${path} ${response.status}`); }
@@ -55,7 +62,7 @@ async function scCoreAssets(){
 async function scRun(){
   await Promise.allSettled([
     scWaitFor('#smartSearchResults'), scWaitFor('#reviewDueCount'), scWaitFor('#notebookForm'),
-    scWaitFor('#loopVocabReview'), scWaitFor('#dailyPlan'), scWaitFor('#weeklyReview')
+    scWaitFor('#loopVocabReview'), scWaitFor('#dailyPlan'), scWaitFor('#weeklyReview'), scWaitFor('#levelPicker')
   ]);
   const results = [
     scDom('基础课程','#sceneGrid'),
@@ -68,6 +75,8 @@ async function scRun(){
     scText('生词 FSRS','#loopVocabDue',/\d+|离线/),
     scDom('今日计划','#dailyPlan'),
     scDom('每周复盘','#weeklyReview'),
+    scDom('难度切换器','#levelPicker'),
+    scLearningLevel(),
     scDom('PWA Manifest','link[rel="manifest"]'),
     scLocalStorage(),
     await scServiceWorker(),
@@ -81,7 +90,7 @@ function scInject(){
   if (!scDebugEnabled() || document.getElementById('selfCheckPanel')) return null;
   const panel = document.createElement('aside');
   panel.id = 'selfCheckPanel'; panel.className = 'self-check-panel';
-  panel.innerHTML = `<div class="self-check-head"><div><strong>Learn NL 自检</strong><span>v0.9 debug</span></div><button type="button" data-sc-close>×</button></div><div class="self-check-summary" id="scSummary">准备检查…</div><div class="self-check-list" id="scList"></div><div class="self-check-actions"><button type="button" data-sc-run>重新检查</button><button type="button" data-sc-copy>复制结果</button><button type="button" data-sc-disable>关闭调试</button></div>`;
+  panel.innerHTML = `<div class="self-check-head"><div><strong>Learn NL 自检</strong><span>v0.11 debug</span></div><button type="button" data-sc-close>×</button></div><div class="self-check-summary" id="scSummary">准备检查…</div><div class="self-check-list" id="scList"></div><div class="self-check-actions"><button type="button" data-sc-run>重新检查</button><button type="button" data-sc-copy>复制结果</button><button type="button" data-sc-disable>关闭调试</button></div>`;
   document.body.appendChild(panel);
   panel.addEventListener('click', async event => {
     if (event.target.closest('[data-sc-close]')) panel.remove();
@@ -109,7 +118,7 @@ async function scRender(panel = document.getElementById('selfCheckPanel')){
   list.innerHTML = results.map(item => `<div class="self-check-item ${item.status}"><span>${item.status==='pass'?'✓':item.status==='warn'?'!':'×'}</span><div><strong>${scEscape(item.name)}</strong><small>${scEscape(item.detail)}</small></div></div>`).join('');
   panel.dataset.report = [`Learn NL self-check ${new Date().toISOString()}`, ...results.map(x=>`[${x.status.toUpperCase()}] ${x.name}: ${x.detail}`)].join('\n');
 }
-function scMarkVersion(){ const footer=document.querySelector('.learn-footer .zh-help'); if(footer)footer.textContent='为在荷兰生活的中文用户制作 · v0.9 preview'; }
+function scMarkVersion(){ const footer=document.querySelector('.learn-footer .zh-help'); if(footer)footer.textContent='为在荷兰生活的中文用户制作 · v0.11 preview'; }
 
 addEventListener('error', event => { if (event?.message) SC_RUNTIME_ERRORS.push(event.message); });
 addEventListener('unhandledrejection', event => { SC_RUNTIME_ERRORS.push(event?.reason?.message || String(event?.reason || 'Unhandled rejection')); });
