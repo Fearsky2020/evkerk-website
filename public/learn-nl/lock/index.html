@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="description" content="TAALVIA Lock：把荷兰语高频词带到手机锁屏。每天 3 个词，少量、重复、真正记住。">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="TAALVIA Lock">
+  <title>TAALVIA Lock · Unlock your Dutch</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="../icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./lock.css?v=1">
+</head>
+<body>
+  <header class="lock-header">
+    <a class="brand" href="/" aria-label="TAALVIA 首页">
+      <img src="../icon.svg" width="42" height="42" alt="">
+      <span><strong>TAALVIA</strong><small>LOCK · UNLOCK YOUR DUTCH</small></span>
+    </a>
+    <a class="back-link" href="/learn/">学习主页</a>
+  </header>
+
+  <main>
+    <section class="hero shell">
+      <div class="hero-copy">
+        <p class="eyebrow">3 WOORDEN · ELKE DAG</p>
+        <h1>每次拿起手机，<span>顺手记一个荷兰词。</span></h1>
+        <p>每天只给 3 个不同单词。当天固定，反复出现；第二天再换一组。第一版不需要安装原生 App。</p>
+        <div class="hero-badges"><span>5000 高频词源</span><span>本机学习记录</span><span>Android 锁屏通知</span></div>
+      </div>
+
+      <article class="phone-preview" aria-label="今日锁屏单词卡">
+        <div class="phone-top"><span id="previewTime">17:12</span><span>TAALVIA LOCK</span></div>
+        <div class="word-stage" id="wordStage" aria-live="polite">
+          <span class="word-meta" id="wordMeta">WOORD 1 / 3</span>
+          <h2 id="wordDutch">laden…</h2>
+          <p class="word-type" id="wordType"></p>
+          <p class="wordZh" id="wordZh"></p>
+          <div class="example" id="wordExample">
+            <strong id="exampleNl"></strong>
+            <span id="exampleZh"></span>
+          </div>
+        </div>
+        <div class="phone-actions">
+          <button type="button" id="prevWord" aria-label="上一个单词">←</button>
+          <div class="dots" id="wordDots" aria-label="今日三个单词"></div>
+          <button type="button" id="nextWord" aria-label="下一个单词">→</button>
+        </div>
+      </article>
+    </section>
+
+    <section class="shell today-panel">
+      <div class="section-head">
+        <div><p class="eyebrow">VANDAAG</p><h2>今天就这 3 个</h2></div>
+        <p>不用刷 50 个。先让这三个在一天里多撞见你几次。</p>
+      </div>
+      <div class="today-grid" id="todayGrid"></div>
+    </section>
+
+    <section class="shell control-grid">
+      <article class="panel">
+        <p class="eyebrow">INSTELLINGEN</p>
+        <h2>锁屏设置</h2>
+        <label class="setting-row">
+          <span><strong>当前难度</strong><small>会真正改变每天抽到的词。</small></span>
+          <select id="levelSelect">
+            <option value="start">起步 A0–A1</option>
+            <option value="daily">日常 A1–A2</option>
+            <option value="natural">自然 A2–B1</option>
+          </select>
+        </label>
+        <label class="setting-row">
+          <span><strong>显示中文</strong><small>关掉以后锁屏只留荷兰语。</small></span>
+          <input id="showChinese" type="checkbox">
+        </label>
+        <label class="setting-row">
+          <span><strong>显示例句</strong><small>需要更干净的锁屏时可以关闭。</small></span>
+          <input id="showExample" type="checkbox">
+        </label>
+        <label class="setting-row">
+          <span><strong>锁屏通知</strong><small>Android / 已安装网页应用可用；浏览器权限仍由系统控制。</small></span>
+          <input id="lockNotify" type="checkbox">
+        </label>
+        <p class="micro" id="settingsStatus">设置只保存在这台设备。</p>
+      </article>
+
+      <article class="panel">
+        <p class="eyebrow">OP JE TELEFOON</p>
+        <h2>先不用做 App</h2>
+        <div class="action-stack">
+          <button class="primary" id="installButton" type="button" hidden>安装 TAALVIA Lock</button>
+          <button class="primary" id="notificationButton" type="button">开启锁屏单词通知</button>
+          <button class="secondary" id="testNotification" type="button">测试下一张锁屏通知</button>
+          <button class="secondary" id="exportCards" type="button">导出今日 3 张锁屏图</button>
+        </div>
+        <p class="micro" id="deviceHint">Android：安装后把它留在最近使用里，锁屏时网页进入后台即可推送下一张单词卡。iPhone：可把导出的 3 张图放进“照片随机显示”锁屏。</p>
+      </article>
+    </section>
+
+    <section class="shell progress-panel">
+      <div class="section-head">
+        <div><p class="eyebrow">ONTHOUDEN</p><h2>认识就放走，不熟就再来烦你。</h2></div>
+        <p>“不熟”词会进入以后几天的优先复习候选；但今天的 3 个不会半路变掉。</p>
+      </div>
+      <div class="progress-stats">
+        <div><strong id="knownCount">0</strong><span>已认识</span></div>
+        <div><strong id="hardCount">0</strong><span>需要再见</span></div>
+        <div><strong id="corpusStatus">—</strong><span>词源状态</span></div>
+      </div>
+    </section>
+
+    <section class="shell truth-panel">
+      <strong>浏览器能力边界</strong>
+      <p>网页可以安装成 PWA、生成锁屏图片，并通过真实 Service Worker 发系统通知；但普通网页没有权限监听 Android / iOS 的“刚刚解锁手机”系统事件。所以 v0.1 用“页面退到后台 → 下一张锁屏通知”来接近这个体验。以后做原生 App 时，只需要换掉触发器，词库、每日 3 词和学习状态都能继续沿用。</p>
+    </section>
+  </main>
+
+  <footer class="shell lock-footer">
+    <a href="/">TAALVIA · taalvia.nl</a>
+    <span>Unlock your Dutch · v0.1</span>
+  </footer>
+
+  <script src="./lock.js?v=1" defer></script>
+</body>
+</html>
