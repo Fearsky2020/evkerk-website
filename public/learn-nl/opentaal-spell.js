@@ -144,3 +144,4 @@ if (document.readyState === 'loading') {
 wireOptionalLayer('./learning-loop.css?v=1', 'data-learning-loop', './learning-loop.js?v=1', 'Learning loop');
 wireOptionalLayer('./daily-plan.css?v=1', 'data-daily-plan', './daily-plan.js?v=1', 'Daily study plan');
 wireOptionalLayer('./weekly-review.css?v=1', 'data-weekly-review', './weekly-review.js?v=1', 'Weekly learning review');
+wireOptionalLayer('./self-check.css?v=1', 'data-self-check', './self-check.js?v=1', 'Learn NL self-check');
