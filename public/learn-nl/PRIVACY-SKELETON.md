@@ -1,193 +1,144 @@
-# Privacy Skeleton — Independent Dutch Learning Product
+# TAALVIA Privacy Skeleton
 
-Status: internal drafting skeleton only. Replace `[BRAND]`, controller details, processors and retention periods before publication. This is not legal advice.
+Status: internal drafting skeleton only. Replace controller details, processors and retention periods before publication. Obtain appropriate privacy/legal review before account and paid launch.
 
 ## 1. Scope
 
-This privacy notice applies to the independent Dutch-learning product currently prototyped under `public/learn-nl/`.
+This privacy notice covers TAALVIA, a Dutch-language learning and practice product.
 
-The learning product must remain operationally and logically separate from church membership, pastoral, donation, attendance, volunteer or ministry records.
-
-**Hard rule:** product user data must never be merged with church member/pastoral data merely because the product is temporarily hosted or linked from a church domain.
+Privacy design principle:
+- collect only what is needed to provide learning, sync, security, support and billing;
+- do not build advertising profiles;
+- do not sell learner data;
+- do not collect unrelated sensitive personal information.
 
 ## 2. Controller
 
-To be completed before public account launch:
-
-- Legal entity / sole proprietor: `[CONTROLLER]`
-- Trade name: `[BRAND]`
-- Address: `[ADDRESS]`
-- Chamber of Commerce (KvK): `[KVK]`
-- Privacy contact: `privacy@[brand].nl`
+Complete before public account launch:
+- legal entity / sole proprietor: `[CONTROLLER]`;
+- trade name: `TAALVIA`;
+- address: `[ADDRESS]`;
+- Chamber of Commerce (KvK): `[KVK]`;
+- privacy contact: `privacy@taalvia.nl`.
 
 ## 3. Guest learning
 
-The product should remain usable without an account for the initial learning experience.
+TAALVIA should remain useful before account creation.
 
-Current guest-mode data is intended to remain in the learner's browser/local storage where possible, including items such as:
-
+Guest-mode data may remain locally in the learner's browser/device, including:
 - selected learning level;
 - completed lesson state;
 - saved words;
-- local FSRS review state;
+- FSRS/review state;
+- TAALVIA Lock settings and daily target;
 - local preferences;
-- weekly learning/progress state.
+- local progress.
 
-Guest learning should not require email, name, address, BSN, passport details, immigration status or church affiliation.
+Guest learning should not require a real name, postal address or other unnecessary identity information.
 
 ## 4. Account data — future
 
-When accounts are introduced, collect only what is needed for authentication and sync.
-
-Initial target fields:
-
+When accounts are introduced, initial target fields are limited to what authentication and sync need, for example:
 - account ID;
-- email address or selected authentication identifier;
+- email address or authentication identifier;
 - authentication-provider identifiers/tokens as technically required;
-- account creation / security timestamps;
-- synchronized learning progress.
+- account/security timestamps;
+- synchronized learning progress;
+- subscription entitlement where applicable.
 
-Do not collect full date of birth, postal address, BSN, nationality, immigration route, religion or employer unless a separately documented product need and legal basis exists.
+Avoid collecting full date of birth, government identifiers, immigration status, religion, health information or other sensitive data unless a new product need is explicitly justified and reviewed.
 
 ## 5. Learning data
 
-Possible synchronized data:
-
+Possible synchronized learning data:
 - support language;
 - self-selected level;
 - lesson completion;
 - FSRS scheduling state;
 - saved vocabulary;
+- known/difficult vocabulary state;
 - quiz/listening results;
-- learning activity timestamps;
-- institutional cohort ID where applicable.
+- daily vocabulary target;
+- learning activity timestamps.
 
-Do not describe self-selected or AI-recommended level as an official certification.
+Level labels and automated recommendations are learning aids, not formal certification.
 
 ## 6. Voice / microphone
 
 Current direction:
-
-- microphone access only after user action;
-- browser/local processing preferred;
-- raw recordings not uploaded by default;
-- if future pronunciation evaluation uploads audio, that must be clearly disclosed before recording/upload;
-- define deletion timing for uploaded voice data;
-- do not infer health, ethnicity, emotion, religion or other sensitive traits from voice.
+- microphone access only after clear user action;
+- browser/local processing preferred where practical;
+- raw recordings are not uploaded by default;
+- if future pronunciation evaluation uploads audio, disclose this before recording/upload;
+- define retention and deletion timing for uploaded voice data;
+- do not infer unrelated sensitive traits from voice.
 
 ## 7. Analytics
 
 Privacy-first target:
-
 - measure activation, retention and feature use with the minimum data needed;
 - avoid cross-site advertising trackers;
-- avoid selling user data;
-- avoid building advertising profiles;
-- institution reporting should be aggregated by default.
+- avoid selling or sharing data for advertising profiles.
 
 Before analytics launch document:
-
-- tool/provider;
-- cookies/local identifiers used;
+- provider;
+- cookies/local identifiers;
 - purpose;
 - legal basis;
 - retention;
-- opt-out/consent requirements.
+- consent/opt-out behavior where required.
 
 ## 8. Payments — future
 
 Payment details should be handled by the payment provider where possible.
 
-The product should store only billing/subscription references needed to manage access and accounting, rather than raw card data.
+TAALVIA should store only subscription/billing references needed to manage access, support and accounting rather than raw card details.
 
-Processor list must include the chosen payment provider before paid launch.
+## 9. Children / minors
 
-## 9. Institutional customers
+Do not specifically market the first commercial release to children until age/consent requirements and product safeguards have been reviewed.
 
-For schools, employers, foundations or municipalities:
+## 10. Data retention
 
-- define controller/processor roles per contract;
-- provide a Data Processing Agreement when acting as processor;
-- isolate organisation/tenant data;
-- only expose learner-level reporting when contractually needed and legally justified;
-- aggregated engagement reporting is preferred for pilots;
-- define offboarding/export/deletion when an institution contract ends.
-
-## 10. Children / minors
-
-Do not market the first commercial release specifically to children until age/consent requirements, school deployments and parental/legal bases have been separately reviewed.
-
-If schools later use the product with minors, create a dedicated education/minor privacy assessment.
-
-## 11. Data retention
-
-Retention schedule must be filled before account launch.
-
-Suggested design questions:
-
-- inactive free account deletion/anonymisation period;
-- paid-account accounting retention vs learning-data retention;
-- deleted-account grace period;
-- institutional learner offboarding;
+Define before account launch:
+- inactive account retention;
+- deleted-account grace period if any;
+- billing/accounting retention;
 - security logs;
 - support tickets;
-- uploaded voice recordings.
+- uploaded voice recordings if that feature exists.
 
 Local guest data remains under the user's browser/device controls unless synced.
 
-## 12. User rights / product controls
+## 11. User controls
 
 Account edition should support:
-
 - export learning data;
 - delete account;
 - correct basic profile data;
-- disconnect institutional affiliation where appropriate;
 - unsubscribe from marketing independently from service email;
 - contact privacy support.
 
-## 13. Security commitments
+## 12. Security
 
-Before institutional launch document at least:
-
+Document before public account launch:
 - encryption in transit;
-- credential/auth handling;
-- access control;
-- tenant separation;
-- backups;
+- authentication/credential handling;
+- access controls;
+- backups/recovery;
 - incident response;
-- admin access logging;
 - subprocessors;
 - data hosting region.
 
-## 14. Product/church separation
-
-The following must remain separate unless the learner explicitly uses two unrelated services and each service has its own legal basis:
-
-- church member lists;
-- pastoral notes;
-- prayer requests;
-- donations;
-- attendance;
-- ministry/volunteer information;
-- product learning accounts;
-- product billing;
-- institutional cohorts.
-
-The product must not use church affiliation or religious data for product personalization, advertising, pricing or institutional reporting.
-
-## 15. Publication gate
+## 13. Publication gate
 
 Do not publish this skeleton as a final privacy notice until:
-
-- independent brand selected;
-- controller legal identity confirmed;
-- domain purchased;
-- auth provider selected;
-- hosting/data location confirmed;
-- email provider confirmed;
-- analytics choice confirmed;
-- payment provider confirmed if paid;
-- retention schedule completed;
-- subprocessors listed;
-- Dutch/English public versions reviewed.
+- controller legal identity is confirmed;
+- auth provider is selected;
+- hosting/data location is confirmed;
+- email provider is confirmed;
+- analytics choice is confirmed;
+- payment provider is confirmed if paid;
+- retention schedule is completed;
+- subprocessors are listed;
+- public-language versions are reviewed.
