@@ -1,5 +1,6 @@
 # TAALVIA static deploy exclusions
 *.md
 wrangler.jsonc
+router.js
 .assetsignore
 .wrangler/**
