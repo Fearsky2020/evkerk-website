@@ -1,5 +1,5 @@
 const OPENTAAL_CORRECTIONS_URL = 'https://raw.githubusercontent.com/OpenTaal/opentaal-wordlist/master/elements/corrections.tsv';
-const OPENTAAL_CACHE = 'learn-nl-opentaal-v1';
+const OPENTAAL_CACHE = 'opentaal-corrections-v1';
 let correctionMapPromise = null;
 
 function parseCorrections(text) {
