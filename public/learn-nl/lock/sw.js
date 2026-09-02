@@ -1,5 +1,5 @@
-const CACHE = 'taalvia-lock-v0.1';
-const CORE = ['./','./index.html','./lock.css?v=1','./lock.js?v=1','./manifest.webmanifest','../icon.svg'];
+const CACHE = 'taalvia-lock-v0.2';
+const CORE = ['./','./index.html','./lock.css?v=2','./lock.js?v=1','./speech.js?v=1','./manifest.webmanifest','../icon.svg'];
 const FREQ_HOST = 'raw.githubusercontent.com';
 
 self.addEventListener('install', event => {
