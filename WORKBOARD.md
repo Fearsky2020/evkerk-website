@@ -43,26 +43,59 @@ Documented target sermon flow:
 
 This remains a target/continuing workflow; real-content end-to-end validation is still required.
 
-## NEW CHURCH PROJECT — Scripture Cards / 经文卡
+## INDEPENDENT CHURCH PROJECT — Scripture Cards / 经文卡
 
-**Verified status:** registered on this workboard only. No independent Scripture Cards repository has been verified yet.
+**Verified development status:** development has started outside the `evkerk-website` repository as an independent starter. No independent GitHub repository has been verified/created yet, so do not describe it as deployed or source-controlled on GitHub.
 
-**Ownership decision:** belongs under **Church Work / 教会工作**, but should be a peer project to `evkerk-website`, not normal website feature code.
+**Ownership:** belongs under **Church Work / 教会工作**, but remains a peer project to `evkerk-website`, not normal website feature code.
 
-**Planned direction, not yet implementation**
+**Verified starter implementation (local project artifact)**
 
-- daily/random verse;
-- Chinese / Dutch / bilingual display;
-- share/download scripture-card images;
-- card styles, favorites/history/themes;
-- PWA;
-- later devotional audio, memorization, youth cards and push/lock-screen-style experiences.
+The starter currently contains:
 
-**Before implementation**
+- Cloudflare Worker + static-assets skeleton;
+- deterministic daily verse;
+- no-repeat random verse;
+- Chinese / Dutch / bilingual verse display;
+- topic filtering;
+- four visual card styles;
+- local favorites;
+- copy/share;
+- PNG export with optional `modern-screenshot` enhancement and Canvas fallback;
+- PWA manifest + service-worker offline caching;
+- bilingual Chinese/Dutch core UI labels;
+- JavaScript/data/core-behavior checks;
+- GitHub Actions check workflow ready for the future repository.
 
-- decide repository name;
-- verify Bible translation licensing/copyright;
-- define MVP and verse schema.
+**Curation/data status**
+
+- `featured-plan.json` contains a first curated pool of **50 references**.
+- `featured.json` currently contains **5 references with Chinese + Dutch source text actually synchronized/verified**.
+- The product deliberately distinguishes planned references from live/verified text; the UI reports both counts.
+- Current translations are CUVS 1919 and De Heilige Schrift 1917, both recorded as public-domain in the selected Midvash data source.
+- A direct pinned `midvash/bible-data` importer exists.
+- A faster Midvash `/v1/passages` batch-sync script exists for all 50 references, but the full 50-text synchronization has not been executed in the current restricted runtime and therefore must not be marked complete.
+
+**Open-source research already incorporated**
+
+- `midvash/bible-data` — public-domain Bible data source/provenance.
+- `midvash/bible-api` — batch passage synchronization (up to 50 refs/request).
+- `modern-screenshot` — share-card PNG rendering, with local fallback.
+- `VerseCraft` — product/UX reference only.
+- `BibleLockScreen` — later Android/native lock-screen reference only.
+- `cf-workers-og` — later server-side Open Graph image candidate.
+- `midvash/bible-cross-references` — later curated related-verses candidate (CC-BY 4.0), not v0.1.
+
+**Still not verified / next gate**
+
+- create the independent GitHub repository (candidate name: `evkerk-scripture-cards`);
+- run full 50-reference bilingual sync in an internet-connected checkout;
+- review all launch verses for exact text and pastoral suitability;
+- run Worker preview;
+- smoke-test on desktop/iPhone/Android, including PWA/share/PNG/offline behavior;
+- choose final EVKERK subdomain only after preview validation.
+
+The main `evkerk-website` repository should only later provide the entry point, optional homepage daily-verse integration, sermon-to-scripture links, and final routing/subdomain work.
 
 ## INDEPENDENT PRODUCT — TAALVIA Dutch Learning
 
@@ -172,7 +205,7 @@ Treat this as repository-recorded status unless independently revalidated agains
 4. TAALVIA: execute repository checks in a real checkout/build environment.
 5. TAALVIA: deploy isolated Worker preview and smoke-test `/`, `/learn/`, `/lock/` on desktop/iPhone/Android.
 6. TAALVIA Lock: decide whether the original true unlock-trigger behavior requires a native Android component/widget; the current web implementation cannot do it.
-7. Scripture Cards: create its independent project only when development actually starts.
+7. Scripture Cards: create the independent GitHub repository, execute the 50-reference bilingual sync, then preview/smoke-test before any EVKERK domain integration.
 
 ## Rule for future updates
 
