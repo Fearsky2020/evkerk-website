@@ -62,6 +62,14 @@ Write-Host "Bootstrapping Cloudflare + Church Ops..." -ForegroundColor Yellow
   -MediaBucket $MediaBucket `
   -SinanProjectRoot $sinanRoot
 
+$wranglerText = Get-Content ".\wrangler.toml" -Raw
+if ($wranglerText -notmatch '(?ms)\[\[d1_databases\]\].*?binding\s*=\s*"DB"') {
+  throw "D1 DB binding is missing after bootstrap."
+}
+if ($wranglerText -notmatch '(?ms)\[\[r2_buckets\]\].*?binding\s*=\s*"MEDIA"') {
+  throw "R2 MEDIA binding is required for Church Media Ingest but was not created. Enable R2 and run this script again."
+}
+
 $endpointPath = Join-Path $sinanRoot ".sinan\church-ops.endpoint"
 if (-not (Test-Path $endpointPath)) {
   throw "Church Ops endpoint file was not created: $endpointPath"
