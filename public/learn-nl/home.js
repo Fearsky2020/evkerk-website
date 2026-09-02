@@ -6,6 +6,32 @@
     try { localStorage.setItem(key, JSON.stringify(value)); } catch (_) {}
   }
 
+  function installLockedBrand(){
+    const style = document.createElement('style');
+    style.textContent = `
+      .brand-lockup .brand-icon,.brand-lockup .brand-wording{display:none!important}
+      .brand-logo-full{display:block;width:220px;height:auto;max-width:none}
+      .footer-lockup .brand-logo-full{width:238px}
+      @media(max-width:1080px){.brand-logo-full{width:196px}}
+      @media(max-width:860px){.brand-logo-full{width:184px}.footer-lockup .brand-logo-full{width:210px}}
+      @media(max-width:420px){.brand-logo-full{width:166px}}
+    `;
+    document.head.appendChild(style);
+
+    document.querySelectorAll('.brand-lockup').forEach(lockup => {
+      const isFooter = lockup.classList.contains('footer-lockup');
+      const img = document.createElement('img');
+      img.className = 'brand-logo-full';
+      img.src = isFooter ? '/brand-logo-dark.svg' : '/brand-logo.svg';
+      img.alt = 'TAALVIA — Leer Nederlands. Verbind werelden.';
+      img.width = isFooter ? 238 : 220;
+      img.height = 52;
+      lockup.replaceChildren(img);
+    });
+  }
+
+  installLockedBrand();
+
   function chooseLevel(level){
     saveJson(LEVEL_KEY, level);
     location.href = '/learn/';
@@ -45,15 +71,11 @@
     menu.setAttribute('aria-expanded', String(open));
     if (mobile) mobile.hidden = !open;
   });
-
   mobile?.querySelectorAll('a').forEach(link => link.addEventListener('click', () => {
     if (mobile) mobile.hidden = true;
     menu?.setAttribute('aria-expanded', 'false');
   }));
 
-  // Remove only the legacy root-scoped learning worker/cache from early previews.
-  // Brand rendering is intentionally not touched here: the approved logo assets
-  // are declared directly in HTML and are never rewritten by JavaScript.
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.getRegistrations().then(registrations => {
       registrations.forEach(registration => {
