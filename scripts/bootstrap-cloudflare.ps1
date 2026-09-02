@@ -1,6 +1,6 @@
 param(
   [string]$DatabaseName = "evkerk-website-db",
-  [string]$WorkerName = "evkerk-website-preview",
+  [string]$MediaBucket = "evkerk-website-media",
   [string]$SinanProjectRoot = ""
 )
 
@@ -22,6 +22,12 @@ function Invoke-Wrangler([string]$ArgsLine) {
   return $output
 }
 
+function New-SecretValue {
+  $bytes = New-Object byte[] 32
+  [System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
+  return [Convert]::ToBase64String($bytes).TrimEnd('=').Replace('+','-').Replace('/','_')
+}
+
 Require-Command node
 Require-Command npm
 Require-Command npx
@@ -30,11 +36,11 @@ if (-not (Test-Path package.json)) {
   throw "Run this script from the evkerk-website repository root."
 }
 
-Write-Host "[1/7] Installing dependencies..." -ForegroundColor Yellow
+Write-Host "[1/9] Installing dependencies..." -ForegroundColor Yellow
 npm install
 if ($LASTEXITCODE -ne 0) { throw "npm install failed" }
 
-Write-Host "[2/7] Checking Cloudflare login..." -ForegroundColor Yellow
+Write-Host "[2/9] Checking Cloudflare login..." -ForegroundColor Yellow
 try {
   Invoke-Wrangler "whoami" | Out-Null
 } catch {
@@ -42,73 +48,110 @@ try {
   Invoke-Wrangler "login" | Out-Null
 }
 
-Write-Host "[3/7] Creating or reusing D1 database..." -ForegroundColor Yellow
+Write-Host "[3/9] Creating or reusing D1 database..." -ForegroundColor Yellow
 $dbId = $null
-$createOutput = ""
+$uuidPattern = '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}'
 try {
   $createOutput = Invoke-Wrangler "d1 create $DatabaseName"
+  $m = [regex]::Match($createOutput, $uuidPattern)
+  if ($m.Success) { $dbId = $m.Value }
 } catch {
-  Write-Host "D1 create did not succeed; checking existing databases..." -ForegroundColor Yellow
-  $createOutput = Invoke-Wrangler "d1 list"
+  Write-Host "D1 already exists or create failed; checking database list..." -ForegroundColor Yellow
+  $listOutput = Invoke-Wrangler "d1 list"
+  $nameIndex = $listOutput.IndexOf($DatabaseName, [StringComparison]::OrdinalIgnoreCase)
+  if ($nameIndex -ge 0) {
+    $windowStart = [Math]::Max(0, $nameIndex - 200)
+    $windowLength = [Math]::Min(500, $listOutput.Length - $windowStart)
+    $window = $listOutput.Substring($windowStart, $windowLength)
+    $m = [regex]::Match($window, $uuidPattern)
+    if ($m.Success) { $dbId = $m.Value }
+  }
 }
-
-$uuidPattern = '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}'
-$matches = [regex]::Matches($createOutput, $uuidPattern)
-if ($matches.Count -gt 0) {
-  $dbId = $matches[$matches.Count - 1].Value
-}
-
 if (-not $dbId) {
-  throw "Could not determine D1 database UUID automatically. Run 'npx wrangler d1 list' and add the DB binding manually."
+  throw "Could not determine the UUID for D1 '$DatabaseName'. Run 'npx wrangler d1 list' to inspect the account."
 }
-
 Write-Host "D1 UUID: $dbId" -ForegroundColor Green
 
-Write-Host "[4/7] Updating wrangler.toml DB binding..." -ForegroundColor Yellow
+Write-Host "[4/9] Creating or reusing R2 media bucket..." -ForegroundColor Yellow
+try {
+  Invoke-Wrangler "r2 bucket create $MediaBucket" | Out-Null
+} catch {
+  $r2List = Invoke-Wrangler "r2 bucket list"
+  if ($r2List -notmatch [regex]::Escape($MediaBucket)) {
+    throw "R2 bucket '$MediaBucket' could not be created or found."
+  }
+  Write-Host "R2 bucket already exists: $MediaBucket" -ForegroundColor Green
+}
+
+Write-Host "[5/9] Updating wrangler.toml bindings..." -ForegroundColor Yellow
 $tomlPath = Join-Path (Get-Location) "wrangler.toml"
 $toml = Get-Content $tomlPath -Raw
 $toml = [regex]::Replace($toml, '(?ms)\n\[\[d1_databases\]\].*?(?=\n\[|\z)', '')
-$binding = @"
+$toml = [regex]::Replace($toml, '(?ms)\n\[\[r2_buckets\]\].*?(?=\n\[|\z)', '')
+$bindings = @"
 
 [[d1_databases]]
 binding = "DB"
 database_name = "$DatabaseName"
 database_id = "$dbId"
+
+[[r2_buckets]]
+binding = "MEDIA"
+bucket_name = "$MediaBucket"
 "@
-$toml = $toml.TrimEnd() + $binding + "`n"
+$toml = $toml.TrimEnd() + $bindings + "`n"
 Set-Content -Path $tomlPath -Value $toml -Encoding utf8
 
-Write-Host "[5/7] Applying D1 migrations..." -ForegroundColor Yellow
+Write-Host "[6/9] Applying all D1 migrations..." -ForegroundColor Yellow
 Invoke-Wrangler "d1 migrations apply $DatabaseName --remote" | Out-Null
 
-Write-Host "[6/7] Creating SINAN control token and deploying..." -ForegroundColor Yellow
-$bytes = New-Object byte[] 32
-[System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
-$token = [Convert]::ToBase64String($bytes).TrimEnd('=').Replace('+','-').Replace('/','_')
-$token | npx wrangler secret put SINAN_TOKEN
+Write-Host "[7/9] Creating control secrets..." -ForegroundColor Yellow
+$sinanToken = New-SecretValue
+$ingestToken = New-SecretValue
+$sinanToken | npx wrangler secret put SINAN_TOKEN
 if ($LASTEXITCODE -ne 0) { throw "Failed to set SINAN_TOKEN" }
+$ingestToken | npx wrangler secret put INGEST_TOKEN
+if ($LASTEXITCODE -ne 0) { throw "Failed to set INGEST_TOKEN" }
 
+Write-Host "[8/9] Running checks and deploying Worker..." -ForegroundColor Yellow
+npm run check
+if ($LASTEXITCODE -ne 0) { throw "Site checks failed" }
 $deployOutput = Invoke-Wrangler "deploy"
 $urlMatch = [regex]::Match($deployOutput, 'https://[^\s]+\.workers\.dev')
 $endpoint = if ($urlMatch.Success) { $urlMatch.Value.TrimEnd('/') } else { "" }
 
-Write-Host "[7/7] Writing local SINAN connection files..." -ForegroundColor Yellow
+Write-Host "[9/9] Writing local SINAN connection files and smoke testing..." -ForegroundColor Yellow
+$sinanTokenPath = ""
 if ($SinanProjectRoot) {
+  if (-not (Test-Path $SinanProjectRoot)) { throw "SINAN project root does not exist: $SinanProjectRoot" }
   $sinanDir = Join-Path $SinanProjectRoot ".sinan"
   New-Item -ItemType Directory -Force -Path $sinanDir | Out-Null
-  Set-Content -Path (Join-Path $sinanDir "church-ops.token") -Value $token -Encoding ascii -NoNewline
+  $sinanTokenPath = Join-Path $sinanDir "church-ops.token"
+  $ingestTokenPath = Join-Path $sinanDir "church-ingest.token"
+  Set-Content -Path $sinanTokenPath -Value $sinanToken -Encoding ascii -NoNewline
+  Set-Content -Path $ingestTokenPath -Value $ingestToken -Encoding ascii -NoNewline
   if ($endpoint) {
     Set-Content -Path (Join-Path $sinanDir "church-ops.endpoint") -Value $endpoint -Encoding ascii -NoNewline
+    [Environment]::SetEnvironmentVariable("SINAN_CHURCH_OPS_ENDPOINT", $endpoint, "User")
+    [Environment]::SetEnvironmentVariable("SINAN_CHURCH_OPS_TOKEN_FILE", $sinanTokenPath, "User")
   }
 }
 
-Write-Host "" 
+if ($endpoint -and (Test-Path "scripts/smoke-test.ps1")) {
+  $smokeArgs = @{ Endpoint = $endpoint }
+  if ($sinanTokenPath) { $smokeArgs.SinanTokenFile = $sinanTokenPath }
+  & "scripts/smoke-test.ps1" @smokeArgs
+  if ($LASTEXITCODE -ne 0) { throw "Smoke test failed" }
+}
+
+Write-Host ""
 Write-Host "EVKERK bootstrap complete." -ForegroundColor Green
 Write-Host "D1: $DatabaseName ($dbId)"
+Write-Host "R2: $MediaBucket"
 if ($endpoint) {
   Write-Host "Worker: $endpoint"
-  Write-Host "Set on QQ gateway: SINAN_CHURCH_OPS_ENDPOINT=$endpoint"
+  Write-Host "QQ gateway endpoint was configured when -SinanProjectRoot was provided."
 } else {
   Write-Host "Worker deployed, but workers.dev URL was not detected automatically. Copy it from Wrangler output."
 }
-Write-Host "SINAN_TOKEN was stored in Cloudflare and is not printed here."
+Write-Host "SINAN_TOKEN and INGEST_TOKEN were stored as Cloudflare secrets and are not printed here."
