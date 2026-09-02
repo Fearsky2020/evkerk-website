@@ -13,6 +13,10 @@ export default {
       return Response.redirect(`${url.origin}/learn/`, 308);
     }
 
+    if (path === '/lock') {
+      return Response.redirect(`${url.origin}/lock/`, 308);
+    }
+
     if (path === '/' || path === '/index.html') {
       return env.ASSETS.fetch(assetRequest(request, '/home.html'));
     }
@@ -24,6 +28,10 @@ export default {
     if (path.startsWith('/learn/')) {
       const assetPath = path.slice('/learn'.length) || '/index.html';
       return env.ASSETS.fetch(assetRequest(request, assetPath));
+    }
+
+    if (path === '/lock/' || path === '/lock/index.html') {
+      return env.ASSETS.fetch(assetRequest(request, '/lock/index.html'));
     }
 
     return env.ASSETS.fetch(request);
