@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>录音 → 文章 | EVKERK</title>
+  <style>
+    :root{font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;--bg:#f4f1eb;--paper:#fff;--ink:#20231f;--muted:#6d716a;--line:#ddd7ce;--dark:#20241f;--ok:#32633f;--warn:#8a5a19}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink)}.shell{width:min(980px,calc(100% - 24px));margin:0 auto;padding:22px 0 80px}.top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:18px}.top h1{margin:0 0 6px;font-size:26px}.top p{margin:0;color:var(--muted)}a{color:inherit}.card{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:20px;margin:0 0 16px}.card h2{margin:0 0 16px;font-size:20px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.full{grid-column:1/-1}label{display:grid;gap:6px;font-size:13px;font-weight:750}input,textarea{width:100%;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:10px;padding:12px;font:inherit;font-size:16px}textarea{min-height:150px;resize:vertical}.article{min-height:360px}.token{display:flex;gap:8px}.token input{flex:1}.actions{display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin-top:15px}.btn{border:0;border-radius:10px;padding:12px 16px;background:var(--dark);color:#fff;font-weight:850;cursor:pointer}.btn.secondary{background:#fff;color:var(--ink);border:1px solid var(--line)}.btn:disabled{opacity:.45;cursor:not-allowed}.hint,.msg{font-size:12px;color:var(--muted);line-height:1.55}.ok{color:var(--ok)}.warn{color:var(--warn)}.jobs{display:grid;gap:10px}.job{border:1px solid var(--line);border-radius:14px;padding:14px;cursor:pointer;background:#fff}.job:hover{border-color:#aaa296}.job-head{display:flex;justify-content:space-between;gap:12px}.job strong{overflow-wrap:anywhere}.badge{font-size:11px;font-weight:850;padding:5px 8px;border-radius:999px;background:#eee9df;white-space:nowrap}.badge.ready_for_review{background:#dcebdd;color:#285436}.badge.failed{background:#f3dfdc;color:#7d352d}.badge.processing{background:#e6e4f3;color:#48417b}.meta{font-size:12px;color:var(--muted);margin-top:7px}.review{display:none}.review.active{display:block}.note{white-space:pre-wrap;padding:12px;border-radius:10px;background:#f6f2ea;color:var(--muted);font-size:13px}.audio-line{display:flex;gap:10px;align-items:center}.progress{height:6px;background:#e7e1d7;border-radius:99px;overflow:hidden;margin-top:10px;display:none}.progress span{display:block;height:100%;width:40%;background:#6e7c65;animation:p 1.3s infinite ease-in-out}@keyframes p{0%{transform:translateX(-120%)}100%{transform:translateX(350%)}}@media(max-width:680px){.grid{grid-template-columns:1fr}.full{grid-column:auto}.top{flex-direction:column}.token{flex-direction:column}.job-head{align-items:flex-start}.article{min-height:300px}}
+  </style>
+</head>
+<body>
+<main class="shell">
+  <div class="top"><div><h1>录音 → 文章</h1><p>上传主日录音，司南转写并生成文章草稿；你确认后才发布。</p></div><div><a href="/admin/">内容后台</a> · <a href="/">官网</a></div></div>
+
+  <section class="card">
+    <label>后台 Token</label>
+    <div class="token"><input id="token" type="password" autocomplete="current-password" placeholder="INGEST_TOKEN"><button class="btn secondary" id="saveToken" type="button">记住</button></div>
+    <p class="hint">只保存在这台浏览器里。录音原件在审核完成前不会公开。</p>
+  </section>
+
+  <form class="card" id="uploadForm">
+    <h2>1. 上传录音</h2>
+    <div class="grid">
+      <label class="full">录音文件<input id="audio" type="file" accept="audio/*,.m4a,.mp3,.wav,.flac,.aac,.ogg,.opus,.wma,.m4b,.mp4" required></label>
+      <label>讲道日期<input id="sermonDate" type="date" required></label>
+      <label>讲员（可留空）<input id="speaker" placeholder="例如：王牧师"></label>
+    </div>
+    <div class="actions"><button class="btn" id="uploadBtn" type="submit">上传并交给司南</button><span class="msg" id="uploadMsg"></span></div>
+    <div class="progress" id="progress"><span></span></div>
+    <p class="hint">第一版支持 WAV / MP3 / M4A / AAC / FLAC / OGG / OPUS / WMA / M4B / MP4。默认上限 95 MB，可在 Cloudflare 调整。</p>
+  </form>
+
+  <section class="card">
+    <div class="job-head"><h2>2. 处理队列</h2><button class="btn secondary" id="refresh" type="button">刷新</button></div>
+    <div class="jobs" id="jobs"><span class="hint">读取中…</span></div>
+  </section>
+
+  <section class="card review" id="review">
+    <h2>3. 审核文章</h2>
+    <div class="grid">
+      <label>日期<input id="rDate" type="date"></label>
+      <label>讲员<input id="rSpeaker"></label>
+      <label class="full">经文<input id="rScripture"></label>
+      <label class="full">中文标题<input id="rTitleZh"></label>
+      <label class="full">荷兰文标题<input id="rTitleNl"></label>
+      <label class="full">中文摘要<textarea id="rSummaryZh"></textarea></label>
+      <label class="full">荷兰文摘要<textarea id="rSummaryNl"></textarea></label>
+      <label class="full">中文文章<textarea class="article" id="rArticleZh"></textarea></label>
+      <label class="full">荷兰文文章<textarea class="article" id="rArticleNl"></textarea></label>
+      <label class="full">转写稿<textarea class="article" id="rTranscript" readonly></textarea></label>
+    </div>
+    <h3>司南标记的不确定项</h3>
+    <div class="note" id="uncertain">无</div>
+    <div class="actions">
+      <button class="btn secondary" id="saveDraft" type="button">保存修改</button>
+      <button class="btn" id="publish" type="button">确认发布</button>
+      <button class="btn secondary" id="retry" type="button">重新处理</button>
+      <span class="msg" id="reviewMsg"></span>
+    </div>
+  </section>
+</main>
+<script>
+(()=>{
+  const $=id=>document.getElementById(id);
+  const token=$('token');
+  token.value=localStorage.getItem('evkerk-admin-token')||'';
+  $('saveToken').onclick=()=>{localStorage.setItem('evkerk-admin-token',token.value.trim());$('uploadMsg').textContent='Token 已保存';};
+  $('sermonDate').value=new Date().toISOString().slice(0,10);
+  const headers=(json=false)=>{const h={Authorization:`Bearer ${token.value.trim()}`,Accept:'application/json'};if(json)h['Content-Type']='application/json';return h};
+  async function parse(r){const b=await r.json().catch(()=>({}));if(!r.ok||b.ok===false)throw new Error(b.error||`HTTP ${r.status}`);return b}
+  let selectedId=null;
+
+  $('uploadForm').onsubmit=async e=>{
+    e.preventDefault();
+    const file=$('audio').files[0];if(!file)return;
+    $('uploadBtn').disabled=true;$('progress').style.display='block';$('uploadMsg').textContent='上传中…';
+    try{
+      const h=headers();
+      h['Content-Type']=file.type||'application/octet-stream';
+      h['X-Filename']=encodeURIComponent(file.name);
+      h['X-Sermon-Date']=$('sermonDate').value;
+      h['X-Speaker']=encodeURIComponent($('speaker').value.trim());
+      const b=await parse(await fetch('/api/media/upload',{method:'POST',headers:h,body:file}));
+      $('uploadMsg').textContent=`已进入队列：${b.id}`;$('uploadMsg').className='msg ok';$('audio').value='';await loadJobs();
+    }catch(err){$('uploadMsg').textContent=err.message;$('uploadMsg').className='msg warn'}finally{$('uploadBtn').disabled=false;$('progress').style.display='none'}
+  };
+
+  const labels={uploading:'上传中',queued:'等待司南',processing:'司南处理中',ready_for_review:'等待审核',published:'已发布',failed:'处理失败'};
+  async function loadJobs(){
+    const box=$('jobs');box.innerHTML='<span class="hint">读取中…</span>';
+    try{
+      const b=await parse(await fetch('/api/media/jobs?limit=30',{headers:headers()}));
+      if(!b.jobs.length){box.innerHTML='<span class="hint">还没有录音任务。</span>';return}
+      box.innerHTML='';
+      b.jobs.forEach(j=>{
+        const el=document.createElement('div');el.className='job';
+        el.innerHTML=`<div class="job-head"><strong>${escapeHtml(j.title_zh||j.original_name||j.id)}</strong><span class="badge ${escapeHtml(j.status)}">${labels[j.status]||escapeHtml(j.status)}</span></div><div class="meta">${escapeHtml(j.sermon_date||'')} · ${escapeHtml(j.speaker||'讲员未填')} · ${formatSize(j.size_bytes)}${j.error?` · ${escapeHtml(j.error)}`:''}</div>`;
+        el.onclick=()=>openJob(j.id);box.appendChild(el);
+      });
+    }catch(err){box.innerHTML=`<span class="warn">${escapeHtml(err.message)}</span>`}
+  }
+  $('refresh').onclick=loadJobs;
+
+  async function openJob(id){
+    try{
+      const b=await parse(await fetch(`/api/media/jobs/${encodeURIComponent(id)}`,{headers:headers()}));const j=b.job;selectedId=id;
+      $('review').classList.add('active');$('rDate').value=j.sermon_date||'';$('rSpeaker').value=j.speaker||'';$('rScripture').value=j.scripture||'';$('rTitleZh').value=j.title_zh||'';$('rTitleNl').value=j.title_nl||'';$('rSummaryZh').value=j.summary_zh||'';$('rSummaryNl').value=j.summary_nl||'';$('rArticleZh').value=j.article_zh||'';$('rArticleNl').value=j.article_nl||'';$('rTranscript').value=j.transcript_text||'';$('uncertain').textContent=formatUncertain(j.uncertain_notes);
+      $('publish').disabled=j.status!=='ready_for_review';$('saveDraft').disabled=!['ready_for_review','published'].includes(j.status);$('retry').disabled=!['failed','processing'].includes(j.status);$('reviewMsg').textContent=`状态：${labels[j.status]||j.status}`;$('review').scrollIntoView({behavior:'smooth',block:'start'});
+    }catch(err){alert(err.message)}
+  }
+  function draft(){return{sermon_date:$('rDate').value,speaker:$('rSpeaker').value,scripture:$('rScripture').value,title_zh:$('rTitleZh').value,title_nl:$('rTitleNl').value,summary_zh:$('rSummaryZh').value,summary_nl:$('rSummaryNl').value,article_zh:$('rArticleZh').value,article_nl:$('rArticleNl').value}}
+  $('saveDraft').onclick=async()=>{if(!selectedId)return;const m=$('reviewMsg');m.textContent='保存中…';try{await parse(await fetch(`/api/media/jobs/${encodeURIComponent(selectedId)}`,{method:'PATCH',headers:headers(true),body:JSON.stringify(draft())}));m.textContent='修改已保存';m.className='msg ok';await loadJobs()}catch(err){m.textContent=err.message;m.className='msg warn'}};
+  $('publish').onclick=async()=>{if(!selectedId)return;if(!confirm('确认把这篇文章发布到教会网站？'))return;const m=$('reviewMsg');m.textContent='发布中…';try{await parse(await fetch(`/api/media/jobs/${encodeURIComponent(selectedId)}`,{method:'PATCH',headers:headers(true),body:JSON.stringify(draft())}));const b=await parse(await fetch(`/api/media/jobs/${encodeURIComponent(selectedId)}/publish`,{method:'POST',headers:headers(true),body:'{}'}));m.textContent=`已发布：${b.sermon_id}`;m.className='msg ok';$('publish').disabled=true;await loadJobs()}catch(err){m.textContent=err.message;m.className='msg warn'}};
+  $('retry').onclick=async()=>{if(!selectedId)return;const m=$('reviewMsg');m.textContent='重新排队…';try{await parse(await fetch(`/api/media/jobs/${encodeURIComponent(selectedId)}/retry`,{method:'POST',headers:headers(true),body:'{}'}));m.textContent='已重新进入队列';m.className='msg ok';await loadJobs();await openJob(selectedId)}catch(err){m.textContent=err.message;m.className='msg warn'}};
+  function formatSize(n){n=Number(n||0);if(!n)return '大小未知';if(n<1024*1024)return `${Math.round(n/1024)} KB`;return `${(n/1024/1024).toFixed(1)} MB`}
+  function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+  function formatUncertain(v){if(!v)return '无';try{const a=JSON.parse(v);return Array.isArray(a)&&a.length?a.map((x,i)=>`${i+1}. ${x}`).join('\n'):'无'}catch{return v}}
+  loadJobs();setInterval(()=>{if(document.visibilityState==='visible')loadJobs()},15000);
+})();
+</script>
+</body>
+</html>
