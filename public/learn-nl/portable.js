@@ -144,12 +144,30 @@ async function initServiceWorker(){
   catch (error) { console.warn('Learn NL service worker unavailable.', error); }
 }
 
+function initOpenTaalLayer(){
+  if (!document.querySelector('link[data-opentaal-spell]')) {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = './opentaal-spell.css?v=1';
+    link.dataset.opentaalSpell = '1';
+    document.head.appendChild(link);
+  }
+  import('./opentaal-spell.js?v=1').catch(error => console.warn('OpenTaal spelling layer unavailable.', error));
+}
+
+function markVersion(){
+  const footer = document.querySelector('.learn-footer .zh-help');
+  if (footer) footer.textContent = '为在荷兰生活的中文用户制作 · v0.6 preview';
+}
+
 function init(){
   injectPortable();
   initBackup();
   initNetwork();
   initInstall();
   initServiceWorker();
+  initOpenTaalLayer();
+  markVersion();
 }
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, {once:true});
