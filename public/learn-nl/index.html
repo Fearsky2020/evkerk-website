@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f6f2ea">
+  <meta name="description" content="面向在荷兰生活的中文用户的实用荷兰语学习工具：每日一句、生活场景、发音、词汇与小测验。">
+  <title>荷兰语学习 · Nederlands leren | Evangeliekerk</title>
+  <link rel="stylesheet" href="./styles.css?v=1">
+</head>
+<body>
+  <header class="learn-header">
+    <a class="learn-brand" href="/" aria-label="返回福音教会首页">
+      <span class="brand-mark" aria-hidden="true">✦</span>
+      <span class="brand-copy">
+        <strong>荷兰语学习</strong>
+        <small>NEDERLANDS LEREN</small>
+      </span>
+    </a>
+    <div class="header-actions">
+      <button class="icon-btn" id="assistToggle" type="button" aria-pressed="false" title="切换中文辅助">中</button>
+      <button class="icon-btn" id="themeToggle" type="button" aria-label="切换明暗模式">☾</button>
+      <a class="home-link" href="/">教会首页</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero shell" id="today">
+      <div class="hero-copy">
+        <p class="eyebrow">DUTCH FOR REAL LIFE</p>
+        <h1>今天学一点，<br><span>马上就能用。</span></h1>
+        <p class="hero-lead zh-help">不从枯燥语法表开始。先学你在超市、诊所、市政府、邻居和电话里真的会说到的荷兰语。</p>
+        <div class="hero-pills" aria-label="功能概览">
+          <span>🔊 荷兰语发音</span>
+          <span>🧩 场景学习</span>
+          <span>✓ 本机记录进度</span>
+        </div>
+      </div>
+
+      <article class="daily-card" aria-labelledby="dailyTitle">
+        <div class="daily-top">
+          <div>
+            <p class="eyebrow">ZIN VAN VANDAAG</p>
+            <h2 id="dailyTitle">每日一句</h2>
+          </div>
+          <span class="day-badge" id="dailyIndex">01</span>
+        </div>
+        <p class="daily-dutch" id="dailyDutch">Goedemorgen! Hoe gaat het?</p>
+        <p class="daily-cn zh-help" id="dailyChinese">早上好！你好吗？</p>
+        <p class="daily-note zh-help" id="dailyNote">非常常用的日常问候。熟人之间也常直接说 “Alles goed?”</p>
+        <div class="daily-actions">
+          <button class="btn primary" id="dailySpeak" type="button">▶ 正常语速</button>
+          <button class="btn secondary" id="dailySlow" type="button">🐢 慢速</button>
+          <button class="btn ghost" id="dailyMaster" type="button">○ 我会了</button>
+        </div>
+      </article>
+    </section>
+
+    <section class="progress-strip shell" id="progress">
+      <div class="progress-copy">
+        <span class="progress-icon">↗</span>
+        <div>
+          <strong id="progressTitle">今天继续一点点</strong>
+          <p class="zh-help">进度只保存在你当前这台设备里，不需要注册账号。</p>
+        </div>
+      </div>
+      <div class="progress-stats">
+        <div><strong id="masteredCount">0</strong><span class="zh-help">已掌握</span></div>
+        <div><strong id="bestScore">—</strong><span class="zh-help">测验最佳</span></div>
+        <div><strong id="visitedCount">1</strong><span class="zh-help">学习场景</span></div>
+      </div>
+    </section>
+
+    <section class="section shell" id="scenes">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">KIES EEN SITUATIE</p>
+          <h2>你今天要去哪里？</h2>
+        </div>
+        <p class="zh-help">先选真实场景，再记句子。每个场景只放最常用、最值得先学的表达。</p>
+      </div>
+      <div class="scene-grid" id="sceneGrid" aria-label="荷兰语生活场景"></div>
+    </section>
+
+    <section class="lesson-section" id="lesson">
+      <div class="shell">
+        <div class="lesson-heading">
+          <div>
+            <p class="eyebrow" id="lessonEyebrow">BOODSCHAPPEN</p>
+            <h2 id="lessonTitle">在超市</h2>
+            <p class="zh-help" id="lessonIntro">先学问位置、价格和结账时最常见的句子。</p>
+          </div>
+          <button class="btn secondary compact" id="practiceAll" type="button">🔊 连续听一遍</button>
+        </div>
+
+        <div class="lesson-layout">
+          <div>
+            <div class="block-title">
+              <h3>实用短句</h3>
+              <span class="zh-help">点喇叭就能听</span>
+            </div>
+            <div class="phrase-list" id="phraseList"></div>
+          </div>
+
+          <aside class="vocab-card">
+            <p class="eyebrow">WOORDEN</p>
+            <h3>这个场景先记这些词</h3>
+            <div class="vocab-list" id="vocabList"></div>
+            <p class="micro zh-help">提示：不用一次背完。先能听懂、敢开口，比“背全”更重要。</p>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section class="section shell" id="quiz">
+      <div class="quiz-card">
+        <div class="quiz-intro" id="quizIntro">
+          <p class="eyebrow">SNELLE QUIZ</p>
+          <h2>来五题，看看刚才记住多少。</h2>
+          <p class="zh-help">题目从生活短句里随机抽取。答错没关系，点答案后会直接显示正确意思。</p>
+          <button class="btn primary" id="quizStart" type="button">开始 5 题</button>
+        </div>
+        <div class="quiz-body" id="quizBody" hidden>
+          <div class="quiz-meta"><strong id="quizStep">1 / 5</strong><span id="quizScore">0 分</span></div>
+          <div class="quiz-progress"><span id="quizProgressBar"></span></div>
+          <p class="quiz-label zh-help" id="quizPromptLabel">这句荷兰语是什么意思？</p>
+          <h3 class="quiz-question" id="quizQuestion"></h3>
+          <div class="quiz-options" id="quizOptions"></div>
+          <p class="quiz-feedback zh-help" id="quizFeedback" aria-live="polite"></p>
+          <button class="btn primary quiz-next" id="quizNext" type="button" hidden>下一题</button>
+        </div>
+        <div class="quiz-result" id="quizResult" hidden>
+          <p class="eyebrow">KLAAR!</p>
+          <strong class="result-score" id="resultScore">0 / 5</strong>
+          <h3 id="resultTitle">不错，继续来一点。</h3>
+          <p class="zh-help" id="resultText">把不熟的句子再听一遍，下一轮会明显轻松。</p>
+          <button class="btn primary" id="quizRetry" type="button">再来 5 题</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="section shell church-dutch" id="churchDutch">
+      <div class="section-heading compact-heading">
+        <div>
+          <p class="eyebrow">IN DE KERK</p>
+          <h2>教会里也会用到的荷兰语</h2>
+        </div>
+        <p class="zh-help">这是特色栏目，不影响普通生活学习。以后可以加入圣经短句、祷告、敬拜和与荷兰弟兄姐妹聊天。</p>
+      </div>
+      <div class="church-grid">
+        <button class="church-phrase" type="button" data-speak="Welkom in onze kerk."><span>Welkom in onze kerk.</span><small class="zh-help">欢迎来到我们的教会。</small><b>🔊</b></button>
+        <button class="church-phrase" type="button" data-speak="Zullen we samen bidden?"><span>Zullen we samen bidden?</span><small class="zh-help">我们一起祷告好吗？</small><b>🔊</b></button>
+        <button class="church-phrase" type="button" data-speak="De dienst begint om tien uur."><span>De dienst begint om tien uur.</span><small class="zh-help">聚会十点开始。</small><b>🔊</b></button>
+      </div>
+    </section>
+
+    <section class="future-section">
+      <div class="shell future-card">
+        <div>
+          <p class="eyebrow">VOLGENDE STAP</p>
+          <h2>以后，这里会变成你的荷兰语陪练。</h2>
+          <p class="zh-help">自然 TTS、跟读评分、AI 语法修正、情景对话和跨设备学习进度都会以独立接口接入，不需要改动现有 Church Ops。</p>
+        </div>
+        <div class="future-tags" aria-label="未来能力">
+          <span>TTS 自然语音</span><span>ASR 跟读</span><span>司南陪练</span><span>AI 语法修正</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="bottom-nav" aria-label="学习页面导航">
+    <a href="#today"><span>☀</span><small>今天</small></a>
+    <a href="#scenes"><span>▦</span><small>场景</small></a>
+    <a href="#quiz"><span>✓</span><small>测验</small></a>
+    <a href="#progress"><span>↗</span><small>进度</small></a>
+  </nav>
+
+  <footer class="learn-footer shell">
+    <a href="/">← 返回 Evangeliekerk</a>
+    <p class="zh-help">为在荷兰生活的中文用户制作 · v0.1</p>
+  </footer>
+
+  <script src="./app.js?v=1"></script>
+</body>
+</html>
