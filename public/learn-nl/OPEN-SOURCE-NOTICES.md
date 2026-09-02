@@ -8,17 +8,18 @@ This module intentionally keeps third-party learning libraries and media separat
 - **ts-fsrs 5.4.1** — FSRS spaced-repetition scheduler — MIT — https://github.com/open-spaced-repetition/ts-fsrs
 - **wavesurfer.js 7.12.11** — audio waveform and microphone recording UI — BSD-3-Clause — https://github.com/katspaugh/wavesurfer.js
 
-The smart-practice preview loads these pinned browser modules from jsDelivr. A later production-hardening pass may vendor/self-host the exact pinned builds after integrity and bundle-size checks.
-
-`ts-fsrs` is used both for built-in lesson review and for the local notebook learning loop. Notebook review state is stored locally under a separate `learn-nl-*` key so it remains included in the existing JSON backup/export flow. This does not require an account, D1, a paid API, or a server-side sync service.
+The smart-practice preview loads these pinned browser modules from jsDelivr. The service worker caches successfully loaded jsDelivr modules for later offline use. No paid API is used by the local daily planner; it only reads existing local FSRS, notebook and weekly-task state.
 
 ## Dutch lexical data
 
-- **OpenTaal/opentaal-wordlist** — Dutch word list — available under Revised BSD (3-clause) and/or CC BY 3.0.
-- Upstream version marker currently used for this integration: **2.20.23**, dated **2023-03-10**.
-- Source file used at runtime: `elements/corrections.tsv` (about 288 KB; upstream documentation describes about 16,000 misspelled forms with suggested corrections).
+- **OpenTaal/opentaal-wordlist** — Dutch word list — Revised BSD (3-clause) and/or CC BY 3.0.
+- Upstream file version recorded by OpenTaal: **2.20.23 — 2023-03-10**.
+- The complete `wordlist.txt` is about 5 MB and contains more than 400,000 entries.
+- This preview deliberately does **not** ship the full list to mobile clients.
+- The spelling helper lazily fetches only `elements/corrections.tsv` (about 288 KB; OpenTaal documents about 16,000 misspelled forms with suggested corrections).
+- After a successful fetch, the corrections file is stored in the browser Cache API for later reuse. If it is unavailable, normal lesson/Fuse search still works.
 
-The complete OpenTaal word list is approximately 5 MB and contains more than 400,000 words. This learning page intentionally does **not** load the complete list on mobile. The spelling helper lazily requests only `corrections.tsv` when a Dutch-looking query is entered, caches a successful copy in the browser, and gracefully falls back to the built-in lesson/Fuse search if the resource is unavailable.
+Source: https://github.com/OpenTaal/opentaal-wordlist
 
 ## Easy Dutch / Easy Languages
 
@@ -26,7 +27,7 @@ Easy Dutch videos remain third-party copyrighted media owned/published by Easy D
 
 The module does **not** copy, download, extract, re-host, or redistribute Easy Dutch video/audio, member transcripts, exercises, or other paid learning materials. Our Chinese study prompts and learning workflow beside the player are original to this site.
 
-Selected public videos in v0.3:
+Selected public videos:
 
 - `jSyrqH_MMOM` — 100 Words You Should Know When Coming to the Netherlands
 - `iA61Z0BAI90` — Small Talk (in Slow Dutch)
