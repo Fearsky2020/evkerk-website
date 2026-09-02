@@ -2,7 +2,7 @@
 
 _Last updated: 2026-09-02_
 
-This board records the current church website work and the boundaries with related church projects. It is intentionally operational: finish the active publication pipeline first, and do not let new ideas interrupt the current live validation.
+This board records the current church website work plus the boundaries/status of closely related projects that originated around the EVKERK work. It is intentionally operational: finish the active publication pipeline first, keep product ownership explicit, and do not let new ideas accidentally collapse back into one repository.
 
 ## P0 — ACTIVE: Sinan church publishing automation
 
@@ -60,7 +60,7 @@ Near-term priorities:
 
 ## NEW CHURCH PROJECT — Scripture Cards / 经文卡
 
-**Status:** registered, not started in this repository.
+**Status:** registered; independent project not yet created as its own repository.
 
 **Ownership:** belongs under **Church Work / 教会工作**, but is a peer project to the church website, not a normal `evkerk-website` feature folder.
 
@@ -99,9 +99,58 @@ Create an independent mobile-first Scripture Cards product that can later suppor
 - Confirm Bible-translation licensing/copyright for Chinese and Dutch text before bulk ingestion.
 - Define the MVP and verse data schema.
 
-## SEPARATED PRODUCT: TAALVIA
+## INDEPENDENT PRODUCT — TAALVIA Dutch Learning
 
-TAALVIA has become an independent product/repository/domain and should not be re-expanded inside the church website project. Any remaining historical `learn-nl` productization tracker in this repository should be treated as migration/cleanup context, not as the current EVKERK website development priority.
+**Repository:** `Fearsky2020/taalvia`
+
+**Status:** repository exists and has been separated from EVKERK. TAALVIA is now its own Dutch-learning product and must not be re-expanded inside `evkerk-website`.
+
+**Canonical product structure**
+
+- `/` — TAALVIA home
+- `/learn/` — **TAALVIA Learn**: main Dutch-learning experience
+- `/lock/` — **TAALVIA Lock**: lock-screen / quick vocabulary-card experience
+- `/shared/` — shared learner content, state and quota logic
+
+**Important:** TAALVIA Learn and TAALVIA Lock are **one learning system**, not two competing standalone prototypes. They share canonical vocabulary/content identity, learner level, progress, known/hard state and daily-new quota.
+
+**Current product rules / implementation**
+
+- Free users may introduce up to 20 new words/cards/learning contents per local day across Learn + Lock together.
+- Due review does not consume a new-content slot.
+- Same canonical content counts once even when reached from multiple modules.
+- Current stack is Cloudflare Worker + static assets + plain HTML/CSS/JS.
+- Learning state is currently local-first/browser based.
+- FSRS, Fuse.js, OpenTaal, WaveSurfer and browser Dutch TTS are already part of the planned/current stack.
+- Installable PWA/offline support is part of the current product.
+- Production deployment must remain gated behind standalone preview/smoke tests and real-device validation.
+
+**Domain/product boundary**
+
+- Canonical domain: `taalvia.nl`.
+- TAALVIA data/accounts must remain separated from church/member data.
+- The old `evkerk.nl/learn-nl/` material is migration/history context only.
+- EVKERK may later link/referral-route to TAALVIA, but should not own its runtime/product state.
+
+## TAALVIA LOCK — 单词卡 / 锁屏学习
+
+**Status:** already created as a first-class TAALVIA module at `/lock/`; do not create a separate competing repository unless architecture is deliberately changed later.
+
+**Product intent**
+
+- Mobile-first quick vocabulary cards.
+- Every visit/unlock-style interaction can surface a different Dutch word/card.
+- Shares the same vocabulary identity and progress with TAALVIA Learn.
+- Suitable for PWA/home-screen use now; native lock-screen/widget integration can be explored later.
+- Future Android experiments may use the spare Android device, but basic learning must not depend on a native app.
+
+**Next validation focus**
+
+- Real-phone layout and PWA behavior.
+- Rotation/random-card behavior without breaking spaced repetition state.
+- Shared Learn/Lock daily quota and progress consistency.
+- Offline/fallback behavior.
+- Decide later whether native Android widget/lock-screen integration provides enough benefit to justify an app shell.
 
 ## Current priority order
 
@@ -109,8 +158,9 @@ TAALVIA has become an independent product/repository/domain and should not be re
 2. Connect the real Google Calendar write executor.
 3. Validate sermon/media automation with real church material.
 4. Keep the main EVKERK site stable and bilingual.
-5. Start Scripture Cards in its own project/repository when a separate work conversation is opened.
+5. Continue TAALVIA standalone preview/real-device validation, including TAALVIA Lock.
+6. Start Scripture Cards in its own project/repository when its separate work conversation is opened.
 
 ## Rule for future work conversations
 
-When a new church project appears, record its relationship here, but do not automatically implement it inside `evkerk-website`. Keep project ownership, repositories and deployment boundaries explicit so multiple conversations/agents do not edit the same system blindly.
+When a new project appears, record its relationship here, but do not automatically implement it inside `evkerk-website`. Keep project ownership, repositories, shared-state rules and deployment boundaries explicit so multiple conversations/agents do not edit the same system blindly.
