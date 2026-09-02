@@ -59,6 +59,26 @@ function Get-GatewayProcesses {
   })
 }
 
+function Get-RuntimeGatewayProcesses([string]$RuntimeRoot) {
+  $needle = (Join-Path $RuntimeRoot "scripts\sinan_qq_gateway.py").ToLowerInvariant()
+  return @(Get-CimInstance Win32_Process | Where-Object {
+    if (-not $_.CommandLine) { return $false }
+    $line = $_.CommandLine.ToLowerInvariant().Replace('/', '\')
+    return $line.Contains($needle)
+  })
+}
+
+function Get-LogicalGatewayRoots([object[]]$Processes) {
+  if (-not $Processes -or $Processes.Count -eq 0) { return @() }
+  $ids = @{}
+  foreach ($proc in $Processes) {
+    $ids[[int]$proc.ProcessId] = $true
+  }
+  return @($Processes | Where-Object {
+    -not $ids.ContainsKey([int]$_.ParentProcessId)
+  })
+}
+
 function Stop-Gateway([string]$Name) {
   Stop-ScheduledTask -TaskName $Name -ErrorAction SilentlyContinue
   Start-Sleep -Seconds 2
@@ -69,15 +89,18 @@ function Stop-Gateway([string]$Name) {
 }
 
 function Wait-RuntimeGateway([string]$RuntimeRoot, [int]$TimeoutSeconds = 45) {
-  $needle = (Join-Path $RuntimeRoot "scripts\sinan_qq_gateway.py").ToLowerInvariant()
   $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
   do {
-    $matches = @(Get-CimInstance Win32_Process | Where-Object {
-      if (-not $_.CommandLine) { return $false }
-      $line = $_.CommandLine.ToLowerInvariant().Replace('/', '\')
-      return $line.Contains($needle)
-    })
-    if ($matches.Count -eq 1) { return $true }
+    $matches = @(Get-RuntimeGatewayProcesses $RuntimeRoot)
+    $logicalRoots = @(Get-LogicalGatewayRoots $matches)
+    if ($logicalRoots.Count -eq 1) {
+      Write-Host "Runtime gateway healthy: physical_processes=$($matches.Count) logical_gateways=1" -ForegroundColor Green
+      return $true
+    }
+    if ($logicalRoots.Count -gt 1) {
+      Write-Host "Multiple independent QQ gateway roots detected: $($logicalRoots.Count)" -ForegroundColor Red
+      return $false
+    }
     Start-Sleep -Seconds 1
   } while ((Get-Date) -lt $deadline)
   return $false
@@ -257,6 +280,8 @@ try {
     throw "RUNTIME_GATEWAY_HEALTHCHECK_FAILED:LastTaskResult=$($info.LastTaskResult)"
   }
 
+  $runtimeProcesses = @(Get-RuntimeGatewayProcesses $runtimeRoot)
+  $logicalGateways = @(Get-LogicalGatewayRoots $runtimeProcesses)
   $info = Get-ScheduledTaskInfo -TaskName $TaskName
   Write-Host ""
   Write-Host "STATUS=PASS" -ForegroundColor Green
@@ -264,7 +289,8 @@ try {
   Write-Host "PROJECT_ROOT=$projectRoot"
   Write-Host "RUNTIME_ROOT=$runtimeRoot"
   Write-Host "PROJECT_WORKTREE_TOUCHED=NO"
-  Write-Host "GATEWAY_PROCESS_COUNT=$((Get-GatewayProcesses).Count)"
+  Write-Host "GATEWAY_PHYSICAL_PROCESS_COUNT=$($runtimeProcesses.Count)"
+  Write-Host "GATEWAY_LOGICAL_COUNT=$($logicalGateways.Count)"
   Write-Host "LAST_TASK_RESULT=$($info.LastTaskResult)"
   Write-Host "LIVE SINAN QQ UPDATE PASSED." -ForegroundColor Green
   Write-Host "Now test the church announcement flow in private QQ."
