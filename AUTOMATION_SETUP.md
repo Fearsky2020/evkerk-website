@@ -14,9 +14,17 @@ The public website reads:
 
 The Sinan control plane uses authenticated `/api/sinan/*` endpoints. The manual `/admin/` page remains a backup/failsafe interface.
 
-## Fastest one-time deployment
+## Fastest one-time deployment on the church PC
 
-On a Windows machine with Node.js and Git installed, clone/open this repository, then run from the repository root:
+The church PC already has the existing scheduled QQ gateway task. From the `evkerk-website` repository root, run:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\deploy-on-church-pc.ps1
+```
+
+This wrapper detects the SINAN root from the existing `Sinan_QQ_Gateway` scheduled task, then calls the Cloudflare bootstrap. It does **not** start a second QQ bot and does **not** kill unrelated Python processes. After successful wiring it restarts only `Sinan_QQ_Gateway` so the existing process loads the new endpoint/token configuration.
+
+If running somewhere other than the church PC, use the lower-level command instead:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\bootstrap-cloudflare.ps1 -SinanProjectRoot "<PATH-TO-SINAN>"
@@ -166,14 +174,13 @@ The smoke test verifies:
 - unauthenticated write rejection;
 - authenticated control-plane reachability without creating durable content.
 
-## 8. Remaining one-time live wiring
+## 8. Remaining live validation
 
-After the bootstrap script succeeds:
+After `deploy-on-church-pc.ps1` succeeds:
 
-1. restart the existing QQ gateway process so it loads the endpoint/token environment;
-2. send one low-risk private QQ announcement as an end-to-end test;
-3. confirm it appears on the website and receives an operation id/audit record;
-4. test `撤销刚才那个`;
-5. then wire the dedicated Google Calendar write executor.
+1. send one low-risk private QQ announcement as an end-to-end test;
+2. confirm it appears on the website and receives an operation id/audit record;
+3. test `撤销刚才那个`;
+4. then wire the dedicated Google Calendar write executor.
 
 At that point announcements, sermons and media processing are operational from QQ. Calendar writes remain safely queued until the Calendar executor is explicitly connected.
