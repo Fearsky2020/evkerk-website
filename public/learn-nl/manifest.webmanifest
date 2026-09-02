@@ -1,12 +1,12 @@
 {
-  "name": "荷兰语学习 · Nederlands leren",
-  "short_name": "学荷兰语",
-  "description": "面向在荷兰生活的中文用户的实用荷兰语学习工具。",
-  "start_url": "/learn-nl/",
-  "scope": "/learn-nl/",
+  "name": "TAALVIA · Nederlands leren",
+  "short_name": "TAALVIA",
+  "description": "用你熟悉的语言，学在荷兰真正用得上的荷兰语。",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
-  "background_color": "#f6f2ea",
-  "theme_color": "#f6f2ea",
+  "background_color": "#f8fafc",
+  "theme_color": "#0f172a",
   "lang": "zh-CN",
   "icons": [
     {
