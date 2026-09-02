@@ -45,7 +45,7 @@ This remains a continuing workflow; real-content end-to-end validation is still 
 
 **Verified repository:** `Fearsky2020/evkerk-scripture-cards` (private; independent of `evkerk-website`).
 
-**Current verified status:** v0.1 source is committed on `main`; the first **50/50 Chinese + Dutch launch references are synchronized and promoted to the runtime dataset**. The project is still **not deployed** and has **not passed browser/real-device preview validation**.
+**Current verified status:** reviewed v0.1 source is on `main` at commit `266df97cfeb0db7d8b1b5de667b52975b4e7ef82`. The first **50/50 Chinese + Dutch launch cards are fully synchronized, presentation-cleaned and promoted into the chunked runtime dataset**. The project is still **not deployed** and has **not passed browser/real-device preview validation**.
 
 **Ownership:** Church Work / 教会工作, as a peer project to `evkerk-website`, not normal website feature code.
 
@@ -65,30 +65,44 @@ The repository contains:
 - installable PWA and offline support;
 - bilingual Chinese/Dutch core UI labels;
 - curated-plan/runtime validation scripts;
-- Midvash pinned-data importer and batch API sync script.
+- Midvash pinned-data importer and batch API sync script;
+- deterministic card-display cleanup rules in `scripts/text-cleanup.mjs`;
+- schema-v2 runtime manifest + chunk loader/writer in `scripts/runtime-dataset.mjs`.
 
 ### Curation/data status — verified
 
 - `public/data/featured-plan.json`: **50 curated references**.
-- `public/data/featured.json`: **50/50 synchronized runtime cards**.
+- `public/data/featured.json`: small schema-v2 runtime manifest/provenance file.
+- `public/data/cards-01.json` … `cards-05.json`: **50/50 synchronized Chinese + Dutch launch cards**, 10 cards per chunk.
 - Runtime and curated-plan IDs are required to match exactly.
 - Chinese translation: CUVS 1919; Dutch: De Heilige Schrift 1917; both recorded as public-domain for this launch dataset.
 - Pinned Midvash reference revision: `d9fe1779447717bbfcb578e505b893125cad581c`.
-- Synchronized bilingual source-corpus SHA-256: `1590dceca5c999cd3b8be2e427c0ef5e2487387884cdddb1f54d5663e7f5f81a`.
-- Accepted UTF-8 one-shot sync: `Fearsky2020/sinan` Actions run `33669942321` on self-hosted Windows runner `SINAN-LIVINGROOM-DESKTOP-AG066HP`.
-- Accepted artifact digest: `sha256:7634958dfe56ce508acfb008ded0befb7118f62c54e52d1260d3a085a6b8d343`.
-- Full provenance and the rejected PowerShell-encoding incident are recorded in `docs/DATA-PROVENANCE.md`.
+- Final synchronized original bilingual source-corpus SHA-256: `6aba66858bb8706cf5fac3a5752bede6729082dfd1c6831505486240c08653cc`.
+- Final full review sync: `Fearsky2020/sinan` Actions run `33676610510`; both translation batches resolved **50/50 with 0 failed**.
+- Final review artifact: `scripture-cards-review-sync-utf8`, id `9864592633`, digest `sha256:1bce6d15359eac8540c18e8906c260ac35b781f81a7854a618a7d82916916814`.
+- Full provenance, including the rejected PowerShell-encoding incident and the accepted UTF-8 raw-byte method, is recorded in `docs/DATA-PROVENANCE.md`.
+
+### Editorial presentation review — verified
+
+- CUVS editorial square brackets are removed from card display while their words remain.
+- Chinese standalone-card quotation artifacts are removed.
+- Selected Psalm/acrostic superscriptions are removed from card display where they would read like accidental verse text.
+- Embedded Statenvertaling verse markers such as `(55:23)` are removed from Dutch card display.
+- Dutch-facing references reflect Statenvertaling Psalm versification where superscriptions shift the displayed verse number: `诗篇 46:1 ↔ Psalm 46:2`, `诗篇 55:22 ↔ Psalm 55:23`, `诗篇 56:3 ↔ Psalm 56:4`.
+- `Colossians 3:23` was expanded to `Colossians 3:23–24` because verse 23 alone ended as an incomplete sentence in both launch translations; the complete 50-card corpus was then re-fetched rather than hand-patched.
+- This is **presentation/text review**, not final pastoral/context approval. Context/pastoral suitability remains a deployment gate.
 
 ### Data/cache hardening
 
-- Runtime `featured.json` is compact and does not duplicate the full raw API response.
-- `scripts/sync-midvash-api.mjs` now regenerates the compact runtime format and records a SHA-256 over original bilingual source text.
-- `scripts/check.mjs` requires exact 50/50 ID parity, public-domain licenses, matching source revision and valid provenance SHA.
-- Service Worker cache is `v2`; Scripture JSON uses network-first with offline fallback so already-installed PWAs do not stay stuck on the old 5-card cache.
+- Runtime content no longer lives in one growing JSON blob; it is a manifest plus five 10-card chunks, designed to scale toward the planned 300–500-card pool.
+- `scripts/sync-midvash-api.mjs` and the pinned repository importer both regenerate the same chunked runtime format.
+- `scripts/check.mjs` requires schema-v2 manifest integrity, declared chunks, exact 50/50 ID parity, public-domain licenses, matching source revision and valid provenance SHA.
+- Service Worker cache is `v3`; every `/data/*.json` request uses network-first with offline fallback so installed PWAs do not remain stuck on stale scripture data.
 
 ### Check/CI status
 
-- The exact promoted blobs were locally checked successfully: **50 verified cards / 50 curated refs**, plus deterministic daily verse, no-repeat random and bilingual-sharing behavior.
+- The exact final runtime set was checked locally successfully: **50 verified cards / 50 curated refs**, five chunks, exact ID parity, syntax/license/provenance guards, deterministic daily verse, no-repeat random and bilingual sharing.
+- The final GitHub `main` tree was checked after promotion: the manifest and all five chunk blobs are present with the expected SHA values, and the temporary review workflow is absent.
 - Earlier hosted Actions red runs were not code-test failures: the job had `runner_id: 0`, empty runner name and `steps: []`.
 - GitHub subsequently confirmed the account had used **2,278 / 2,000 included Actions minutes**; automatic hosted push/PR checks remain paused for this billing cycle.
 
@@ -104,7 +118,7 @@ The repository contains:
 
 ### Next gate
 
-1. Human-review the 50 launch cards for exact text presentation and pastoral suitability.
+1. Pastoral/context-review the 50 launch cards for suitability as standalone daily verses.
 2. Run a Cloudflare Worker preview.
 3. Smoke-test desktop + iPhone + Android: card rendering, random/daily, language switch, PNG, share, PWA install and offline refresh behavior.
 4. Choose final EVKERK subdomain only after preview validation.
@@ -143,7 +157,7 @@ Repository documentation records `taalvia.nl` / `taalvia.com`, Cloudflare namese
 1. EVKERK: finish the private-QQ announcement + undo live validation.
 2. EVKERK: connect Google Calendar write executor after that path is proven.
 3. EVKERK: validate sermon/media automation with real material.
-4. Scripture Cards: human-review the synchronized 50-card corpus, then Worker preview and real-device smoke tests.
+4. Scripture Cards: pastoral/context-review the 50-card corpus, then Worker preview and real-device smoke tests.
 5. TAALVIA: run repository checks/preview and smoke-test `/`, `/learn/`, `/lock/`.
 6. TAALVIA Lock: decide later whether true unlock-trigger behavior warrants a native Android component/widget.
 
