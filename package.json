@@ -3,7 +3,8 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
-    "deploy": "wrangler deploy",
+    "check": "node --check src/worker.js && node --check src/sinan-ops.js && node --check src/media-ingest.js && node --check public/app.js && node --check public/auto-content.js",
+    "deploy": "npm run check && wrangler deploy",
     "dev": "wrangler dev"
   },
   "devDependencies": {
