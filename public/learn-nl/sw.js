@@ -1,4 +1,4 @@
-const CACHE = 'learn-nl-v0.6-core';
+const CACHE = 'learn-nl-v0.7-core';
 const CORE = [
   './',
   './index.html',
@@ -8,12 +8,16 @@ const CORE = [
   './weekly-practice.css?v=1',
   './portable.css?v=1',
   './opentaal-spell.css?v=1',
+  './learning-loop.css?v=1',
+  './daily-plan.css?v=1',
   './app.js?v=1',
   './practice.js?v=2',
   './smart-tools.js?v=1',
   './weekly-practice.js?v=1',
   './portable.js?v=1',
   './opentaal-spell.js?v=1',
+  './learning-loop.js?v=1',
+  './daily-plan.js?v=1',
   './manifest.webmanifest',
   './icon.svg'
 ];
