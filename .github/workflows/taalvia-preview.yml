@@ -31,7 +31,7 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: npx --yes wrangler@4 deploy --config wrangler.jsonc
 
-      - name: Smoke-test brand homepage, learning app, Lock and private exclusions
+      - name: Smoke-test TAALVIA learning app and Lock
         shell: bash
         run: |
           set -euo pipefail
@@ -51,27 +51,28 @@ jobs:
               sleep 3
             done
             echo "Timed out waiting for $url to contain: $marker"
-            echo '--- response preview ---'
             head -c 500 "$output" || true
             exit 1
           }
 
           wait_for_marker "$base/" '轻松学荷兰语' /tmp/taalvia-home.html
           grep -q 'TAALVIA' /tmp/taalvia-home.html
-          wait_for_marker "$base/home.css?v=1" 'hero-visual' /tmp/taalvia-home.css
           wait_for_marker "$base/learn/" 'portable.js' /tmp/taalvia-learn.html
           wait_for_marker "$base/learn/manifest.webmanifest" 'TAALVIA' /tmp/taalvia-manifest.json
 
-          wait_for_marker "$base/lock/" 'logo-horizontal.svg' /tmp/taalvia-lock.html
-          grep -q '听发音' /tmp/taalvia-lock.html
-          grep -q 'speech.js?v=1' /tmp/taalvia-lock.html
-          wait_for_marker "$base/logo-horizontal.svg" 'LEER NEDERLANDS. VERBIND WERELDEN.' /tmp/taalvia-logo.svg
-          wait_for_marker "$base/lock/brand-fix.css?v=1" 'brand-horizontal' /tmp/taalvia-lock-brand.css
+          wait_for_marker "$base/lock/" '免费版一天最多刷 20 个' /tmp/taalvia-lock.html
+          grep -q 'logo-approved.svg' /tmp/taalvia-lock.html
+          grep -q 'dailyGoal' /tmp/taalvia-lock.html
+          if grep -q 'speech.js' /tmp/taalvia-lock.html || grep -q '听发音' /tmp/taalvia-lock.html; then
+            echo 'Low-quality browser TTS unexpectedly present in Lock UI'
+            exit 1
+          fi
+          wait_for_marker "$base/logo-approved.svg" 'TAALVIA' /tmp/taalvia-logo.svg
           wait_for_marker "$base/lock/manifest.webmanifest" 'TAALVIA Lock' /tmp/taalvia-lock-manifest.json
-          wait_for_marker "$base/lock/sw.js" 'taalvia-lock-v0.3' /tmp/taalvia-lock-sw.js
-          wait_for_marker "$base/lock/lock.js?v=1" 'WORDS_PER_DAY = 3' /tmp/taalvia-lock-js.js
-          wait_for_marker "$base/lock/speech.js?v=1" 'SpeechSynthesisUtterance' /tmp/taalvia-lock-speech.js
-          wait_for_marker "$base/lock/lock.css?v=3" 'xlong-word' /tmp/taalvia-lock-css.css
+          wait_for_marker "$base/lock/sw.js" 'taalvia-lock-v0.5' /tmp/taalvia-lock-sw.js
+          wait_for_marker "$base/lock/lock-v2.js?v=1" 'FREE_DAILY_MAX = 20' /tmp/taalvia-lock-js.js
+          grep -q 'DEFAULT_DAILY_GOAL = 20' /tmp/taalvia-lock-js.js
+          wait_for_marker "$base/lock/daily-limit.css?v=1" 'daily-goal-control' /tmp/taalvia-lock-goal.css
 
           for hidden_path in 'BRAND-BRIEF.md' '.wrangler/cache/wrangler-account.json' 'wrangler.jsonc' 'router.js'; do
             code="$(curl -sS -o /dev/null -w '%{http_code}' "$base/$hidden_path")"
