@@ -1,4 +1,5 @@
 import { handleSinanApi } from './sinan-ops.js';
+import { handleMediaApi } from './media-ingest.js';
 
 const TZ = 'Europe/Amsterdam';
 
@@ -98,7 +99,8 @@ async function listSermons(env) {
   return queryAll(
     env,
     `SELECT id, sermon_date, title_zh, title_nl, speaker, scripture,
-            summary_zh, summary_nl, youtube_url, audio_url, transcript_url, published_at
+            summary_zh, summary_nl, article_zh, article_nl,
+            youtube_url, audio_url, transcript_url, media_job_id, published_at
        FROM sermons
       WHERE status = 'published'
       ORDER BY sermon_date DESC, published_at DESC
@@ -254,9 +256,17 @@ async function syncCalendar(env) {
 }
 
 async function handleApi(request, env, url) {
+  const mediaResponse = await handleMediaApi(request, env, url);
+  if (mediaResponse) return mediaResponse;
   if (url.pathname.startsWith('/api/sinan/')) return handleSinanApi(request, env, url);
   if (request.method === 'GET' && url.pathname === '/api/health') {
-    return json({ ok: true, db: Boolean(env.DB), calendar: Boolean(env.CHURCH_CALENDAR_ICS_URL), sinan: Boolean(env.SINAN_TOKEN) });
+    return json({
+      ok: true,
+      db: Boolean(env.DB),
+      media: Boolean(env.MEDIA),
+      calendar: Boolean(env.CHURCH_CALENDAR_ICS_URL),
+      sinan: Boolean(env.SINAN_TOKEN),
+    });
   }
   if (request.method === 'GET' && url.pathname === '/api/events') return json({ ok: true, events: await listEvents(env) });
   if (request.method === 'GET' && url.pathname === '/api/sermons') return json({ ok: true, sermons: await listSermons(env) });
