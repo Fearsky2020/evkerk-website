@@ -84,28 +84,6 @@ Chinese support-language line:
 
 The generated TAALVIA identity board shown and approved in the working session is the visual baseline for future design work.
 
-### Visual lock
-
-This identity is **locked by user decision**. Do not casually redesign, restyle, recolour, replace or reinterpret the TAALVIA logo or core visual system in future work.
-
-Unless the user explicitly requests a redesign, all future TAALVIA work must preserve:
-- the approved blue-to-teal rounded symbol
-- the green lower directional accent
-- the green circular upper-right accent
-- the dark-navy geometric `TAALVIA` wordmark character
-- the approved blue / teal-green / navy visual family
-- the overall clean, modern-European, institutional-but-friendly tone
-
-Permitted changes without a redesign decision are only implementation adaptations, such as:
-- responsive sizing
-- horizontal vs compact lockup
-- dark/light/reversed/monochrome variants
-- favicon/PWA/icon simplification that keeps the same recognisable symbol
-- accessibility-driven contrast adjustments that preserve the identity
-- print or export technical adjustments
-
-Do **not** introduce a materially different logo concept, mascot, icon family, colour identity, font personality, or brand motif simply because a new page or campaign is being designed. If a future design appears to require a major visual change, stop and ask for explicit approval first.
-
 Core mark:
 - rounded abstract `T` / speech-bubble / route symbol
 - blue-to-teal primary shape
@@ -157,6 +135,10 @@ Future outputs should follow this baseline unless an explicit redesign decision 
 - partner one-pagers
 - business cards / stationery
 - future paid-product pages
+
+### Visual lock
+
+The approved TAALVIA identity is locked. Do not replace the logo, primary palette, wordmark character or icon system unless the product owner explicitly approves a redesign. Future work may adapt the same identity for light/dark, horizontal/compact, favicon/PWA and other format needs, but should not invent a new visual system.
 
 Do not drift into:
 - Dutch-flag red/white/blue as the main identity
