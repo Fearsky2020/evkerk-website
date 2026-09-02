@@ -73,14 +73,22 @@ if (-not $dbId) {
 Write-Host "D1 UUID: $dbId" -ForegroundColor Green
 
 Write-Host "[4/9] Creating or reusing R2 media bucket..." -ForegroundColor Yellow
+$r2Available = $false
 try {
-  Invoke-Wrangler "r2 bucket create $MediaBucket" | Out-Null
-} catch {
-  $r2List = Invoke-Wrangler "r2 bucket list"
-  if ($r2List -notmatch [regex]::Escape($MediaBucket)) {
-    throw "R2 bucket '$MediaBucket' could not be created or found."
+  try {
+    Invoke-Wrangler "r2 bucket create $MediaBucket" | Out-Null
+    $r2Available = $true
+  } catch {
+    $r2List = Invoke-Wrangler "r2 bucket list"
+    if ($r2List -match [regex]::Escape($MediaBucket)) {
+      $r2Available = $true
+      Write-Host "R2 bucket already exists: $MediaBucket" -ForegroundColor Green
+    }
   }
-  Write-Host "R2 bucket already exists: $MediaBucket" -ForegroundColor Green
+} catch {
+  Write-Host "WARNING: R2 is not available in this Cloudflare account right now." -ForegroundColor Yellow
+  Write-Host "Continuing without MEDIA storage. Website, QQ announcements, calendar metadata and sermon text can still deploy." -ForegroundColor Yellow
+  Write-Host "Audio/photo uploads will remain disabled until R2 is enabled and rebound later." -ForegroundColor Yellow
 }
 
 Write-Host "[5/9] Updating wrangler.toml bindings..." -ForegroundColor Yellow
@@ -94,11 +102,15 @@ $bindings = @"
 binding = "DB"
 database_name = "$DatabaseName"
 database_id = "$dbId"
+"@
+if ($r2Available) {
+  $bindings += @"
 
 [[r2_buckets]]
 binding = "MEDIA"
 bucket_name = "$MediaBucket"
 "@
+}
 $toml = $toml.TrimEnd() + $bindings + "`n"
 Set-Content -Path $tomlPath -Value $toml -Encoding utf8
 
@@ -147,7 +159,11 @@ if ($endpoint -and (Test-Path "scripts/smoke-test.ps1")) {
 Write-Host ""
 Write-Host "EVKERK bootstrap complete." -ForegroundColor Green
 Write-Host "D1: $DatabaseName ($dbId)"
-Write-Host "R2: $MediaBucket"
+if ($r2Available) {
+  Write-Host "R2: $MediaBucket" -ForegroundColor Green
+} else {
+  Write-Host "R2: unavailable/skipped (media uploads disabled for now)" -ForegroundColor Yellow
+}
 if ($endpoint) {
   Write-Host "Worker: $endpoint"
   Write-Host "QQ gateway endpoint was configured when -SinanProjectRoot was provided."
