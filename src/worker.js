@@ -114,8 +114,8 @@ async function listAnnouncements(env) {
     `SELECT id, title_zh, title_nl, body_zh, body_nl, starts_at, ends_at, priority, published_at
        FROM announcements
       WHERE status = 'published'
-        AND (starts_at IS NULL OR starts_at <= datetime('now'))
-        AND (ends_at IS NULL OR ends_at >= datetime('now'))
+        AND (starts_at IS NULL OR datetime(starts_at) <= datetime('now'))
+        AND (ends_at IS NULL OR datetime(ends_at) >= datetime('now'))
       ORDER BY priority DESC, published_at DESC
       LIMIT 12`,
   );
