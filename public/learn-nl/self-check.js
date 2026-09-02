@@ -3,7 +3,8 @@ const SC_RUNTIME_ERRORS = [];
 
 function scDebugEnabled(){
   const params = new URLSearchParams(location.search);
-  return params.get('debug') === '1' || localStorage.getItem(SC_DEBUG_KEY) === '1';
+  try { return params.get('debug') === '1' || localStorage.getItem(SC_DEBUG_KEY) === '1'; }
+  catch (_) { return params.get('debug') === '1'; }
 }
 function scEscape(value){ return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])); }
 function scWaitFor(selector, timeout = 8000){
@@ -43,7 +44,7 @@ async function scServiceWorker(){
   } catch (error) { return scResult('PWA Service Worker','warn',error.message); }
 }
 async function scCoreAssets(){
-  const assets = ['./app.js?v=1','./practice.js?v=2','./smart-tools.js?v=1','./weekly-practice.js?v=1','./portable.js?v=1','./opentaal-spell.js?v=1','./learning-loop.js?v=1','./daily-plan.js?v=1','./weekly-review.js?v=1'];
+  const assets = ['./app.js?v=1','./practice.js?v=2','./smart-tools.js?v=1','./weekly-practice.js?v=1','./portable.js?v=1','./opentaal-spell.js?v=1','./learning-loop.js?v=1','./daily-plan.js?v=1','./weekly-review.js?v=1','./self-check.js?v=1'];
   const failed = [];
   await Promise.all(assets.map(async path => {
     try { const response = await fetch(path,{cache:'no-store'}); if (!response.ok) failed.push(`${path} ${response.status}`); }
@@ -80,7 +81,7 @@ function scInject(){
   if (!scDebugEnabled() || document.getElementById('selfCheckPanel')) return null;
   const panel = document.createElement('aside');
   panel.id = 'selfCheckPanel'; panel.className = 'self-check-panel';
-  panel.innerHTML = `<div class="self-check-head"><div><strong>Learn NL 自检</strong><span>v0.9 debug</span></div><button type="button" data-sc-close>×</button></div><div class="self-check-summary" id="scSummary">准备检查…</div><div class="self-check-list" id="scList"></div><div class="self-check-actions"><button type="button" data-sc-run>重新检查</button><button type="button" data-sc-copy>复制结果</button></div>`;
+  panel.innerHTML = `<div class="self-check-head"><div><strong>Learn NL 自检</strong><span>v0.9 debug</span></div><button type="button" data-sc-close>×</button></div><div class="self-check-summary" id="scSummary">准备检查…</div><div class="self-check-list" id="scList"></div><div class="self-check-actions"><button type="button" data-sc-run>重新检查</button><button type="button" data-sc-copy>复制结果</button><button type="button" data-sc-disable>关闭调试</button></div>`;
   document.body.appendChild(panel);
   panel.addEventListener('click', async event => {
     if (event.target.closest('[data-sc-close]')) panel.remove();
@@ -88,6 +89,10 @@ function scInject(){
     if (event.target.closest('[data-sc-copy]')) {
       const text = panel.dataset.report || '';
       try { await navigator.clipboard.writeText(text); event.target.textContent='已复制'; setTimeout(()=>event.target.textContent='复制结果',1000); } catch (_) {}
+    }
+    if (event.target.closest('[data-sc-disable]')) {
+      try { localStorage.removeItem(SC_DEBUG_KEY); } catch (_) {}
+      panel.remove();
     }
   });
   return panel;
@@ -112,7 +117,7 @@ addEventListener('unhandledrejection', event => { SC_RUNTIME_ERRORS.push(event?.
 async function initSelfCheck(){
   scMarkVersion();
   window.learnNlSelfCheck = async () => {
-    if (!scDebugEnabled()) localStorage.setItem(SC_DEBUG_KEY,'1');
+    try { localStorage.setItem(SC_DEBUG_KEY,'1'); } catch (_) {}
     const panel = scInject() || document.getElementById('selfCheckPanel');
     await scRender(panel);
     return panel?.dataset.report || '';
