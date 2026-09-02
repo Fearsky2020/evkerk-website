@@ -36,20 +36,32 @@ jobs:
         run: |
           set -euo pipefail
           base='https://taalvia-web.emsitao.workers.dev'
-          for attempt in 1 2 3 4 5; do
-            if curl -fsS "$base/" -o /tmp/taalvia-home.html; then
-              break
-            fi
-            sleep 3
-          done
-          grep -q '轻松学荷兰语' /tmp/taalvia-home.html
+
+          wait_for_marker() {
+            local url="$1"
+            local marker="$2"
+            local output="$3"
+            for attempt in {1..12}; do
+              code="$(curl -sS -o "$output" -w '%{http_code}' "$url" || true)"
+              if [ "$code" = '200' ] && grep -q "$marker" "$output"; then
+                echo "OK: $url contains $marker"
+                return 0
+              fi
+              echo "Waiting for route propagation: $url (attempt $attempt, HTTP $code)"
+              sleep 3
+            done
+            echo "Timed out waiting for $url to contain: $marker"
+            echo '--- response preview ---'
+            head -c 500 "$output" || true
+            exit 1
+          }
+
+          wait_for_marker "$base/" '轻松学荷兰语' /tmp/taalvia-home.html
           grep -q 'TAALVIA' /tmp/taalvia-home.html
-          curl -fsS "$base/home.css?v=1" -o /tmp/taalvia-home.css
-          grep -q 'hero-visual' /tmp/taalvia-home.css
-          curl -fsS "$base/learn/" -o /tmp/taalvia-learn.html
-          grep -q 'portable.js' /tmp/taalvia-learn.html
-          curl -fsS "$base/learn/manifest.webmanifest" -o /tmp/taalvia-manifest.json
-          grep -q 'TAALVIA' /tmp/taalvia-manifest.json
+          wait_for_marker "$base/home.css?v=1" 'hero-visual' /tmp/taalvia-home.css
+          wait_for_marker "$base/learn/" 'portable.js' /tmp/taalvia-learn.html
+          wait_for_marker "$base/learn/manifest.webmanifest" 'TAALVIA' /tmp/taalvia-manifest.json
+
           for hidden_path in 'BRAND-BRIEF.md' '.wrangler/cache/wrangler-account.json' 'wrangler.jsonc' 'router.js'; do
             code="$(curl -sS -o /dev/null -w '%{http_code}' "$base/$hidden_path")"
             echo "$hidden_path -> HTTP $code"
