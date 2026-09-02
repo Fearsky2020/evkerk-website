@@ -1,5 +1,5 @@
-const CACHE = 'taalvia-lock-v0.4';
-const CORE = ['./','./index.html','./lock.css?v=3','./brand-fix.css?v=1','./no-speech.css?v=1','./lock.js?v=1','./fit-word.js?v=1','./manifest.webmanifest','../icon.svg','../logo-approved.svg'];
+const CACHE = 'taalvia-lock-v0.5';
+const CORE = ['./','./index.html','./lock.css?v=3','./brand-fix.css?v=1','./no-speech.css?v=1','./daily-limit.css?v=1','./lock-v2.js?v=1','./fit-word.js?v=1','./manifest.webmanifest','../icon.svg','../logo-approved.svg'];
 const FREQ_HOST = 'raw.githubusercontent.com';
 
 self.addEventListener('install', event => {
@@ -21,9 +21,7 @@ self.addEventListener('fetch', event => {
 
   event.respondWith(caches.match(event.request).then(cached => {
     const network = fetch(event.request).then(response => {
-      if (response && response.ok) {
-        caches.open(CACHE).then(cache => cache.put(event.request, response.clone()));
-      }
+      if (response && response.ok) caches.open(CACHE).then(cache => cache.put(event.request, response.clone()));
       return response;
     }).catch(() => cached);
     return cached || network;
@@ -37,7 +35,8 @@ self.addEventListener('message', event => {
   const bodyParts = [];
   if (card.showChinese && card.zh) bodyParts.push(card.zh);
   if (card.showExample && card.example) bodyParts.push(card.example);
-  const title = `${card.display || card.word} · ${card.slot}/3`;
+  const total = Number(card.total) || 1;
+  const title = `${card.display || card.word} · ${card.slot}/${total}`;
   event.waitUntil(self.registration.showNotification(title, {
     body: bodyParts.join('\n'),
     icon: '../icon.svg',
