@@ -16,9 +16,12 @@ function Require-Command($name) {
 function Invoke-Wrangler([string]$ArgsLine) {
   $cmd = "npx wrangler $ArgsLine"
   Write-Host "> $cmd" -ForegroundColor Cyan
-  $output = Invoke-Expression $cmd 2>&1 | Out-String
+  # Route native stdout+stderr through cmd.exe so Windows PowerShell does not
+  # promote harmless Wrangler warnings written to stderr into terminating errors.
+  $output = & cmd.exe /d /s /c "$cmd 2>&1" | Out-String
+  $exitCode = $LASTEXITCODE
   Write-Host $output
-  if ($LASTEXITCODE -ne 0) { throw "Wrangler command failed: $ArgsLine" }
+  if ($exitCode -ne 0) { throw "Wrangler command failed ($exitCode): $ArgsLine" }
   return $output
 }
 
@@ -86,7 +89,10 @@ try {
     }
   }
 } catch {
-  Write-Host "WARNING: R2 is not available in this Cloudflare account right now." -ForegroundColor Yellow
+  $r2Available = $false
+}
+if (-not $r2Available) {
+  Write-Warning "R2 is not available in this Cloudflare account right now."
   Write-Host "Continuing without MEDIA storage. Website, QQ announcements, calendar metadata and sermon text can still deploy." -ForegroundColor Yellow
   Write-Host "Audio/photo uploads will remain disabled until R2 is enabled and rebound later." -ForegroundColor Yellow
 }
@@ -159,11 +165,7 @@ if ($endpoint -and (Test-Path "scripts/smoke-test.ps1")) {
 Write-Host ""
 Write-Host "EVKERK bootstrap complete." -ForegroundColor Green
 Write-Host "D1: $DatabaseName ($dbId)"
-if ($r2Available) {
-  Write-Host "R2: $MediaBucket" -ForegroundColor Green
-} else {
-  Write-Host "R2: unavailable/skipped (media uploads disabled for now)" -ForegroundColor Yellow
-}
+if ($r2Available) { Write-Host "R2: $MediaBucket" } else { Write-Host "R2: unavailable (skipped)" }
 if ($endpoint) {
   Write-Host "Worker: $endpoint"
   Write-Host "QQ gateway endpoint was configured when -SinanProjectRoot was provided."
