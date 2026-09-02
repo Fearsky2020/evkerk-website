@@ -69,6 +69,9 @@ Primary English:
 Primary Dutch:
 - Nederlands leren, op jouw manier.
 
+Approved visual-brand tagline:
+- Leer Nederlands. Verbind werelden.
+
 Product/partner line:
 - Practical Dutch for real life in the Netherlands.
 
@@ -77,25 +80,71 @@ Chinese support-language line:
 
 ## Visual direction
 
+### Approved baseline — 2026-09-02
+
+The generated TAALVIA identity board shown and approved in the working session is the visual baseline for future design work.
+
+Core mark:
+- rounded abstract `T` / speech-bubble / route symbol
+- blue-to-teal primary shape
+- green lower directional accent
+- green circular accent at the upper-right
+- symbol should remain recognisable at favicon and PWA-icon sizes
+
 Wordmark:
-- TAALVIA in a clean geometric sans-serif
-- strong readability at small sizes
+- `TAALVIA` in a clean geometric rounded sans-serif style
+- dark navy on light backgrounds
+- white on dark/navy backgrounds
+- distinctive triangular/open `A` treatment is acceptable when readability remains strong
 - no thin strokes
-- avoid looking like a language school from the 2000s
 
-Symbol direction:
-- abstract route / pathway / speech / letterform hybrid
-- simple enough for a PWA icon and favicon
-- must work as one-colour mark
-- avoid Dutch flag, windmills, tulips, clogs and map-pin clichés
+Approved palette direction:
+- vivid blue around `#2563EB`
+- teal/green around `#10B981`
+- deep navy around `#0F172A`
+- light grey around `#E2E8F0`
+- warm/off-white background around `#F8FAFC`
 
-Suggested visual character:
-- warm neutral background
-- deep confident primary tone
-- one fresh accent tone for progress/action
-- high contrast and WCAG-friendly states
+These are working design tokens, not yet a colour-managed print specification. Final UI colours must still meet WCAG contrast requirements.
 
-The existing warm-beige learning interface may evolve rather than be discarded.
+Approved variants:
+- full horizontal logo: symbol + TAALVIA wordmark
+- full horizontal logo with tagline
+- white/reversed version on navy/dark backgrounds
+- black/monochrome version
+- standalone rounded-square app icon
+- standalone symbol for favicon, PWA, social avatar and compact UI
+
+Approved overall character:
+- modern European
+- clean and confident
+- friendly without looking childish
+- suitable for consumers, municipalities, schools and employers
+- technology-enabled without visually presenting as an AI company
+
+Tagline presentation:
+- `Leer Nederlands. Verbind werelden.` may be used below the wordmark in institutional or brand-heavy contexts
+- the logo must also work without a tagline at small sizes
+
+Future outputs should follow this baseline unless an explicit redesign decision is made. This includes:
+- website and app UI
+- PWA icon / favicon
+- email templates
+- social avatars and headers
+- institution decks and PDFs
+- partner one-pagers
+- business cards / stationery
+- future paid-product pages
+
+Do not drift into:
+- Dutch-flag red/white/blue as the main identity
+- windmills, tulips, clogs or tourist imagery as logo elements
+- cartoon mascots as the core brand
+- generic AI sparkles/brain/robot marks
+- gradients that reduce small-size legibility
+- church visual identity or religious symbols
+
+The existing warm-beige learning interface may evolve rather than be discarded, but new TAALVIA surfaces should progressively align with this approved blue/teal/navy identity.
 
 ## Product architecture language
 
