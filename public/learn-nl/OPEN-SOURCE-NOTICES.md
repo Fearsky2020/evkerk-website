@@ -10,7 +10,7 @@ This module intentionally keeps third-party learning libraries and media separat
 
 The smart-practice preview loads these pinned browser modules from jsDelivr. A later production-hardening pass may vendor/self-host the exact pinned builds after integrity and bundle-size checks.
 
-`ts-fsrs` is used both for built-in lesson review and for the local notebook learning loop. Notebook review state is stored locally under a separate `learn-nl-*` key so it remains included in the existing JSON backup/export flow.
+`ts-fsrs` is used both for built-in lesson review and for the local notebook learning loop. Notebook review state is stored locally under a separate `learn-nl-*` key so it remains included in the existing JSON backup/export flow. This does not require an account, D1, a paid API, or a server-side sync service.
 
 ## Dutch lexical data
 
