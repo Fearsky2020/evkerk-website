@@ -32,6 +32,23 @@ function wrWeekKeys(base = new Date()) {
 function wrEscape(value) {
   return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 }
+function wrWaitFor(selector, timeout = 6500) {
+  const found = document.querySelector(selector);
+  if (found) return Promise.resolve(found);
+  return new Promise(resolve => {
+    const observer = new MutationObserver(() => {
+      const node = document.querySelector(selector);
+      if (!node) return;
+      observer.disconnect();
+      resolve(node);
+    });
+    observer.observe(document.documentElement, {childList:true, subtree:true});
+    setTimeout(() => {
+      observer.disconnect();
+      resolve(document.querySelector(selector));
+    }, timeout);
+  });
+}
 function wrReadActivity() {
   const data = wrJson(WR_ACTIVITY_KEY, {days:{}});
   if (!data || typeof data !== 'object') return {days:{}};
@@ -132,7 +149,7 @@ function wrSummary(days, sentenceReviews, vocabReviews) {
   if (days === 0) return '这周还没开始也没关系。今天做 5 分钟，就算正式开张。';
   if (days <= 2) return `这周已经学了 ${days} 天。先保持轻量，不急着加课程量。`;
   if (days <= 4) return `这周节奏挺稳：${days} 天有真实学习记录。继续优先清掉到期复习。`;
-  if (days <= 6) return `这周已经很扎实了。句子 ${sentenceReviews} 次、生词 ${vocabReviews} 次，剩下时间可以少学新词。`;
+  if (days <= 6) return `这周已经很扎实了。句子 ${sentenceReviews} 条记录、生词 ${vocabReviews} 条记录，剩下时间可以少学新词。`;
   return '七天都有学习记录。今天完全可以只复习，不必为了“全勤”继续加码。';
 }
 
@@ -185,8 +202,8 @@ function renderWeeklyReview() {
   if (summaryHost) summaryHost.textContent = wrSummary(currentDays, current.sentenceReviews, current.vocabReviews);
   if (statsHost) statsHost.innerHTML = `
     <div><strong>${currentDays}</strong><span>本周学习天</span></div>
-    <div><strong>${current.sentenceReviews}</strong><span>句子复习</span></div>
-    <div><strong>${current.vocabReviews}</strong><span>生词复习</span></div>
+    <div><strong>${current.sentenceReviews}</strong><span>句子复习记录</span></div>
+    <div><strong>${current.vocabReviews}</strong><span>生词复习记录</span></div>
     <div><strong>${vocab.reviewed}/${vocab.total}</strong><span>生词已复习过</span></div>`;
   if (daysHost) daysHost.innerHTML = currentKeys.map((key,index) => {
     const active = activeSet.has(key);
@@ -195,7 +212,7 @@ function renderWeeklyReview() {
     return `<div class="weekly-day ${active?'active':''} ${future?'future':''} ${today?'today':''}"><span>${labels[index]}</span><b>${active?'✓':'·'}</b></div>`;
   }).join('');
   if (previousHost) previousHost.textContent = prevDays || previous.sentenceReviews || previous.vocabReviews
-    ? `上周：学习 ${prevDays} 天 · 句子复习 ${previous.sentenceReviews} 次 · 生词复习 ${previous.vocabReviews} 次。`
+    ? `上周：学习 ${prevDays} 天 · 句子复习记录 ${previous.sentenceReviews} · 生词复习记录 ${previous.vocabReviews}。`
     : '上周还没有可用的学习记录；从这一版开始会慢慢积累。';
 }
 
@@ -231,11 +248,18 @@ function wireWeeklyActivity() {
 }
 
 async function initWeeklyReview() {
+  await wrWaitFor('#dailyPlan');
   const section = injectWeeklyReview();
   if (!section) return;
   const footer = document.querySelector('.learn-footer .zh-help');
   if (footer) footer.textContent = '为在荷兰生活的中文用户制作 · v0.8 preview';
   wireWeeklyActivity();
+
+  await Promise.allSettled([
+    wrWaitFor('#reviewDueCount'),
+    wrWaitFor('#loopVocabDue'),
+    wrWaitFor('#notebookCount')
+  ]);
   ['reviewDueCount','loopVocabDue','notebookCount'].forEach(id => {
     const node = document.getElementById(id);
     if (node) new MutationObserver(renderWeeklyReview).observe(node, {childList:true, subtree:true});
