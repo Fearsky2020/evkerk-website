@@ -129,3 +129,5 @@ if (document.readyState === 'loading') {
 } else {
   initOpenTaalSpell();
 }
+
+import('./learning-loop.js').catch(error => console.warn('Learning loop unavailable.', error));
