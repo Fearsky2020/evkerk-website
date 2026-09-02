@@ -1,171 +1,247 @@
 # TAALVIA Brand Brief
 
-Status: approved working product direction. The visual identity shown in the approved 2026-09-02 brand board is locked unless the product owner explicitly requests a redesign.
+Status: working brand direction. Do not treat this file as trademark clearance or a production rename.
 
-## What TAALVIA is
+## Product position
 
-TAALVIA is a Dutch-language learning and practice website.
+TAALVIA is a multilingual Dutch-learning platform for newcomers and international residents in the Netherlands.
 
-The product should help learners:
-- start Dutch without being overwhelmed;
-- build useful everyday vocabulary;
-- practise listening, reading, speaking and sentence patterns;
-- review weak words repeatedly;
-- learn through a support language they already understand;
-- keep practising in small moments throughout the day.
+Core promise:
 
-TAALVIA is a learning product. Product decisions should be judged primarily by whether they make Dutch practice clearer, easier to continue and more effective.
+> Learn Dutch in your language, for real life in the Netherlands.
 
-## Core promise
+Primary distinction:
+- Dutch is the learning target.
+- Chinese, English, Arabic, Turkish and other languages are support/explanation layers, not separate products.
+- The product starts with practical everyday Dutch instead of grammar-first courseware.
+- Guest learning works before registration.
+- Registration adds continuity, sync and advanced services rather than unlocking the right to learn.
 
-English:
-> Learn Dutch in your language.
+## Audiences
 
-Dutch:
-> Nederlands leren, op jouw manier.
+B2C:
+- newcomers
+- international residents
+- workers who need practical Dutch
+- learners preparing for more formal NT2 study
+
+B2B/B2G:
+- municipalities
+- NT2 schools
+- employers
+- newcomer/refugee organisations
+- libraries and community organisations
+
+## Brand personality
+
+TAALVIA should feel:
+- calm
+- capable
+- welcoming
+- practical
+- modern European
+- trustworthy enough for municipalities and schools
+- human enough for a nervous beginner opening the app for the first time
+
+Avoid:
+- childish gamification
+- flags as the core identity
+- government-official visual mimicry
+- church branding or religious symbols
+- 'AI-first' language in the main brand promise
+- exaggerated fluency claims
+
+## Naming interpretation
+
+TAALVIA is intended as a coined brand name rather than a descriptive course title.
+
+The name can subtly suggest:
+- `taal` — language in Dutch
+- `via` — a route/path/way
+
+Do not over-explain this etymology in normal marketing copy.
+
+## Recommended tagline set
+
+Primary English:
+- Learn Dutch in your language.
+
+Primary Dutch:
+- Nederlands leren, op jouw manier.
 
 Approved visual-brand tagline:
-> Leer Nederlands. Verbind werelden.
+- Leer Nederlands. Verbind werelden.
 
-Chinese support line:
-> 用你熟悉的语言，学在荷兰真正用得上的荷兰语。
+Product/partner line:
+- Practical Dutch for real life in the Netherlands.
 
-## Learners
+Chinese support-language line:
+- 用你熟悉的语言，学在荷兰真正用得上的荷兰语。
 
-Initial focus:
-- Chinese-speaking Dutch learners;
-- absolute beginners;
-- A0–B1 everyday learners;
-- people who live, study or work in the Netherlands and want practical Dutch;
-- learners who want extra daily practice alongside classes or self-study.
+## Visual direction
 
-Support languages can expand later without changing Dutch as the target language.
+### Approved baseline — 2026-09-02
 
-## Learning principles
-
-- Useful Dutch before abstract grammar.
-- A learner can try real content before registration.
-- Short daily practice should still feel worthwhile.
-- Repetition should respond to what the learner knows and forgets.
-- Nouns should normally be learned with their article (`de afspraak`, `het verschil`).
-- Examples should be short, natural and useful.
-- Pronunciation audio must be good enough to learn from; poor system TTS is worse than no audio.
-- Gamification may support practice but should not make the product childish.
-
-## TAALVIA Lock
-
-TAALVIA Lock is one practice surface inside the learning product, not a separate learning philosophy.
-
-Current Free rule:
-- learner chooses the daily word goal;
-- 1–20 words per day;
-- default 20;
-- the day's selected word pool stays stable;
-- weak words can receive future review priority.
-
-Future paid rule:
-- remove the daily vocabulary-count cap;
-- learner decides how many words to practise;
-- do not hard-code an arbitrary small daily count into the learning engine.
-
-Lock-screen/platform restrictions are implementation details and must not dictate the learner's overall vocabulary limit.
-
-## Commercial model
-
-### Free
-- useful guest learning;
-- first lesson before registration;
-- practical starter content;
-- local progress;
-- TAALVIA Lock up to 20 words/day;
-- no advertising.
-
-### Plus
-Potential value:
-- cross-device sync;
-- full learning path and richer content;
-- unlimited daily vocabulary practice;
-- richer review/progress features;
-- better offline and personalization features.
-
-### Pro
-Only when genuinely valuable higher-cost features exist:
-- high-quality pronunciation feedback;
-- conversation practice;
-- personalized explanations;
-- advanced listening/shadowing/speaking tools.
-
-Do not add a paid tier merely to manufacture restrictions. Paid value should come from more learning value, convenience or expensive capabilities.
-
-## Approved visual direction
-
-### Visual lock — 2026-09-02
-
-The user-approved TAALVIA identity board is the source of truth.
+The generated TAALVIA identity board shown and approved in the working session is the visual baseline for future design work.
 
 Core mark:
-- rounded abstract `T` / speech-bubble / route symbol;
-- blue-to-teal upper form;
-- green lower directional accent;
-- green circular accent at the upper-right.
+- rounded abstract `T` / speech-bubble / route symbol
+- blue-to-teal primary shape
+- green lower directional accent
+- green circular accent at the upper-right
+- symbol should remain recognisable at favicon and PWA-icon sizes
 
 Wordmark:
-- `TAALVIA` in the distinctive geometric wordmark from the approved board;
-- dark navy on light backgrounds;
-- white on dark/navy backgrounds;
-- triangular/open `A` treatment;
-- green dot over the `I`;
-- do not substitute a generic font rendering for the approved wordmark.
+- `TAALVIA` in a clean geometric rounded sans-serif style
+- dark navy on light backgrounds
+- white on dark/navy backgrounds
+- distinctive triangular/open `A` treatment is acceptable when readability remains strong
+- no thin strokes
 
-Approved tagline:
-- `Leer Nederlands. Verbind werelden.`
+Approved palette direction:
+- vivid blue around `#2563EB`
+- teal/green around `#10B981`
+- deep navy around `#0F172A`
+- light grey around `#E2E8F0`
+- warm/off-white background around `#F8FAFC`
 
-Palette direction:
-- vivid blue around `#2563EB`;
-- teal/green around `#10B981`;
-- deep navy around `#0F172A`;
-- light grey around `#E2E8F0`;
-- warm/off-white around `#F8FAFC`.
+These are working design tokens, not yet a colour-managed print specification. Final UI colours must still meet WCAG contrast requirements.
 
-Approved variants shown in the brand board:
-- horizontal colour logo with tagline on light background;
-- white/reversed logo on navy background;
-- black/monochrome logo;
-- rounded-square app icon;
-- standalone mark for compact UI.
+Approved variants:
+- full horizontal logo: symbol + TAALVIA wordmark
+- full horizontal logo with tagline
+- white/reversed version on navy/dark backgrounds
+- black/monochrome version
+- standalone rounded-square app icon
+- standalone symbol for favicon, PWA, social avatar and compact UI
 
-### Asset rule
+Approved overall character:
+- modern European
+- clean and confident
+- friendly without looking childish
+- suitable for consumers, municipalities, schools and employers
+- technology-enabled without visually presenting as an AI company
 
-Do not redraw or approximate the approved logo for convenience.
+Tagline presentation:
+- `Leer Nederlands. Verbind werelden.` may be used below the wordmark in institutional or brand-heavy contexts
+- the logo must also work without a tagline at small sizes
 
-The current approved horizontal website asset is extracted from the approved brand board itself. App-icon and dark variants should likewise be derived from that approved board or from future original master artwork, not recreated from memory.
+Future outputs should follow this baseline unless an explicit redesign decision is made. This includes:
+- website and app UI
+- PWA icon / favicon
+- email templates
+- social avatars and headers
+- institution decks and PDFs
+- partner one-pagers
+- business cards / stationery
+- future paid-product pages
 
-## Avoid
+### Visual lock
 
-- random redesigns of the logo;
-- childish mascot-first identity;
-- tourist clichés such as windmills/tulips/clogs as the core brand;
-- generic AI sparkles/brain/robot branding;
-- fake fluency claims;
-- low-quality pronunciation audio;
-- forcing registration before the learner experiences useful practice;
-- turning a practice feature's technical constraint into a learning limit.
+The approved TAALVIA identity is locked. Do not replace the logo, primary palette, wordmark character or icon system unless the product owner explicitly approves a redesign. Future work may adapt the same identity for light/dark, horizontal/compact, favicon/PWA and other format needs, but should not invent a new visual system.
+
+Do not drift into:
+- Dutch-flag red/white/blue as the main identity
+- windmills, tulips, clogs or tourist imagery as logo elements
+- cartoon mascots as the core brand
+- generic AI sparkles/brain/robot marks
+- gradients that reduce small-size legibility
+- church visual identity or religious symbols
+
+The existing warm-beige learning interface may evolve rather than be discarded, but new TAALVIA surfaces should progressively align with this approved blue/teal/navy identity.
 
 ## Product architecture language
 
-TAALVIA = product brand.
+TAALVIA = product brand
 
 Target language:
-- Dutch.
+- Dutch
 
-Support/explanation languages:
-- Chinese first;
-- English next;
-- others later based on learner demand.
+Support languages:
+- Chinese first
+- English next
+- Arabic / Turkish / Polish / Ukrainian candidates later based on pilots and partner demand
 
-Learning bands:
-- Start (A0–A1);
-- Daily (A1–A2);
-- Natural (A2–B1).
+Levels:
+- Start (A0-A1)
+- Daily (A1-A2)
+- Natural (A2-B1)
 
-CEFR labels are practical references, not certification claims.
+CEFR labels are references, not automated certification claims.
+
+## Commercial architecture
+
+Free:
+- useful guest learning
+- first lesson before registration
+- practical starter content
+- local progress
+
+Plus:
+- cross-device sync
+- full learning path
+- richer review/progress features
+
+Pro:
+- higher-cost AI/pronunciation/conversation features
+- fair-use limits where needed
+
+Institution:
+- sponsored learner access
+- cohorts
+- usage/progress dashboards
+- exportable reporting
+- tenant separation
+- DPA/accessibility/security documentation
+
+No advertising as a core revenue model.
+
+## Institutional pitch
+
+Do not pitch TAALVIA as an official inburgeringsschool unless the required qualifications and procurement conditions are actually met.
+
+Preferred positioning:
+
+> A multilingual digital Dutch practice and onboarding layer that lowers the barrier to starting and continuing Dutch learning.
+
+For language schools:
+- digital practice/homework companion
+
+For employers:
+- practical Dutch and sector packs
+
+For municipalities/NGOs:
+- sponsored access and measurable participation
+
+## Trust rules
+
+- product data and church/member data stay completely separate
+- no religious affiliation is inferred from product users
+- guest learning remains available if account infrastructure fails
+- collect the minimum personal data required
+- accessibility is a product requirement, not a later polish step
+- AI can recommend; it should not silently make consequential official educational classifications
+
+## Domain plan
+
+Canonical production domain:
+- `taalvia.nl`
+
+Defensive/international domain:
+- `taalvia.com`
+
+Initial behaviour:
+- `.com` redirects permanently to `.nl`
+- `evkerk.nl/learn-nl/` remains a temporary preview/referral path until migration is tested
+
+## Trademark status
+
+Public-web screening on 2026-09-02 did not surface an obvious exact TAALVIA Dutch-learning brand. This is not clearance.
+
+Before trademark filing or a large public launch, run official BOIP/KVK checks for at least:
+- TAALVIA
+- TAAL VIA
+- TALVIA
+- similar phonetic spellings
+
+Also assess relevant Nice classes, especially education/training and software/SaaS-related classes, before filing.
