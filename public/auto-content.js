@@ -75,6 +75,7 @@
     const host = document.querySelector('.sermon-placeholder');
     if (!host || !state.sermons.length) return;
     const sermon = state.sermons[0];
+    const articleAvailable = Boolean(sermon.article_zh || sermon.article_nl);
     host.dataset.dynamic = '1';
     host.innerHTML = `
       <div class="play" aria-hidden="true">▶</div>
@@ -88,6 +89,7 @@
         </div>
         <p>${esc(t(sermon.summary_zh, sermon.summary_nl))}</p>
         <div class="auto-sermon-actions">
+          ${articleAvailable ? `<a href="/sermon.html?id=${encodeURIComponent(sermon.id)}">${isNl() ? 'Lees artikel' : '阅读文章'}</a>` : ''}
           ${sermon.youtube_url ? `<a href="${esc(sermon.youtube_url)}" target="_blank" rel="noopener">YouTube</a>` : ''}
           ${sermon.audio_url ? `<a href="${esc(sermon.audio_url)}" target="_blank" rel="noopener">${isNl() ? 'Audio' : '音频'}</a>` : ''}
           ${sermon.transcript_url ? `<a href="${esc(sermon.transcript_url)}" target="_blank" rel="noopener">${isNl() ? 'Transcript' : '文字稿'}</a>` : ''}
