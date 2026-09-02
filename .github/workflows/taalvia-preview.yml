@@ -31,23 +31,26 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: npx --yes wrangler@4 deploy --config wrangler.jsonc
 
-      - name: Smoke-test public preview and private exclusions
+      - name: Smoke-test brand homepage, learning app and private exclusions
         shell: bash
         run: |
           set -euo pipefail
           base='https://taalvia-web.emsitao.workers.dev'
           for attempt in 1 2 3 4 5; do
-            if curl -fsS "$base/" -o /tmp/taalvia-index.html; then
+            if curl -fsS "$base/" -o /tmp/taalvia-home.html; then
               break
             fi
             sleep 3
           done
-          grep -q 'portable.js' /tmp/taalvia-index.html
-          curl -fsS "$base/host-brand.js" -o /tmp/taalvia-host-brand.js
-          grep -q 'TAALVIA' /tmp/taalvia-host-brand.js
-          curl -fsS "$base/manifest.webmanifest" -o /tmp/taalvia-manifest.json
+          grep -q '轻松学荷兰语' /tmp/taalvia-home.html
+          grep -q 'TAALVIA' /tmp/taalvia-home.html
+          curl -fsS "$base/home.css?v=1" -o /tmp/taalvia-home.css
+          grep -q 'hero-visual' /tmp/taalvia-home.css
+          curl -fsS "$base/learn/" -o /tmp/taalvia-learn.html
+          grep -q 'portable.js' /tmp/taalvia-learn.html
+          curl -fsS "$base/learn/manifest.webmanifest" -o /tmp/taalvia-manifest.json
           grep -q 'TAALVIA' /tmp/taalvia-manifest.json
-          for hidden_path in 'BRAND-BRIEF.md' '.wrangler/cache/wrangler-account.json' 'wrangler.jsonc'; do
+          for hidden_path in 'BRAND-BRIEF.md' '.wrangler/cache/wrangler-account.json' 'wrangler.jsonc' 'router.js'; do
             code="$(curl -sS -o /dev/null -w '%{http_code}' "$base/$hidden_path")"
             echo "$hidden_path -> HTTP $code"
             if [ "$code" != '404' ]; then
