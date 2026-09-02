@@ -45,13 +45,15 @@ This remains a target/continuing workflow; real-content end-to-end validation is
 
 ## INDEPENDENT CHURCH PROJECT — Scripture Cards / 经文卡
 
-**Verified development status:** development has started outside the `evkerk-website` repository as an independent starter. No independent GitHub repository has been verified/created yet, so do not describe it as deployed or source-controlled on GitHub.
+**Verified repository:** `Fearsky2020/evkerk-scripture-cards` (private, independent of `evkerk-website`).
+
+**Verified development status:** the v0.1 starter is now committed on the repository `main` branch. It is source-controlled, but it is **not deployed** and has **not passed real-device/browser preview validation yet**.
 
 **Ownership:** belongs under **Church Work / 教会工作**, but remains a peer project to `evkerk-website`, not normal website feature code.
 
-**Verified starter implementation (local project artifact)**
+**Verified repository implementation**
 
-The starter currently contains:
+The repository physically contains:
 
 - Cloudflare Worker + static-assets skeleton;
 - deterministic daily verse;
@@ -65,16 +67,25 @@ The starter currently contains:
 - PWA manifest + service-worker offline caching;
 - bilingual Chinese/Dutch core UI labels;
 - JavaScript/data/core-behavior checks;
-- GitHub Actions check workflow ready for the future repository.
+- Midvash pinned-data importer and batch API sync script;
+- a GitHub Actions check workflow, currently manual-only while a hosted runner is not available to the account/repository.
 
-**Curation/data status**
+**Curation/data status — verified in GitHub**
 
-- `featured-plan.json` contains a first curated pool of **50 references**.
-- `featured.json` currently contains **5 references with Chinese + Dutch source text actually synchronized/verified**.
+- `public/data/featured-plan.json` contains **50 curated references**.
+- `public/data/featured.json` currently contains **5 references with Chinese + Dutch source text actually synchronized/verified**.
 - The product deliberately distinguishes planned references from live/verified text; the UI reports both counts.
 - Current translations are CUVS 1919 and De Heilige Schrift 1917, both recorded as public-domain in the selected Midvash data source.
-- A direct pinned `midvash/bible-data` importer exists.
-- A faster Midvash `/v1/passages` batch-sync script exists for all 50 references, but the full 50-text synchronization has not been executed in the current restricted runtime and therefore must not be marked complete.
+- The selected Midvash reference revision is `d9fe1779447717bbfcb578e505b893125cad581c`.
+- `scripts/sync-midvash-api.mjs` is present and resolves up to 50 curated references per translation through Midvash `/v1/passages`, failing closed if a reference cannot be resolved.
+- Full **50/50 bilingual text synchronization has not yet been executed**, so do not describe the 50-card content corpus as complete.
+
+**Check/CI status — important distinction**
+
+- The starter passed its local repository/core-behavior checks before the GitHub import.
+- The first GitHub Actions run for commit `72e45e5` ended in failure before a runner was assigned: the job reported `runner_id: 0`, empty runner name and `steps: []`.
+- Therefore that red run is **not evidence of a code/test failure**; no workflow step actually executed.
+- Automatic push/PR triggering was paused to avoid generating repeated meaningless red runs while the hosted runner is unavailable. The workflow remains available through `workflow_dispatch` for later re-validation.
 
 **Open-source research already incorporated**
 
@@ -88,9 +99,9 @@ The starter currently contains:
 
 **Still not verified / next gate**
 
-- create the independent GitHub repository (candidate name: `evkerk-scripture-cards`);
-- run full 50-reference bilingual sync in an internet-connected checkout;
+- execute full 50-reference bilingual sync from an execution environment with outbound access to Midvash;
 - review all launch verses for exact text and pastoral suitability;
+- run repository checks again after the 50-card corpus is generated;
 - run Worker preview;
 - smoke-test on desktop/iPhone/Android, including PWA/share/PNG/offline behavior;
 - choose final EVKERK subdomain only after preview validation.
@@ -205,7 +216,7 @@ Treat this as repository-recorded status unless independently revalidated agains
 4. TAALVIA: execute repository checks in a real checkout/build environment.
 5. TAALVIA: deploy isolated Worker preview and smoke-test `/`, `/learn/`, `/lock/` on desktop/iPhone/Android.
 6. TAALVIA Lock: decide whether the original true unlock-trigger behavior requires a native Android component/widget; the current web implementation cannot do it.
-7. Scripture Cards: create the independent GitHub repository, execute the 50-reference bilingual sync, then preview/smoke-test before any EVKERK domain integration.
+7. Scripture Cards: execute the 50-reference bilingual sync, re-run checks, then preview/smoke-test before any EVKERK domain integration.
 
 ## Rule for future updates
 
