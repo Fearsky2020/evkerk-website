@@ -62,11 +62,13 @@ jobs:
           wait_for_marker "$base/learn/" 'portable.js' /tmp/taalvia-learn.html
           wait_for_marker "$base/learn/manifest.webmanifest" 'TAALVIA' /tmp/taalvia-manifest.json
 
-          wait_for_marker "$base/lock/" '3 WOORDEN' /tmp/taalvia-lock.html
-          grep -q 'TAALVIA Lock' /tmp/taalvia-lock.html
+          wait_for_marker "$base/lock/" '听发音' /tmp/taalvia-lock.html
+          grep -q 'speech.js?v=1' /tmp/taalvia-lock.html
           wait_for_marker "$base/lock/manifest.webmanifest" 'TAALVIA Lock' /tmp/taalvia-lock-manifest.json
-          wait_for_marker "$base/lock/sw.js" 'TAALVIA_LOCK_SHOW' /tmp/taalvia-lock-sw.js
+          wait_for_marker "$base/lock/sw.js" 'taalvia-lock-v0.2' /tmp/taalvia-lock-sw.js
           wait_for_marker "$base/lock/lock.js?v=1" 'WORDS_PER_DAY = 3' /tmp/taalvia-lock-js.js
+          wait_for_marker "$base/lock/speech.js?v=1" 'SpeechSynthesisUtterance' /tmp/taalvia-lock-speech.js
+          wait_for_marker "$base/lock/lock.css?v=2" 'xlong-word' /tmp/taalvia-lock-css.css
 
           for hidden_path in 'BRAND-BRIEF.md' '.wrangler/cache/wrangler-account.json' 'wrangler.jsonc' 'router.js'; do
             code="$(curl -sS -o /dev/null -w '%{http_code}' "$base/$hidden_path")"
