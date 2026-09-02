@@ -99,6 +99,8 @@ function initOpenTaalSpell() {
   const input = document.getElementById('smartSearchInput');
   if (!input) return;
   const host = ensureHintHost(input);
+  const source = document.querySelector('.smart-source');
+  if (source) source.textContent = 'OpenTaal 拼写助手使用约 288 KB 的常见拼写修正表：只在输入荷兰语时按需加载，首次成功后缓存到浏览器；不把 5 MB / 40 万词完整词库塞进手机。';
   let timer = null;
 
   input.addEventListener('input', () => {
