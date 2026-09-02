@@ -61,7 +61,6 @@ Write-Host "Bootstrapping Cloudflare + Church Ops..." -ForegroundColor Yellow
   -DatabaseName $DatabaseName `
   -MediaBucket $MediaBucket `
   -SinanProjectRoot $sinanRoot
-if ($LASTEXITCODE -ne 0) { throw "Cloudflare bootstrap failed" }
 
 $endpointPath = Join-Path $sinanRoot ".sinan\church-ops.endpoint"
 if (-not (Test-Path $endpointPath)) {
@@ -83,9 +82,11 @@ Write-Host "Installing / refreshing church media worker '$MediaTaskName'..." -Fo
   -DataRoot $sinanRoot `
   -ApiUrl $endpoint `
   -TaskName $MediaTaskName
-if ($LASTEXITCODE -ne 0) { throw "Church media worker installation failed" }
 
 $mediaTask = Get-ScheduledTask -TaskName $MediaTaskName -ErrorAction Stop
+if ($mediaTask.State -eq 'Disabled') {
+  throw "Church media worker task is disabled after installation."
+}
 Write-Host "Church media worker: $($mediaTask.State)" -ForegroundColor Green
 
 Write-Host "Restarting ONLY scheduled task '$QQTaskName'..." -ForegroundColor Yellow
