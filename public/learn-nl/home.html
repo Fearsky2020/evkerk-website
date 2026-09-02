@@ -4,36 +4,40 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#fbfaf7">
-  <meta name="description" content="TAALVIA：面向中文学习者的实用荷兰语学习平台。从第一课开始，不注册也能学。">
+  <meta name="description" content="TAALVIA：为中文学习者打造的实用荷兰语学习平台。">
   <title>TAALVIA · 轻松学荷兰语</title>
   <link rel="icon" href="/icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/home.css?v=1">
+  <link rel="stylesheet" href="/home.css?v=2">
 </head>
 <body>
   <header class="site-header">
     <div class="header-shell">
       <a class="brand-lockup" href="/" aria-label="TAALVIA 首页">
-        <img class="brand-icon" src="/icon.svg" alt="" width="54" height="54">
+        <img class="brand-icon" src="/icon.svg" alt="" width="58" height="58">
         <span class="brand-wording">
           <strong>TAALVIA</strong>
           <small>LEER NEDERLANDS. VERBIND WERELDEN.</small>
         </span>
       </a>
       <nav class="desktop-nav" aria-label="主导航">
-        <a href="#home">首页</a>
+        <a class="is-active" href="#home">首页</a>
         <a href="#levels">课程</a>
         <a href="#features">学习资源</a>
         <a href="#route">学习路线</a>
         <a href="#about">关于我们</a>
       </nav>
       <div class="header-actions">
-        <button class="language-button" type="button" aria-label="界面语言"><span>◎</span> 中文 <b>⌄</b></button>
+        <button class="language-button" type="button" aria-label="界面语言">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 3.7 5.7 3.7 9s-1.2 6.3-3.7 9c-2.5-2.7-3.7-5.7-3.7-9S9.5 5.7 12 3Z"/></svg>
+          中文
+          <span>⌄</span>
+        </button>
         <a class="header-cta" href="/learn/">立即开始</a>
       </div>
       <button class="menu-button" type="button" aria-expanded="false" aria-controls="mobileNav" aria-label="打开菜单"><span></span><span></span><span></span></button>
     </div>
     <nav class="mobile-nav" id="mobileNav" hidden>
-      <a href="#levels">课程</a><a href="#features">学习资源</a><a href="#route">学习路线</a><a href="#about">关于我们</a><a href="/learn/">立即开始学习</a>
+      <a href="#home">首页</a><a href="#levels">课程</a><a href="#features">学习资源</a><a href="#route">学习路线</a><a href="#about">关于我们</a><a href="/learn/">立即开始学习</a>
     </nav>
   </header>
 
@@ -41,39 +45,30 @@
     <section class="hero-section">
       <div class="hero-shell">
         <div class="hero-copy">
-          <p class="hero-kicker">PRAKTISCH NEDERLANDS · VOOR HET ECHTE LEVEN</p>
           <h1>轻松学荷兰语</h1>
           <p class="hero-en">Learn Dutch with confidence, step by step.</p>
           <span class="hero-rule"></span>
-          <p class="hero-lead">为中文学习者打造的荷兰语学习平台，从零开始也能自信开口。不是为了做题，而是为了在荷兰生活、工作和交流时真正用得上。</p>
+          <p class="hero-lead">专为中文学习者打造的荷兰语学习平台，<br>从零开始也能自信开口，融入荷兰生活与文化。</p>
           <div class="hero-actions">
             <a class="primary-cta" href="/learn/">立即开始 <span>→</span></a>
-            <a class="secondary-cta" href="#levels">选择我的起点</a>
+            <a class="secondary-cta" href="/learn/">免费试学</a>
           </div>
           <div class="trust-row" aria-label="产品特点">
             <span><i>✓</i> 无需注册即可试学第一课</span>
-            <span><i>✓</i> 中文辅助，降低开口门槛</span>
-            <span><i>✓</i> 按真实生活场景学习</span>
+            <span><i>✓</i> 适合零基础学习者</span>
+            <span><i>✓</i> 科学学习路径</span>
           </div>
         </div>
 
-        <div class="hero-visual" aria-label="荷兰城市与语言学习的品牌插画">
-          <div class="sun-glow"></div>
+        <div class="hero-visual" aria-label="荷兰运河城市与语言学习">
+          <div class="hero-photo" aria-hidden="true"></div>
           <div class="speech speech-one"><strong>Goedemorgen!</strong><small>早上好！</small></div>
           <div class="speech speech-two"><strong>Hoe gaat het?</strong><small>你好吗？</small></div>
-          <div class="visual-badge book-badge" aria-hidden="true">▤</div>
-          <div class="visual-badge audio-badge" aria-hidden="true">◖◗</div>
-          <div class="city-scene" aria-hidden="true">
-            <div class="skyline">
-              <span class="house h1"><b></b></span>
-              <span class="house h2"><b></b></span>
-              <span class="tower"><b></b></span>
-              <span class="house h3"><b></b></span>
-              <span class="house h4"><b></b></span>
-              <span class="house h5"><b></b></span>
-            </div>
-            <div class="bridge"><span></span><span></span><span></span></div>
-            <div class="canal"><i></i><i></i><i></i></div>
+          <div class="visual-badge book-badge" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M5 4.5h6.5c1.4 0 2.5 1.1 2.5 2.5v12c0-1.4-1.1-2.5-2.5-2.5H5z"/><path d="M19 4.5h-5c-1.4 0-2.5 1.1-2.5 2.5v9.5H19z"/></svg>
+          </div>
+          <div class="visual-badge audio-badge" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M5 13v-2a7 7 0 0 1 14 0v2"/><path d="M5 12H3v5a2 2 0 0 0 2 2h2v-7zm14 0h2v5a2 2 0 0 1-2 2h-2v-7z"/></svg>
           </div>
         </div>
       </div>
@@ -81,77 +76,78 @@
 
     <section class="levels-section" id="levels">
       <div class="section-shell">
-        <div class="section-heading left">
-          <div>
-            <p class="section-kicker">START WAAR JIJ BENT</p>
-            <h2>选择适合你的起点</h2>
-          </div>
-          <p>不是给你贴标签，也不是考试分班。只是让第一步刚刚好：不会太难，也不会无聊。</p>
+        <div class="section-heading">
+          <h2>选择适合你的起点</h2>
+          <p>从适合你水平的课程开始，稳步提升，循序渐进。</p>
         </div>
         <div class="level-grid">
           <button class="level-card level-a0" type="button" data-level="start">
             <span class="level-code">A0</span>
             <strong>零基础入门</strong>
-            <small>从字母发音、问候和最简单短句开始。</small>
-            <div class="level-art windmill"><i></i><i></i><i></i><i></i></div>
+            <small>从字母发音到日常问候，开启荷兰语之旅。</small>
+            <svg class="level-illustration" viewBox="0 0 180 120" aria-hidden="true"><path d="M72 108h36L99 65H81z"/><path d="M90 15v70M48 50l84 30M48 80l84-30M90 15l8-11M90 15l-8-11"/><path d="M66 108h48"/></svg>
           </button>
           <button class="level-card level-a1" type="button" data-level="start">
             <span class="level-code">A1</span>
             <strong>基础交流</strong>
             <small>掌握日常表达，进行简单对话。</small>
-            <div class="level-art bike"><i></i><i></i><b></b></div>
+            <svg class="level-illustration" viewBox="0 0 180 120" aria-hidden="true"><circle cx="48" cy="82" r="27"/><circle cx="132" cy="82" r="27"/><path d="M48 82l34-45 26 45H48l26-45h35l23 45M81 37l-8-15M104 37h24"/></svg>
           </button>
           <button class="level-card level-a2" type="button" data-level="daily">
             <span class="level-code">A2</span>
             <strong>日常沟通</strong>
             <small>理解并参与常见话题，表达更自然。</small>
-            <div class="level-art houses"><i></i><i></i><i></i></div>
+            <svg class="level-illustration" viewBox="0 0 180 120" aria-hidden="true"><path d="M18 108V58l27-24 27 24v50M70 108V45l30-30 30 30v63M128 108V63l18-18 18 18v45"/><path d="M34 72h12v16H34zm52-12h13v18H86zm21 0h13v18h-13zm35 18h10v14h-10z"/></svg>
           </button>
           <button class="level-card level-b1" type="button" data-level="natural">
             <span class="level-code">B1</span>
             <strong>独立运用</strong>
-            <small>在工作、学习与生活中更自信地使用荷兰语。</small>
-            <div class="level-art bridge-art"><i></i><b></b></div>
+            <small>在工作、学习与生活中自信使用荷兰语。</small>
+            <svg class="level-illustration" viewBox="0 0 180 120" aria-hidden="true"><path d="M22 102h136M42 102V32M138 102V32M42 44c28 22 68 22 96 0M42 70c28 16 68 16 96 0"/><path d="M42 32l-9 17m9-17 9 17m87-17-9 17m9-17 9 17"/></svg>
           </button>
         </div>
 
         <article class="start-banner" id="route">
-          <div class="start-icon" aria-hidden="true">↗</div>
+          <div class="start-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M14.5 4.5c2.6-.9 4.5-.7 5-.5.2.5.4 2.4-.5 5l-5.2 5.2-4-4z"/><path d="M9.8 10.2 6 10l-2 2 4.3 1.7m5.5.1.2 4.2-2 2-1.7-4.3M16 7l1 1M6.2 17.8 4 20"/></svg>
+          </div>
           <div>
-            <p class="section-kicker">EERST PROBEREN</p>
             <h3>打开页面，即刻开始学习</h3>
-            <p>第一课无需注册。先真正学一点、听一点、说一点，再决定要不要留下学习进度。</p>
+            <p>第一课无需注册，立即体验高质量课程内容。<br>轻松上手，感受荷兰语学习的乐趣。</p>
           </div>
           <a href="/learn/">开始第一课 <span>→</span></a>
         </article>
-      </div>
-    </section>
 
-    <section class="features-section" id="features">
-      <div class="section-shell">
-        <div class="section-heading centered">
-          <p class="section-kicker">LEER ZOALS JE HET GEBRUIKT</p>
-          <h2>不是刷题，是把荷兰语带进生活里</h2>
-          <p>短句、场景、听力、发音和复习围绕真实生活连接起来，让每一次学习都有“下一步能用在哪里”。</p>
-        </div>
-        <div class="feature-grid">
-          <article class="feature-card quote-card">
-            <div class="feature-icon">“</div><div><h3>每日一句</h3><p>每天一句常用荷兰语，积少成多，自然敢开口。</p></div><div class="feature-preview note-preview"><span>Vandaag</span><b>is een mooie dag</b></div>
+        <div class="feature-grid" id="features">
+          <article class="feature-card feature-daily">
+            <div class="feature-icon green">“</div>
+            <div class="feature-copy"><h3>每日一句</h3><p>每天一句实用荷兰语，积少成多，自然开口说。</p></div>
+            <div class="feature-media note-media"><span>Vandaag</span><b>is een mooie dag</b></div>
           </article>
-          <article class="feature-card dialogue-feature">
-            <div class="feature-icon blue">◌</div><div><h3>场景对话</h3><p>超市、医生、市政府、邻居、电话……学完就能用。</p></div><div class="feature-preview people-preview"><span></span><span></span><i></i></div>
+          <article class="feature-card feature-dialogue">
+            <div class="feature-icon blue">•••</div>
+            <div class="feature-copy"><h3>场景对话</h3><p>丰富生活场景对话，学完就能用。</p></div>
+            <div class="feature-media photo-dialogue" role="img" aria-label="生活对话"></div>
           </article>
-          <article class="feature-card speak-feature">
-            <div class="feature-icon amber">◉</div><div><h3>发音跟读</h3><p>标准发音示范、慢速重听，让嘴巴也跟上耳朵。</p></div><div class="feature-preview wave-preview"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <article class="feature-card feature-pronounce">
+            <div class="feature-icon amber">◉</div>
+            <div class="feature-copy"><h3>发音跟读</h3><p>标准发音示范，智能评测，说得更地道自信。</p></div>
+            <div class="feature-media mic-media"><div class="wave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="mic">●</div></div>
           </article>
-          <article class="feature-card vocab-feature">
-            <div class="feature-icon green">▣</div><div><h3>常用单词</h3><p>高频词汇分类学习，配合生词本和间隔复习。</p></div><div class="feature-preview word-preview"><b>huis</b><span>房子</span></div>
+          <article class="feature-card feature-vocab">
+            <div class="feature-icon green">▣</div>
+            <div class="feature-copy"><h3>常用单词</h3><p>高频词汇分类学习，记得牢，用得上。</p></div>
+            <div class="feature-media word-media"><b>huis</b><span>房子</span></div>
           </article>
-          <article class="feature-card grammar-feature">
-            <div class="feature-icon blue">A</div><div><h3>语法讲解</h3><p>中文讲清荷兰语逻辑，只讲今天真正用得上的。</p></div><div class="feature-preview grammar-preview"><b>de + 名词</b><span>het + 名词</span></div>
+          <article class="feature-card feature-grammar">
+            <div class="feature-icon blue">A</div>
+            <div class="feature-copy"><h3>语法讲解</h3><p>中文讲清荷兰语逻辑，语法不再难。</p></div>
+            <div class="feature-media grammar-media"><b>de + 名词</b><span>het + 名词</span></div>
           </article>
-          <article class="feature-card life-feature">
-            <div class="feature-icon amber">♡</div><div><h3>荷兰生活语言</h3><p>从生活文化到办事场景，语言和环境一起学。</p></div><div class="feature-preview church-preview"><span></span><b></b><i></i></div>
+          <article class="feature-card feature-life">
+            <div class="feature-icon amber">♥</div>
+            <div class="feature-copy"><h3>教会与生活荷兰语</h3><p>融入教会与日常生活，学习更有目标与方向。</p></div>
+            <div class="feature-media photo-life" role="img" aria-label="荷兰教会"></div>
           </article>
         </div>
       </div>
@@ -159,14 +155,10 @@
 
     <section class="why-section" id="about">
       <div class="section-shell why-shell">
-        <div class="why-heading">
-          <p class="section-kicker">WAAROM TAALVIA</p>
-          <h2>为什么选择 TAALVIA</h2>
-          <p>我们想让荷兰语学习更有效，也更有温度。</p>
-        </div>
+        <div class="why-heading"><h2>为什么选择<br>TAALVIA</h2><p>我们让荷兰语学习更有效、更有温度。</p></div>
         <div class="why-grid">
-          <article><span>▣</span><div><h3>实用优先</h3><p>贴近真实生活与工作场景，学了就能用。</p></div></article>
-          <article><span>●</span><div><h3>中文友好</h3><p>全中文界面与解释，复杂概念不再绕。</p></div></article>
+          <article><span>▰</span><div><h3>实用为先</h3><p>贴近真实生活与工作场景，学了就能用。</p></div></article>
+          <article><span>●</span><div><h3>中文友好</h3><p>全中文界面与讲解，学习更轻松。</p></div></article>
           <article><span>◉</span><div><h3>自信开口</h3><p>大量口语练习与跟读，敢说、会说、爱说。</p></div></article>
           <article><span>↗</span><div><h3>温和成长</h3><p>学习记录清晰可见，每一步都有成就感。</p></div></article>
         </div>
@@ -177,24 +169,25 @@
   <footer class="site-footer">
     <div class="footer-shell">
       <div class="footer-brand">
-        <a class="brand-lockup light" href="/">
-          <img class="brand-icon" src="/icon.svg" alt="" width="52" height="52">
+        <a class="brand-lockup footer-lockup" href="/">
+          <img class="brand-icon" src="/icon.svg" alt="" width="54" height="54">
           <span class="brand-wording"><strong>TAALVIA</strong><small>LEER NEDERLANDS. VERBIND WERELDEN.</small></span>
         </a>
         <p>连接语言，连接文化，连接你我。</p>
+        <div class="social-row" aria-label="社交媒体占位"><span>f</span><span>◎</span><span>▶</span><span>◉</span></div>
       </div>
       <div class="footer-links"><h3>学习</h3><a href="#levels">课程</a><a href="#features">学习资源</a><a href="#route">学习路线</a></div>
       <div class="footer-links"><h3>支持</h3><a href="#">帮助中心</a><a href="#">常见问题</a><a href="#">联系我们</a></div>
-      <div class="footer-links"><h3>关于</h3><a href="#about">关于我们</a><a href="#">学习理念</a><a href="#">隐私政策</a></div>
+      <div class="footer-links"><h3>关于</h3><a href="#about">关于我们</a><a href="#">学习理念</a><a href="#">隐私政策</a><a href="#">使用条款</a></div>
       <div class="footer-signup">
         <h3>获取学习灵感与新课更新</h3>
-        <p>邮箱订阅稍后开放。现在先从第一课开始。</p>
+        <p>新课和学习路线更新，稍后开放邮件订阅。</p>
         <a href="/learn/">免费开始学习 <span>→</span></a>
       </div>
     </div>
-    <div class="footer-bottom"><span>© 2026 TAALVIA. 保留所有权利。</span><span>Made for people building a life in the Netherlands.</span></div>
+    <div class="footer-bottom"><span>© 2026 TAALVIA. 保留所有权利。</span><span>Made with ♥ for Chinese learners of Dutch.</span></div>
   </footer>
 
-  <script src="/home.js?v=1" defer></script>
+  <script src="/home.js?v=2" defer></script>
 </body>
 </html>
