@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
-    "check": "node --check src/worker.js && node --check src/sinan-ops.js && node --check src/media-ingest.js && node --check public/app.js && node --check public/auto-content.js",
+    "check": "node --check src/worker.js && node --check src/sinan-ops.js && node --check src/media-ingest.js && node --check public/app.js && node --check public/auto-content.js && node --check public/sermon.js",
     "deploy": "npm run check && wrangler deploy",
     "dev": "wrangler dev"
   },
