@@ -6,6 +6,32 @@
     try { localStorage.setItem(key, JSON.stringify(value)); } catch (_) {}
   }
 
+  function installLockedBrand(){
+    const style = document.createElement('style');
+    style.textContent = `
+      .brand-lockup .brand-icon,.brand-lockup .brand-wording{display:none!important}
+      .brand-logo-full{display:block;width:220px;height:auto;max-width:none}
+      .footer-lockup .brand-logo-full{width:238px}
+      @media(max-width:1080px){.brand-logo-full{width:196px}}
+      @media(max-width:860px){.brand-logo-full{width:184px}.footer-lockup .brand-logo-full{width:210px}}
+      @media(max-width:420px){.brand-logo-full{width:166px}}
+    `;
+    document.head.appendChild(style);
+
+    document.querySelectorAll('.brand-lockup').forEach(lockup => {
+      const isFooter = lockup.classList.contains('footer-lockup');
+      const img = document.createElement('img');
+      img.className = 'brand-logo-full';
+      img.src = isFooter ? '/brand-logo-dark.svg' : '/brand-logo.svg';
+      img.alt = 'TAALVIA — Leer Nederlands. Verbind werelden.';
+      img.width = isFooter ? 238 : 220;
+      img.height = 52;
+      lockup.replaceChildren(img);
+    });
+  }
+
+  installLockedBrand();
+
   function chooseLevel(level){
     saveJson(LEVEL_KEY, level);
     location.href = '/learn/';
@@ -21,9 +47,6 @@
     });
   });
 
-  // Keep TAALVIA Lock visible as a product feature without redesigning the
-  // existing homepage navigation. The lock page itself remains isolated under
-  // /lock/ and owns its PWA/service-worker scope.
   const desktopNav = document.querySelector('.desktop-nav');
   if (desktopNav && !desktopNav.querySelector('a[href="/lock/"]')) {
     const link = document.createElement('a');
@@ -53,9 +76,6 @@
     menu?.setAttribute('aria-expanded', 'false');
   }));
 
-  // The former preview used a root-scoped learning service worker. Remove only
-  // that legacy scope so the brand homepage remains independent; /learn/ and
-  // /lock/ own their own scoped workers.
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.getRegistrations().then(registrations => {
       registrations.forEach(registration => {
@@ -71,8 +91,5 @@
     caches.keys().then(keys => Promise.all(keys.filter(key => key.startsWith('learn-nl-')).map(key => caches.delete(key)))).catch(() => {});
   }
 
-  // Keep the first-lesson gate intact. We deliberately do not mark it complete
-  // from the marketing homepage; users still get the free first lesson before
-  // any registration guidance.
   void FIRST_KEY;
 })();
