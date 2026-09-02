@@ -45,7 +45,9 @@ This remains a continuing workflow; real-content end-to-end validation is still 
 
 **Verified repository:** `Fearsky2020/evkerk-scripture-cards` (private; independent of `evkerk-website`).
 
-**Current verified status:** reviewed v0.1 source is on `main` at commit `266df97cfeb0db7d8b1b5de667b52975b4e7ef82`. The first **50/50 Chinese + Dutch launch cards are fully synchronized, presentation-cleaned and promoted into the chunked runtime dataset**. The project is still **not deployed** and has **not passed browser/real-device preview validation**.
+**Current verified status:** the first **50/50 Chinese + Dutch launch cards are synchronized, presentation-cleaned and promoted into the chunked runtime dataset**. The Worker configuration has now passed a full real-assets Wrangler dry-run, a local Worker HTTP smoke, and a temporary Cloudflare external HTTP smoke. The project is still **not production-attached to an EVKERK domain** and has **not completed iPhone/Android real-device interaction/PWA validation**.
+
+Latest main-line evidence update: `32a80f68b22f95e6b07015f5203054c0f079ddf9`. The Worker routing fix itself is commit `60d2a4a82de8055beef5a500829760e9011ff6ec`.
 
 **Ownership:** Church Work / 教会工作, as a peer project to `evkerk-website`, not normal website feature code.
 
@@ -99,12 +101,19 @@ The repository contains:
 - `scripts/check.mjs` requires schema-v2 manifest integrity, declared chunks, exact 50/50 ID parity, public-domain licenses, matching source revision and valid provenance SHA.
 - Service Worker cache is `v3`; every `/data/*.json` request uses network-first with offline fallback so installed PWAs do not remain stuck on stale scripture data.
 
-### Check/CI status
+### Check/CI/runtime status
 
 - The exact final runtime set was checked locally successfully: **50 verified cards / 50 curated refs**, five chunks, exact ID parity, syntax/license/provenance guards, deterministic daily verse, no-repeat random and bilingual sharing.
 - The final GitHub `main` tree was checked after promotion: the manifest and all five chunk blobs are present with the expected SHA values, and the temporary review workflow is absent.
-- Earlier hosted Actions red runs were not code-test failures: the job had `runner_id: 0`, empty runner name and `steps: []`.
-- GitHub subsequently confirmed the account had used **2,278 / 2,000 included Actions minutes**; automatic hosted push/PR checks remain paused for this billing cycle.
+- A SHA-verified full deployment payload passed Wrangler `4.128.0` full real-assets dry-run and local Worker HTTP smoke in `Fearsky2020/sinan` Actions run `33683689238`.
+- Local HTTP smoke passed `/health`, `/`, the runtime manifest, all five chunks / 50 cards, the 50-item curation plan, PWA manifest, `app.js`, and `sw.js`.
+- The first unauthenticated Cloudflare temporary deployment produced a Worker URL but external `/health` returned Cloudflare error `1042`.
+- A controlled A/B run added only `global_fetch_strictly_public` to the SHA-verified test copy. In Actions run `33685559789`, the temporary Cloudflare deployment then passed `/health` on the **first external attempt**, plus `/`, all five chunks / 50 cards, PWA manifest, `app.js`, and `sw.js`.
+- Commit `60d2a4a82de8055beef5a500829760e9011ff6ec` changes only `wrangler.jsonc` and commits that compatibility flag to real `main`.
+- Detailed evidence and remaining gates are recorded in `docs/DEPLOYMENT-PREFLIGHT.md`.
+- An attempted repo-native self-hosted validation remained queued with no steps; a one-time GitHub-hosted validation ended before job steps/log output. Neither reached project code, so neither is treated as application-test evidence.
+- Earlier hosted Actions red runs were also not code-test failures: the job had `runner_id: 0`, empty runner name and `steps: []`.
+- GitHub previously confirmed the account had used **2,278 / 2,000 included Actions minutes**; automatic hosted push/PR checks remain constrained for this billing cycle.
 
 ### Open-source research incorporated
 
@@ -119,10 +128,11 @@ The repository contains:
 ### Next gate
 
 1. Pastoral/context-review the 50 launch cards for suitability as standalone daily verses.
-2. Run a Cloudflare Worker preview.
-3. Smoke-test desktop + iPhone + Android: card rendering, random/daily, language switch, PNG, share, PWA install and offline refresh behavior.
-4. Choose final EVKERK subdomain only after preview validation.
-5. Only then ask `evkerk-website` to add the main-site entry/homepage daily-verse integration/routing.
+2. Use a temporary/preview origin for real-device smoke on iPhone Safari and Android Chrome: card rendering, random/daily, language switch, themes, favorites, PNG, share, PWA install and offline refresh.
+3. Fix any device-only behavior found in that smoke.
+4. Choose and attach the final EVKERK subdomain only after real-device validation.
+5. Run final-origin smoke after production attachment.
+6. Only then ask `evkerk-website` to add the main-site entry/homepage daily-verse integration/routing.
 
 ## INDEPENDENT PRODUCT — TAALVIA Dutch Learning
 
@@ -157,7 +167,7 @@ Repository documentation records `taalvia.nl` / `taalvia.com`, Cloudflare namese
 1. EVKERK: finish the private-QQ announcement + undo live validation.
 2. EVKERK: connect Google Calendar write executor after that path is proven.
 3. EVKERK: validate sermon/media automation with real material.
-4. Scripture Cards: pastoral/context-review the 50-card corpus, then Worker preview and real-device smoke tests.
+4. Scripture Cards: pastoral/context-review the 50-card corpus, then real-device smoke on the already-proven temporary Worker path before choosing the final subdomain.
 5. TAALVIA: run repository checks/preview and smoke-test `/`, `/learn/`, `/lock/`.
 6. TAALVIA Lock: decide later whether true unlock-trigger behavior warrants a native Android component/widget.
 
