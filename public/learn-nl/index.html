@@ -4,9 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#f6f2ea">
-  <meta name="description" content="面向在荷兰生活的中文用户的实用荷兰语学习工具：每日一句、生活场景、发音、词汇与小测验。">
+  <meta name="description" content="面向在荷兰生活的中文用户的实用荷兰语学习工具：每日一句、生活场景、发音、词汇、场景对话、听力与小测验。">
   <title>荷兰语学习 · Nederlands leren | Evangeliekerk</title>
   <link rel="stylesheet" href="./styles.css?v=1">
+  <link rel="stylesheet" href="./enhancements.css?v=2">
 </head>
 <body>
   <header class="learn-header">
@@ -112,6 +113,78 @@
       </div>
     </section>
 
+    <section class="practice-section" id="dialogue">
+      <div class="shell">
+        <div class="practice-heading">
+          <div>
+            <p class="eyebrow">ECHT GESPREK</p>
+            <h2>别只背一句，练完整对话。</h2>
+          </div>
+          <p class="zh-help">这里会跟着你刚才选择的生活场景变化。先听完整对话，再切换到“只练我的台词”。</p>
+        </div>
+
+        <div class="practice-grid">
+          <article class="dialogue-card" id="dialogueCard">
+            <div class="dialogue-head">
+              <div>
+                <h3 id="dialogueTitle">在超市问东西</h3>
+                <p class="zh-help" id="dialogueSubtitle">先听完整对话，再只练“你”的台词。</p>
+              </div>
+              <button class="btn primary compact" id="dialoguePlay" type="button">▶ 听完整对话</button>
+            </div>
+            <div class="dialogue-list" id="dialogueList"></div>
+            <div class="dialogue-actions">
+              <button class="btn secondary compact" id="roleMode" type="button" aria-pressed="false">只练我的台词</button>
+            </div>
+            <p class="practice-mode-note zh-help">角色练习模式会暂时模糊对方台词。需要时点一下对方那一行，仍然可以查看和播放。</p>
+          </article>
+
+          <aside class="grammar-card" id="grammar">
+            <span class="grammar-chip" id="grammarLabel">万能问路句型</span>
+            <p class="eyebrow">TAALTIP</p>
+            <h3>语法只讲今天用得上的。</h3>
+            <div class="grammar-pattern" id="grammarPattern">Waar kan ik + iets + vinden?</div>
+            <p class="zh-help" id="grammarNote"></p>
+            <div class="grammar-examples" id="grammarExamples"></div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section class="listening-section" id="listening">
+      <div class="shell">
+        <article class="listening-card">
+          <p class="eyebrow">LUISTEREN</p>
+          <h2>先别看文字，听懂它。</h2>
+          <p class="listening-lead zh-help">每轮随机 5 题。先听荷兰语，再选中文意思；答完以后才显示原句。浏览器会优先使用设备上的荷兰语声音。</p>
+
+          <div class="listen-stage">
+            <div class="listen-wave" id="listenWave" aria-hidden="true">
+              <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+            </div>
+            <div class="listen-options" id="listenOptions"></div>
+            <div class="listen-controls">
+              <button class="btn primary" id="listenPlay" type="button">▶ 播放</button>
+              <button class="btn secondary" id="listenSlow" type="button">🐢 慢速再听</button>
+            </div>
+            <div class="listen-status">
+              <strong id="listenStep">1 / 5</strong>
+              <span id="listenScore">0 分</span>
+              <span id="listenBest">首次练习</span>
+            </div>
+            <p class="listen-reveal" id="listenReveal" hidden></p>
+            <div class="listen-result">
+              <p class="zh-help">听不出来时不要急着猜单词，先抓整句的节奏和关键词。</p>
+              <div>
+                <button class="btn secondary compact" id="listenRestart" type="button">换一组 5 题</button>
+                <button class="btn primary compact" id="listenNext" type="button" hidden>下一题</button>
+              </div>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
     <section class="section shell" id="quiz">
       <div class="quiz-card">
         <div class="quiz-intro" id="quizIntro">
@@ -171,15 +244,17 @@
   <nav class="bottom-nav" aria-label="学习页面导航">
     <a href="#today"><span>☀</span><small>今天</small></a>
     <a href="#scenes"><span>▦</span><small>场景</small></a>
+    <a href="#dialogue"><span>◫</span><small>对话</small></a>
+    <a href="#listening"><span>◉</span><small>听力</small></a>
     <a href="#quiz"><span>✓</span><small>测验</small></a>
-    <a href="#progress"><span>↗</span><small>进度</small></a>
   </nav>
 
   <footer class="learn-footer shell">
     <a href="/">← 返回 Evangeliekerk</a>
-    <p class="zh-help">为在荷兰生活的中文用户制作 · v0.1</p>
+    <p class="zh-help">为在荷兰生活的中文用户制作 · v0.2 preview</p>
   </footer>
 
   <script src="./app.js?v=1"></script>
+  <script src="./practice.js?v=2"></script>
 </body>
 </html>
