@@ -108,6 +108,20 @@ function Ensure-WindowsTimezoneData([string]$PythonExe) {
   Write-Host "Timezone data repaired." -ForegroundColor Green
 }
 
+function Ensure-GitSafeDirectory([string]$Path) {
+  $normalized = $Path.Replace('\', '/')
+  $existing = @(& git config --global --get-all safe.directory 2>$null)
+  if ($LASTEXITCODE -ne 0) { $existing = @() }
+  if ($existing -contains $normalized) {
+    Write-Host "Git safe.directory already configured for runtime." -ForegroundColor Green
+    return
+  }
+
+  & git config --global --add safe.directory $normalized
+  if ($LASTEXITCODE -ne 0) { throw "GIT_SAFE_DIRECTORY_CONFIG_FAILED:$LASTEXITCODE" }
+  Write-Host "Git safe.directory configured for isolated runtime." -ForegroundColor Green
+}
+
 function Set-ChurchOpsAutostartConfig([string]$ProjectRoot) {
   $endpointFile = Join-Path $ProjectRoot ".sinan\church-ops.endpoint"
   $tokenFile = Join-Path $ProjectRoot ".sinan\church-ops.token"
@@ -191,6 +205,8 @@ try {
 
   & git -C $projectRoot worktree prune
   if ($LASTEXITCODE -ne 0) { throw "WORKTREE_PRUNE_FAILED:$LASTEXITCODE" }
+
+  Ensure-GitSafeDirectory $runtimeRoot
 
   if (Test-Path $runtimeRoot) {
     $inside = (& git -C $runtimeRoot rev-parse --is-inside-work-tree 2>$null).Trim()
