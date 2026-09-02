@@ -21,6 +21,17 @@ The smart-practice preview loads these pinned browser modules from jsDelivr. The
 
 Source: https://github.com/OpenTaal/opentaal-wordlist
 
+### FrequencyWords corpus used by TAALVIA Lock
+
+- **hermitdave/FrequencyWords** — Dutch OpenSubtitles 2018 frequency list.
+- TAALVIA Lock reads `content/2018/nl/nl_50k.txt` and uses only the first **5,000** ranked entries as its canonical high-frequency corpus.
+- FrequencyWords documents the generated/content data under **CC BY-SA 4.0**; its generator code is MIT.
+- The upstream frequency data is based on the OpenSubtitles 2018 corpus distributed through OPUS.
+- TAALVIA's Chinese glosses, learner-facing `de`/`het` display forms and example sentences are a separate curated learning layer. They are not copied from FrequencyWords.
+- The Lock service worker may cache the fetched frequency list in the browser for offline reuse after a successful first load.
+
+Source: https://github.com/hermitdave/FrequencyWords
+
 ## Easy Dutch / Easy Languages
 
 Easy Dutch videos remain third-party copyrighted media owned/published by Easy Dutch / Easy Languages. This site embeds selected public videos using the official YouTube embedded player in privacy-enhanced mode.
