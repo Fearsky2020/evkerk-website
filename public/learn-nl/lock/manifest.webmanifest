@@ -1,7 +1,7 @@
 {
   "name": "TAALVIA Lock · Unlock your Dutch",
   "short_name": "TAALVIA Lock",
-  "description": "每天 3 个荷兰语高频词，把复习带到手机锁屏。",
+  "description": "荷兰语高频词锁屏复习。免费版每天最多 20 个词，学习量由你自己决定。",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
