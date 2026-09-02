@@ -1,6 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Nederlands leren">
-  <rect width="512" height="512" rx="112" fill="#1d211d"/>
-  <circle cx="256" cy="256" r="154" fill="#f6f2ea"/>
-  <path d="M174 342V170h39l92 109V170h44v172h-38L218 232v110z" fill="#7d6b4d"/>
-  <circle cx="378" cy="134" r="24" fill="#e9dfce"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="TAALVIA">
+  <defs>
+    <linearGradient id="tvBlue" x1="96" y1="96" x2="360" y2="348" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2563EB"/>
+      <stop offset=".62" stop-color="#0EA5E9"/>
+      <stop offset="1" stop-color="#10B981"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="#F8FAFC"/>
+  <path d="M134 142h186c30 0 54 24 54 54s-24 54-54 54h-84" fill="none" stroke="url(#tvBlue)" stroke-width="42" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M164 188v170l132-132" fill="none" stroke="url(#tvBlue)" stroke-width="42" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M288 296l70 52-2 86-112-84z" fill="#10B981"/>
+  <circle cx="378" cy="126" r="30" fill="#10B981"/>
 </svg>
