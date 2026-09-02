@@ -2,7 +2,7 @@
 
 _Last updated: 2026-09-02_
 
-This board records the current church website work plus the boundaries/status of closely related projects that originated around the EVKERK work. It is intentionally operational: finish the active publication pipeline first, keep product ownership explicit, and do not let new ideas accidentally collapse back into one repository.
+This board records the current church website work plus the boundaries/status of closely related projects. Statements below should distinguish **verified implementation**, **repository documentation**, and **planned/not yet verified** work.
 
 ## P0 — ACTIVE: Sinan church publishing automation
 
@@ -12,155 +12,175 @@ Make QQ the normal human entry point for church operations:
 
 `QQ -> Xiaoguang/Qwen proposal -> Sinan deterministic validation -> Church Ops API -> D1/R2/Calendar -> evkerk.nl`
 
-**Already implemented / substantially complete**
+**Verified in repository**
 
-- Church Ops API and authenticated `/api/sinan/*` control plane.
-- Public events, sermons and announcements APIs.
-- One-command church-PC deployment wrapper.
-- D1 production binding and migrations.
-- Separate `SINAN_TOKEN` and `INGEST_TOKEN` handling.
-- Safe QQ/Sinan runtime update flow using an isolated runtime/worktree.
-- QQ gateway process health checks now treat launcher/child processes as one logical gateway.
-- Public sermon article pages.
-- Safe bilingual sermon renderer.
-- Homepage links to published sermon articles.
-- Media-ingest worker model with D1/R2 integration and safe refusal when required storage is unavailable.
-- Manual `/admin/` remains only as backup/failsafe.
+- Church Ops API and authenticated `/api/sinan/*` control plane are documented in `AUTOMATION_SETUP.md`.
+- Public events, sermons and announcements APIs are documented.
+- One-command church-PC deployment wrapper is documented.
+- D1/R2 bindings, separate `SINAN_TOKEN` / `INGEST_TOKEN`, smoke test and QQ runtime wiring are documented.
+- Public sermon article work and bilingual renderer are present in recent repository commits.
+- Latest QQ runtime fix counts launcher/child processes as one logical gateway.
 
-**Current live-validation sequence — do this before starting another major website task**
+**Remaining live validation documented by the project**
 
-1. From private QQ, send one low-risk church announcement.
-2. Confirm the announcement appears on the live website.
-3. Confirm an operation id and audit record are created.
-4. Test natural-language undo: `撤销刚才那个`.
-5. Confirm the undo is reflected correctly on the website/audit trail.
-6. After the announcement path is proven, wire the dedicated Google Calendar write executor.
+1. Send one low-risk church announcement from private QQ.
+2. Confirm it appears on the live website.
+3. Confirm operation id and audit record.
+4. Test `撤销刚才那个`.
+5. Confirm undo is reflected correctly.
+6. Then wire the dedicated Google Calendar write executor.
 
-**Important boundary**
+**Boundary**
 
 - Group QQ messages have no website write authority in v0.1.
-- High-risk actions remain approval-gated.
-- Calendar writes must not be reported as successful until the real Calendar executor is connected.
-- Do not start a second QQ bot or modify unrelated Python processes on the church PC.
+- Calendar writes are not complete until the real Calendar executor exists.
 
 ## P1 — ACTIVE/CONTINUING: Website content automation
 
-After the P0 live validation passes, continue hardening the content pipeline rather than adding unrelated features.
-
-Target sermon flow:
+Documented target sermon flow:
 
 `X32 recording -> upload/media job -> ASR -> Sinan metadata/summary -> Dutch translation -> review/publish -> Church Ops API -> website`
 
-Near-term priorities:
-
-- Validate live sermon/article publishing with real church content.
-- Keep Chinese/Dutch rendering safe and readable.
-- Confirm media processing only starts when live R2 storage is available.
-- Keep rollback/audit behavior intact.
+This remains a target/continuing workflow; real-content end-to-end validation is still required.
 
 ## NEW CHURCH PROJECT — Scripture Cards / 经文卡
 
-**Status:** registered; independent project not yet created as its own repository.
+**Verified status:** registered on this workboard only. No independent Scripture Cards repository has been verified yet.
 
-**Ownership:** belongs under **Church Work / 教会工作**, but is a peer project to the church website, not a normal `evkerk-website` feature folder.
+**Ownership decision:** belongs under **Church Work / 教会工作**, but should be a peer project to `evkerk-website`, not normal website feature code.
 
-**Project direction**
+**Planned direction, not yet implementation**
 
-Create an independent mobile-first Scripture Cards product that can later support:
-
-- daily verse;
-- random verse;
+- daily/random verse;
 - Chinese / Dutch / bilingual display;
-- shareable and downloadable scripture-card images;
-- multiple visual card styles;
-- favorites/history/theme categories;
-- PWA installation;
-- later devotional audio, memorization, youth cards and push/lock-screen style experiences.
-
-**Architecture rule**
-
-- Prefer a separate repository and independent iteration/deployment.
-- Possible future subdomain: `verse.evkerk.nl`, `cards.evkerk.nl`, or `dagtekst.evkerk.nl`.
-- `evkerk.nl` should only provide an entry point and optional content/API integration.
-- Do **not** put the full Scripture Cards application into the main church website codebase.
-- Do **not** interrupt the current Sinan/QQ publishing validation to start Scripture Cards development.
-
-**Future integration points with evkerk.nl**
-
-- Main-site navigation/card entry.
-- Daily verse block on the homepage.
-- Sermon/article -> related scripture links.
-- Optional shared content/API layer.
-- Cloudflare routing/subdomain configuration when the independent project is ready.
+- share/download scripture-card images;
+- card styles, favorites/history/themes;
+- PWA;
+- later devotional audio, memorization, youth cards and push/lock-screen-style experiences.
 
 **Before implementation**
 
-- Decide the independent repository name.
-- Confirm Bible-translation licensing/copyright for Chinese and Dutch text before bulk ingestion.
-- Define the MVP and verse data schema.
+- decide repository name;
+- verify Bible translation licensing/copyright;
+- define MVP and verse schema.
 
 ## INDEPENDENT PRODUCT — TAALVIA Dutch Learning
 
-**Repository:** `Fearsky2020/taalvia`
+**Verified repository:** `Fearsky2020/taalvia`.
 
-**Status:** repository exists and has been separated from EVKERK. TAALVIA is now its own Dutch-learning product and must not be re-expanded inside `evkerk-website`.
+### Verified structure
 
-**Canonical product structure**
+The repository physically contains:
 
-- `/` — TAALVIA home
-- `/learn/` — **TAALVIA Learn**: main Dutch-learning experience
-- `/lock/` — **TAALVIA Lock**: lock-screen / quick vocabulary-card experience
-- `/shared/` — shared learner content, state and quota logic
+- `public/index.html`
+- `public/learn/`
+- `public/lock/`
+- `public/shared/`
+- `src/router.js`
+- `wrangler.jsonc`
 
-**Important:** TAALVIA Learn and TAALVIA Lock are **one learning system**, not two competing standalone prototypes. They share canonical vocabulary/content identity, learner level, progress, known/hard state and daily-new quota.
+`src/router.js` explicitly routes `/learn` -> `/learn/` and `/lock` -> `/lock/`.
 
-**Current product rules / implementation**
+### TAALVIA Learn — verified implementation
 
-- Free users may introduce up to 20 new words/cards/learning contents per local day across Learn + Lock together.
-- Due review does not consume a new-content slot.
-- Same canonical content counts once even when reached from multiple modules.
-- Current stack is Cloudflare Worker + static assets + plain HTML/CSS/JS.
-- Learning state is currently local-first/browser based.
-- FSRS, Fuse.js, OpenTaal, WaveSurfer and browser Dutch TTS are already part of the planned/current stack.
-- Installable PWA/offline support is part of the current product.
-- Production deployment must remain gated behind standalone preview/smoke tests and real-device validation.
+`public/learn/index.html` contains a real learning UI with:
 
-**Domain/product boundary**
+- daily phrase;
+- practical scenes;
+- dialogue / role practice;
+- listening practice;
+- quiz;
+- local progress display;
+- PWA manifest.
 
-- Canonical domain: `taalvia.nl`.
-- TAALVIA data/accounts must remain separated from church/member data.
-- The old `evkerk.nl/learn-nl/` material is migration/history context only.
-- EVKERK may later link/referral-route to TAALVIA, but should not own its runtime/product state.
+Additional code in the repository implements or attempts to load:
 
-## TAALVIA LOCK — 单词卡 / 锁屏学习
+- Fuse.js search;
+- OpenTaal correction data;
+- FSRS review via `ts-fsrs`;
+- WaveSurfer recording/waveform;
+- browser Dutch speech synthesis;
+- local backup/PWA/offline support.
 
-**Status:** already created as a first-class TAALVIA module at `/lock/`; do not create a separate competing repository unless architecture is deliberately changed later.
+These are code-level facts. Real-device behavior still needs preview/smoke testing.
 
-**Product intent**
+### Shared TAALVIA state — verified, with an important limitation
 
-- Mobile-first quick vocabulary cards.
-- Every visit/unlock-style interaction can surface a different Dutch word/card.
-- Shares the same vocabulary identity and progress with TAALVIA Learn.
-- Suitable for PWA/home-screen use now; native lock-screen/widget integration can be explored later.
-- Future Android experiments may use the spare Android device, but basic learning must not depend on a native app.
+Verified shared pieces:
 
-**Next validation focus**
+- `public/shared/data.js` provides shared vocabulary/content data.
+- `public/shared/quota.js` defines `FREE_DAILY_NEW_LIMIT = 20`.
+- `scripts/test-quota.mjs` tests canonical deduplication and the shared 20/day cap.
+- `public/learn/shared-bridge.js` bridges profile/progress/FSRS/quota-related localStorage into `taalvia:*` keys.
+- `public/lock/lock.js` reads shared vocabulary plus `public/shared/state.js` / quota state.
 
-- Real-phone layout and PWA behavior.
-- Rotation/random-card behavior without breaking spaced repetition state.
-- Shared Learn/Lock daily quota and progress consistency.
-- Offline/fallback behavior.
-- Decide later whether native Android widget/lock-screen integration provides enough benefit to justify an app shell.
+**Do not overstate this:** Learn and Lock are intended to be one system, but their current progress internals are not literally one identical structure. Learn still has FSRS/mastered/notebook-specific state while Lock has `known` / `hard` / `seen` behavior. The bridge synchronizes/canonicalizes parts of them, but full behavioral equivalence across all progress fields has not yet been verified.
 
-## Current priority order
+### TAALVIA Lock / 单词卡 — verified implementation
 
-1. Finish live QQ -> Sinan -> evkerk.nl announcement validation and undo test.
-2. Connect the real Google Calendar write executor.
-3. Validate sermon/media automation with real church material.
-4. Keep the main EVKERK site stable and bilingual.
-5. Continue TAALVIA standalone preview/real-device validation, including TAALVIA Lock.
-6. Start Scripture Cards in its own project/repository when its separate work conversation is opened.
+`public/lock/` physically contains:
 
-## Rule for future work conversations
+- `index.html`
+- `lock.js`
+- `lock.css`
+- `manifest.webmanifest`
+- `sw.js`
 
-When a new project appears, record its relationship here, but do not automatically implement it inside `evkerk-website`. Keep project ownership, repositories, shared-state rules and deployment boundaries explicit so multiple conversations/agents do not edit the same system blindly.
+Verified capabilities from code:
+
+- installable standalone PWA metadata;
+- daily card set;
+- previous/next card navigation;
+- Dutch TTS through browser speech synthesis;
+- known / hard feedback;
+- system notification support through the service worker;
+- PNG lock-screen image export;
+- shared 20/day new-content quota;
+- service-worker caching for core Lock assets.
+
+### What TAALVIA Lock does NOT currently do
+
+This is important:
+
+- It does **not** receive Android/iOS system unlock events.
+- It does **not** automatically change the word every time the phone is unlocked.
+- The code explicitly tells users that ordinary web pages cannot listen to the system's phone-unlock event.
+- On iPhone the current approach is exported lock-screen images / OS photo behavior.
+- On Android the current approach is PWA + notifications.
+- `stableCards()` stores a stable daily card list keyed by date + level; this is not a fresh random card generated on every unlock.
+
+Therefore the accurate status is: **a working web/PWA lock-screen reinforcement prototype exists; the original “every unlock shows a different word” behavior is not implemented yet.**
+
+### Domain / production status
+
+Repository documentation (`docs/DOMAIN-STATUS.md`) records:
+
+- `taalvia.nl` and `taalvia.com` were moved to Cloudflare nameservers;
+- both zones were shown active and DNSSEC was enabled during setup;
+- Worker name is `taalvia-web`;
+- canonical routes are `/learn/` and `/lock/`.
+
+The same document explicitly says the standalone TAALVIA Worker is **not yet production-attached** to `taalvia.nl` and requires repository checks, preview deployment and desktop/iPhone/Android smoke tests first.
+
+Treat this as repository-recorded status unless independently revalidated against Cloudflare.
+
+## Current evidence-based next steps
+
+1. EVKERK: finish the documented private-QQ announcement + undo live validation.
+2. EVKERK: wire Google Calendar write executor only after that path is proven.
+3. EVKERK: validate sermon/media automation with real material.
+4. TAALVIA: execute repository checks in a real checkout/build environment.
+5. TAALVIA: deploy isolated Worker preview and smoke-test `/`, `/learn/`, `/lock/` on desktop/iPhone/Android.
+6. TAALVIA Lock: decide whether the original true unlock-trigger behavior requires a native Android component/widget; the current web implementation cannot do it.
+7. Scripture Cards: create its independent project only when development actually starts.
+
+## Rule for future updates
+
+Do not mark a feature as complete merely because a README/roadmap says it exists. Prefer this evidence order:
+
+1. executable code / actual route / actual file;
+2. executed test or live validation;
+3. repository documentation;
+4. roadmap/planned work.
+
+If only documentation or a plan exists, label it as such.
