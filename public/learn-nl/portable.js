@@ -4,6 +4,7 @@ const EXTRA_KEYS = new Set(['evkerk-theme']);
 
 function q(id){ return document.getElementById(id); }
 function allowedKey(key){ return key.startsWith(BACKUP_PREFIX) || EXTRA_KEYS.has(key); }
+function isTaalviaHost(){ const host = location.hostname.toLowerCase(); const params = new URLSearchParams(location.search); return host === 'taalvia.nl' || host === 'www.taalvia.nl' || host === 'taalvia.com' || host === 'www.taalvia.com' || host.endsWith('.workers.dev') || params.get('brand') === 'taalvia'; }
 
 function collectProgress(){
   const data = {};
@@ -73,9 +74,10 @@ function initInstall(){
 
 async function initServiceWorker(){ if (!('serviceWorker' in navigator)) return; try { await navigator.serviceWorker.register('./sw.js', {scope:'./'}); } catch (error) { console.warn('Learn NL service worker unavailable.', error); } }
 function loadOptionalLayer(cssHref, marker, moduleHref, label){ if (!document.querySelector(`link[${marker}]`)) { const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = cssHref; link.setAttribute(marker, '1'); document.head.appendChild(link); } import(moduleHref).catch(error => console.warn(`${label} unavailable.`, error)); }
+function initTaalviaBrandLayer(){ loadOptionalLayer('./host-brand.css?v=1', 'data-taalvia-brand', './host-brand.js?v=1', 'TAALVIA brand layer'); }
 function initFirstLessonLayer(){ loadOptionalLayer('./first-lesson.css?v=2', 'data-first-lesson', './first-lesson.js?v=2', 'First lesson onboarding'); }
 function initLevelPickerLayer(){ loadOptionalLayer('./level-picker.css?v=1', 'data-level-picker', './level-picker.js?v=1', 'Learning level picker'); }
 function initOpenTaalLayer(){ loadOptionalLayer('./opentaal-spell.css?v=1', 'data-opentaal-spell', './opentaal-spell.js?v=1', 'OpenTaal spelling layer'); }
-function markVersion(){ const footer = document.querySelector('.learn-footer .zh-help'); if (footer) footer.textContent = '为在荷兰生活的中文用户制作 · v0.12 preview'; }
-function init(){ initFirstLessonLayer(); initLevelPickerLayer(); injectPortable(); initBackup(); initNetwork(); initInstall(); initServiceWorker(); initOpenTaalLayer(); markVersion(); }
+function markVersion(){ const footer = document.querySelector('.learn-footer .zh-help'); if (footer) footer.textContent = isTaalviaHost() ? 'Leer Nederlands. Verbind werelden. · v0.13 preview' : '为在荷兰生活的中文用户制作 · v0.13 preview'; }
+function init(){ initTaalviaBrandLayer(); initFirstLessonLayer(); initLevelPickerLayer(); injectPortable(); initBackup(); initNetwork(); initInstall(); initServiceWorker(); initOpenTaalLayer(); markVersion(); }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, {once:true}); else init();
