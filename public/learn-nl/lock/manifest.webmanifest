@@ -1,0 +1,19 @@
+{
+  "name": "TAALVIA Lock · Unlock your Dutch",
+  "short_name": "TAALVIA Lock",
+  "description": "每天 3 个荷兰语高频词，把复习带到手机锁屏。",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#0f172a",
+  "lang": "zh-CN",
+  "icons": [
+    {
+      "src": "../icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
