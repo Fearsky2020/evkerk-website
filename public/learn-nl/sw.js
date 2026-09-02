@@ -1,4 +1,4 @@
-const CACHE = 'learn-nl-v0.8-core';
+const CACHE = 'learn-nl-v0.9-core';
 const CORE = [
   './',
   './index.html',
@@ -11,6 +11,7 @@ const CORE = [
   './learning-loop.css?v=1',
   './daily-plan.css?v=1',
   './weekly-review.css?v=1',
+  './self-check.css?v=1',
   './app.js?v=1',
   './practice.js?v=2',
   './smart-tools.js?v=1',
@@ -20,6 +21,7 @@ const CORE = [
   './learning-loop.js?v=1',
   './daily-plan.js?v=1',
   './weekly-review.js?v=1',
+  './self-check.js?v=1',
   './manifest.webmanifest',
   './icon.svg'
 ];
