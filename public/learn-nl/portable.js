@@ -46,33 +46,6 @@ async function restoreBackup(file){
   return count;
 }
 
-function downloadBackup(){
-  const payload = JSON.stringify(collectProgress(), null, 2);
-  const blob = new Blob([payload], {type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  const day = new Date().toISOString().slice(0,10);
-  a.href = url;
-  a.download = `nederlands-leren-backup-${day}.json`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-
-async function restoreBackup(file){
-  const text = await file.text();
-  const payload = JSON.parse(text);
-  if (payload?.product !== 'evkerk-learn-nl' || typeof payload.data !== 'object') throw new Error('不是本学习工具的备份文件');
-  let count = 0;
-  Object.entries(payload.data).forEach(([key,value]) => {
-    if (!allowedKey(key) || typeof value !== 'string') return;
-    localStorage.setItem(key, value);
-    count += 1;
-  });
-  return count;
-}
-
 function injectPortable(){
   if (q('portableTools')) return;
   const future = document.querySelector('.future-section');
