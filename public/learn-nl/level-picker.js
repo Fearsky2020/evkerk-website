@@ -9,6 +9,10 @@ function lpRead(key, fallback){ try{return JSON.parse(localStorage.getItem(key))
 function lpWrite(key, value){ localStorage.setItem(key, JSON.stringify(value)); }
 function lpCurrent(){ const id=lpRead(LP_LEVEL_KEY,'daily'); return LP_LEVELS[id] ? id : 'daily'; }
 function lpDebug(){ return new URLSearchParams(location.search).get('debug')==='1'; }
+function lpLoadContent(){
+  if(!document.querySelector('link[data-level-content]')){const link=document.createElement('link');link.rel='stylesheet';link.href='./level-content.css?v=1';link.dataset.levelContent='1';document.head.appendChild(link);}
+  import('./level-content.js?v=1').catch(error=>console.warn('Level content layer unavailable.',error));
+}
 function lpInject(){
   if (!lpRead(LP_DONE_KEY,null) && !lpDebug()) return null;
   if (document.getElementById('levelPicker')) return document.getElementById('levelPicker');
@@ -37,5 +41,5 @@ function lpWire(host){
   });
   document.addEventListener('click',event=>{ if(host.contains(event.target)) return; const menu=host.querySelector('.level-picker-menu'); const open=host.querySelector('[data-lp-open]'); if(menu){menu.hidden=true;} open?.setAttribute('aria-expanded','false'); });
 }
-function lpInit(){ const host=lpInject(); if(!host)return; lpRender(); lpWire(host); }
+function lpInit(){ const host=lpInject(); if(!host)return; lpLoadContent(); lpRender(); lpWire(host); }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',lpInit,{once:true});else lpInit();
