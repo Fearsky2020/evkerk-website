@@ -10,11 +10,11 @@
     const style = document.createElement('style');
     style.textContent = `
       .brand-lockup .brand-icon,.brand-lockup .brand-wording{display:none!important}
-      .brand-logo-full{display:block;width:220px;height:auto;max-width:none}
+      .brand-logo-full{display:block;width:236px;height:auto;max-width:none}
       .footer-lockup .brand-logo-full{width:238px}
-      @media(max-width:1080px){.brand-logo-full{width:196px}}
-      @media(max-width:860px){.brand-logo-full{width:184px}.footer-lockup .brand-logo-full{width:210px}}
-      @media(max-width:420px){.brand-logo-full{width:166px}}
+      @media(max-width:1080px){.brand-logo-full{width:210px}}
+      @media(max-width:860px){.brand-logo-full{width:194px}.footer-lockup .brand-logo-full{width:210px}}
+      @media(max-width:420px){.brand-logo-full{width:176px}}
     `;
     document.head.appendChild(style);
 
@@ -22,10 +22,10 @@
       const isFooter = lockup.classList.contains('footer-lockup');
       const img = document.createElement('img');
       img.className = 'brand-logo-full';
-      img.src = isFooter ? '/brand-logo-dark.svg' : '/brand-logo.svg';
+      img.src = isFooter ? '/brand-logo-dark.svg' : '/logo-approved.svg';
       img.alt = 'TAALVIA — Leer Nederlands. Verbind werelden.';
-      img.width = isFooter ? 238 : 220;
-      img.height = 52;
+      img.width = isFooter ? 238 : 236;
+      img.height = isFooter ? 52 : 64;
       lockup.replaceChildren(img);
     });
   }
