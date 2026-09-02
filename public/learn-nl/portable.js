@@ -46,6 +46,33 @@ async function restoreBackup(file){
   return count;
 }
 
+function downloadBackup(){
+  const payload = JSON.stringify(collectProgress(), null, 2);
+  const blob = new Blob([payload], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const day = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = `nederlands-leren-backup-${day}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+async function restoreBackup(file){
+  const text = await file.text();
+  const payload = JSON.parse(text);
+  if (payload?.product !== 'evkerk-learn-nl' || typeof payload.data !== 'object') throw new Error('不是本学习工具的备份文件');
+  let count = 0;
+  Object.entries(payload.data).forEach(([key,value]) => {
+    if (!allowedKey(key) || typeof value !== 'string') return;
+    localStorage.setItem(key, value);
+    count += 1;
+  });
+  return count;
+}
+
 function injectPortable(){
   if (q('portableTools')) return;
   const future = document.querySelector('.future-section');
@@ -144,23 +171,32 @@ async function initServiceWorker(){
   catch (error) { console.warn('Learn NL service worker unavailable.', error); }
 }
 
-function initOpenTaalLayer(){
-  if (!document.querySelector('link[data-opentaal-spell]')) {
+function loadOptionalLayer(cssHref, marker, moduleHref, label){
+  if (!document.querySelector(`link[${marker}]`)) {
     const link = document.createElement('link');
     link.rel = 'stylesheet';
-    link.href = './opentaal-spell.css?v=1';
-    link.dataset.opentaalSpell = '1';
+    link.href = cssHref;
+    link.setAttribute(marker, '1');
     document.head.appendChild(link);
   }
-  import('./opentaal-spell.js?v=1').catch(error => console.warn('OpenTaal spelling layer unavailable.', error));
+  import(moduleHref).catch(error => console.warn(`${label} unavailable.`, error));
+}
+
+function initFirstLessonLayer(){
+  loadOptionalLayer('./first-lesson.css?v=1', 'data-first-lesson', './first-lesson.js?v=1', 'First lesson onboarding');
+}
+
+function initOpenTaalLayer(){
+  loadOptionalLayer('./opentaal-spell.css?v=1', 'data-opentaal-spell', './opentaal-spell.js?v=1', 'OpenTaal spelling layer');
 }
 
 function markVersion(){
   const footer = document.querySelector('.learn-footer .zh-help');
-  if (footer) footer.textContent = '为在荷兰生活的中文用户制作 · v0.7 preview';
+  if (footer) footer.textContent = '为在荷兰生活的中文用户制作 · v0.10 preview';
 }
 
 function init(){
+  initFirstLessonLayer();
   injectPortable();
   initBackup();
   initNetwork();
