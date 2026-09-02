@@ -15,3 +15,8 @@ crons = ["*/30 * * * *"]
 [vars]
 SITE_TIMEZONE = "Europe/Amsterdam"
 MAX_MEDIA_MB = "95"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "evkerk-website-db"
+database_id = "2817f829-f9d3-4426-b35c-f8eb21b6b934"
