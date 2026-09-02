@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 430 84" role="img" aria-label="TAALVIA">
+  <defs>
+    <linearGradient id="tvBlue" x1="8" y1="8" x2="68" y2="68" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2563EB"/>
+      <stop offset=".62" stop-color="#0EA5E9"/>
+      <stop offset="1" stop-color="#10B981"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(2 2) scale(.15)">
+    <path d="M134 142h186c30 0 54 24 54 54s-24 54-54 54h-84" fill="none" stroke="url(#tvBlue)" stroke-width="42" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M164 188v170l132-132" fill="none" stroke="url(#tvBlue)" stroke-width="42" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M288 296l70 52-2 86-112-84z" fill="#10B981"/>
+    <circle cx="378" cy="126" r="30" fill="#10B981"/>
+  </g>
+  <text x="86" y="48" fill="#0F172A" font-family="Avenir Next, Montserrat, Inter, Segoe UI, Arial, sans-serif" font-size="34" font-weight="800" letter-spacing="3">TAALVIA</text>
+  <text x="88" y="70" fill="#4E7A72" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="8.5" font-weight="800" letter-spacing="1.6">LEER NEDERLANDS. VERBIND WERELDEN.</text>
+</svg>
