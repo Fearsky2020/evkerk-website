@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f6f2ea">
+  <title>讲道 | 福音教会 Evangeliekerk</title>
+  <meta name="description" content="福音教会讲道文章、音频与经文摘要。">
+  <link rel="stylesheet" href="/styles.css?v=1">
+  <style>
+    .sermon-page{width:min(860px,calc(100% - 28px));margin:0 auto;padding:54px 0 90px}.article-header{padding-bottom:30px;border-bottom:1px solid var(--line)}.back{display:inline-block;margin-bottom:28px;color:var(--muted);text-decoration:none;font-weight:750}.article-kicker{margin:0 0 12px;color:var(--accent);font-size:12px;letter-spacing:.16em;font-weight:900}.article-header h1{margin:0 0 18px;font-size:clamp(40px,7vw,68px);line-height:1.05;letter-spacing:-.045em}.article-meta{display:flex;gap:10px;flex-wrap:wrap;color:var(--muted);font-size:14px}.article-summary{margin:30px 0;padding:22px 24px;border:1px solid var(--line);border-radius:18px;background:var(--paper);font-size:18px;line-height:1.75}.article-body{font-size:18px;line-height:1.9;letter-spacing:.005em}.article-body p{margin:0 0 1.35em}.article-body p:first-child::first-letter{font-size:1.35em}.media-box{margin:34px 0;padding:20px;border:1px solid var(--line);border-radius:18px;background:var(--paper)}.media-box h2{font-size:18px;margin:0 0 13px}.media-box audio{width:100%;margin:4px 0 12px}.article-actions{display:flex;gap:10px;flex-wrap:wrap}.article-actions a{padding:10px 13px;border:1px solid var(--line);border-radius:10px;text-decoration:none;font-size:13px;font-weight:800}.article-footer{margin-top:46px;padding-top:24px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}.state-card{margin:70px auto;padding:32px;border:1px solid var(--line);border-radius:20px;background:var(--paper);text-align:center}.state-card h1{font-size:32px}.sermon-header-actions{display:flex;align-items:center;gap:9px}.sermon-header-actions .home-link{padding:10px 13px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:800;background:var(--dark);color:#fff}html[data-theme="dark"] .sermon-header-actions .home-link{background:#e7e9e3;color:#151815}@media(max-width:640px){.sermon-page{padding-top:32px}.article-header h1{font-size:42px}.article-summary,.media-box{padding:18px}.article-body{font-size:17px;line-height:1.85}.sermon-header-actions .home-link{display:none}}
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="/" aria-label="Evangeliekerk home">
+      <span class="brand-mark" aria-hidden="true">✦</span>
+      <span class="brand-copy"><strong id="brandName">福音教会</strong><small>EVANGELIEKERK</small></span>
+    </a>
+    <div class="header-actions sermon-header-actions">
+      <button class="round-btn" id="themeToggle" type="button" aria-label="切换明暗模式">☾</button>
+      <button class="lang-btn" id="langToggle" type="button">NL</button>
+      <a class="home-link" href="/" id="homeLink">返回首页</a>
+    </div>
+  </header>
+
+  <main class="sermon-page" id="page">
+    <div class="state-card" id="loading"><p>正在加载讲道…</p></div>
+  </main>
+
+  <script src="/sermon.js?v=1"></script>
+</body>
+</html>
