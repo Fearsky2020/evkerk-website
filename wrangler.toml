@@ -13,3 +13,4 @@ crons = ["*/30 * * * *"]
 
 [vars]
 SITE_TIMEZONE = "Europe/Amsterdam"
+MAX_MEDIA_MB = "95"
