@@ -10,25 +10,23 @@ This module intentionally keeps third-party learning libraries and media separat
 
 The smart-practice preview loads these pinned browser modules from jsDelivr. A later production-hardening pass may vendor/self-host the exact pinned builds after integrity and bundle-size checks.
 
+`ts-fsrs` is used both for built-in lesson review and for the local notebook learning loop. Notebook review state is stored locally under a separate `learn-nl-*` key so it remains included in the existing JSON backup/export flow.
+
 ## Dutch lexical data
 
-- **OpenTaal/opentaal-wordlist** — Dutch word list and spelling resources — available under Revised BSD (3-clause) and/or CC BY 3.0.
-- Source repository: https://github.com/OpenTaal/opentaal-wordlist
-- Source version reported by `datetimeversion.txt`: **2.20.23 — 2023-03-10**.
+- **OpenTaal/opentaal-wordlist** — Dutch word list — available under Revised BSD (3-clause) and/or CC BY 3.0.
+- Upstream version marker currently used for this integration: **2.20.23**, dated **2023-03-10**.
+- Source file used at runtime: `elements/corrections.tsv` (about 288 KB; upstream documentation describes about 16,000 misspelled forms with suggested corrections).
 
-The complete OpenTaal word list is approximately 5 MB and contains more than 400,000 entries. This learning module deliberately does **not** load that full list on mobile.
-
-Starting in v0.6, the search box can lazily load OpenTaal's `elements/corrections.tsv` spelling-correction resource (approximately 288 KB, roughly 16,000 common incorrect forms). The file is requested only when a Dutch-looking search token needs spelling help, then cached by the browser for later/offline use. If the file is unavailable, the existing local lesson search continues to work normally.
-
-The spelling helper only offers OpenTaal correction suggestions. It does not claim to be a complete Dutch dictionary, CEFR classifier, grammar checker, or proof that a word is valid/invalid.
+The complete OpenTaal word list is approximately 5 MB and contains more than 400,000 words. This learning page intentionally does **not** load the complete list on mobile. The spelling helper lazily requests only `corrections.tsv` when a Dutch-looking query is entered, caches a successful copy in the browser, and gracefully falls back to the built-in lesson/Fuse search if the resource is unavailable.
 
 ## Easy Dutch / Easy Languages
 
-Easy Dutch videos remain third-party copyrighted media owned/published by Easy Dutch / Easy Languages. This site embeds selected public videos using the official YouTube embedded player in privacy-enhanced mode and links to public podcast episodes.
+Easy Dutch videos remain third-party copyrighted media owned/published by Easy Dutch / Easy Languages. This site embeds selected public videos using the official YouTube embedded player in privacy-enhanced mode.
 
-The module does **not** copy, download, extract, re-host, or redistribute Easy Dutch video/audio, member transcripts, exercises, vocab helpers, or other paid learning materials. Our Chinese study prompts and learning workflow beside the player are original to this site.
+The module does **not** copy, download, extract, re-host, or redistribute Easy Dutch video/audio, member transcripts, exercises, or other paid learning materials. Our Chinese study prompts and learning workflow beside the player are original to this site.
 
-Selected public videos:
+Selected public videos in v0.3:
 
 - `jSyrqH_MMOM` — 100 Words You Should Know When Coming to the Netherlands
 - `iA61Z0BAI90` — Small Talk (in Slow Dutch)
