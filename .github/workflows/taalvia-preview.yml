@@ -17,10 +17,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: '24'
 
@@ -42,11 +42,14 @@ jobs:
             fi
             sleep 3
           done
-          grep -q 'host-brand.js' /tmp/taalvia-index.html
+          grep -q 'portable.js' /tmp/taalvia-index.html
+          curl -fsS "$base/host-brand.js" -o /tmp/taalvia-host-brand.js
+          grep -q 'TAALVIA' /tmp/taalvia-host-brand.js
           curl -fsS "$base/manifest.webmanifest" -o /tmp/taalvia-manifest.json
           grep -q 'TAALVIA' /tmp/taalvia-manifest.json
           for hidden_path in 'BRAND-BRIEF.md' '.wrangler/cache/wrangler-account.json' 'wrangler.jsonc'; do
             code="$(curl -sS -o /dev/null -w '%{http_code}' "$base/$hidden_path")"
+            echo "$hidden_path -> HTTP $code"
             if [ "$code" != '404' ]; then
               echo "Unexpected public asset: $hidden_path returned HTTP $code"
               exit 1
