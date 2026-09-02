@@ -157,7 +157,7 @@ function initOpenTaalLayer(){
 
 function markVersion(){
   const footer = document.querySelector('.learn-footer .zh-help');
-  if (footer) footer.textContent = '为在荷兰生活的中文用户制作 · v0.6 preview';
+  if (footer) footer.textContent = '为在荷兰生活的中文用户制作 · v0.7 preview';
 }
 
 function init(){
