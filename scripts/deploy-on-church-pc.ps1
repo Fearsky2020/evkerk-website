@@ -1,5 +1,6 @@
 param(
   [string]$QQTaskName = "Sinan_QQ_Gateway",
+  [string]$MediaTaskName = "Sinan_Church_Media",
   [string]$DatabaseName = "evkerk-website-db",
   [string]$MediaBucket = "evkerk-website-media"
 )
@@ -60,6 +61,32 @@ Write-Host "Bootstrapping Cloudflare + Church Ops..." -ForegroundColor Yellow
   -DatabaseName $DatabaseName `
   -MediaBucket $MediaBucket `
   -SinanProjectRoot $sinanRoot
+if ($LASTEXITCODE -ne 0) { throw "Cloudflare bootstrap failed" }
+
+$endpointPath = Join-Path $sinanRoot ".sinan\church-ops.endpoint"
+if (-not (Test-Path $endpointPath)) {
+  throw "Church Ops endpoint file was not created: $endpointPath"
+}
+$endpoint = (Get-Content $endpointPath -Raw).Trim()
+if ([string]::IsNullOrWhiteSpace($endpoint)) {
+  throw "Church Ops endpoint is empty: $endpointPath"
+}
+
+$mediaInstaller = Join-Path $sinanRoot "scripts\install_church_media_autostart.ps1"
+if (-not (Test-Path $mediaInstaller)) {
+  throw "SINAN church media installer not found: $mediaInstaller. Update the SINAN repository first."
+}
+
+Write-Host "Installing / refreshing church media worker '$MediaTaskName'..." -ForegroundColor Yellow
+& $mediaInstaller `
+  -ProjectRoot $sinanRoot `
+  -DataRoot $sinanRoot `
+  -ApiUrl $endpoint `
+  -TaskName $MediaTaskName
+if ($LASTEXITCODE -ne 0) { throw "Church media worker installation failed" }
+
+$mediaTask = Get-ScheduledTask -TaskName $MediaTaskName -ErrorAction Stop
+Write-Host "Church media worker: $($mediaTask.State)" -ForegroundColor Green
 
 Write-Host "Restarting ONLY scheduled task '$QQTaskName'..." -ForegroundColor Yellow
 try { Stop-ScheduledTask -TaskName $QQTaskName -ErrorAction SilentlyContinue } catch {}
@@ -70,4 +97,5 @@ Start-Sleep -Seconds 3
 $taskInfo = Get-ScheduledTaskInfo -TaskName $QQTaskName
 Write-Host "QQ gateway task restarted." -ForegroundColor Green
 Write-Host "LastTaskResult: $($taskInfo.LastTaskResult)"
-Write-Host "Next step: send a low-risk private QQ announcement and verify it appears on the website."
+Write-Host "Church media worker is installed and polling: $endpoint"
+Write-Host "Next step: upload a short real sermon recording at /admin/media.html and verify it reaches ready_for_review."
