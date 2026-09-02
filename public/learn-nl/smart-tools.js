@@ -2,6 +2,7 @@ const LEVEL_KEY = 'learn-nl-level-v1';
 const LEVEL_LABEL = {start:'起步', daily:'日常', natural:'自然'};
 const FSRS_STORAGE = 'learn-nl-fsrs-cards-v1';
 const FSRS_INTRO_STORAGE = 'learn-nl-fsrs-intro-v2';
+const FREE_DAILY_NEW_LIMIT = 20;
 
 const LESSON_ITEMS = [
   ['supermarket','在超市','Waar kan ik dit vinden?','我在哪里可以找到这个？','start'],
@@ -39,10 +40,7 @@ const LESSON_ITEMS = [
   ['neighbors','邻居寒暄','We wonen hier nog niet zo lang, dus we leren de buurt nog een beetje kennen.','我们搬来还不久，还在慢慢熟悉这个社区。','natural'],
   ['neighbors','邻居寒暄','Als we ooit te veel lawaai maken, zeg het gerust.','如果我们哪天太吵，请尽管告诉我们。','natural'],
   ['phone','打电话','Ik bel omdat ik nog geen bevestiging van mijn afspraak heb ontvangen.','我打来是因为还没有收到预约确认。','natural'],
-  ['phone','打电话','Kunt u mij doorverbinden met iemand die hierover gaat?','您能帮我转接负责这件事的人吗？','natural'],
-  ['church','教会','Welkom in onze kerk.','欢迎来到我们的教会。','start'],
-  ['church','教会','Zullen we samen bidden?','我们一起祷告好吗？','daily'],
-  ['church','教会','De dienst begint om tien uur.','聚会十点开始。','start']
+  ['phone','打电话','Kunt u mij doorverbinden met iemand die hierover gaat?','您能帮我转接负责这件事的人吗？','natural']
 ].map(([sceneId,scene,nl,zh,level]) => ({id:`${sceneId}::${nl}`,sceneId,scene,kind:'句子',nl,zh,level}));
 
 const VOCAB_ITEMS = [
@@ -54,7 +52,8 @@ const VOCAB_ITEMS = [
 ].map(([scene,nl,zh,level],index)=>({id:`vocab-${index}`,scene,kind:'单词',nl,zh,level}));
 
 const SEARCH_ITEMS = [...LESSON_ITEMS, ...VOCAB_ITEMS];
-const REVIEW_ITEMS = LESSON_ITEMS.filter(item => item.sceneId !== 'church');
+const REVIEW_ITEMS = [...LESSON_ITEMS, ...VOCAB_ITEMS];
+const SHADOW_ITEMS = LESSON_ITEMS;
 const EASY_DUTCH = [
   {id:'jSyrqH_MMOM',level:'start',label:'入门生存词',title:'100 Words You Should Know When Coming to the Netherlands',note:'适合起步：先建立来荷兰马上会用的词汇地图。'},
   {id:'iA61Z0BAI90',level:'daily',label:'慢速小聊',title:'Small Talk (in Slow Dutch)',note:'适合日常：听完整小聊，练接话和自然节奏。'},
@@ -74,12 +73,12 @@ function injectSections(){
   const wrapper=document.createElement('div');
   wrapper.innerHTML=`
   <section class="smart-section" id="smartTools"><div class="shell">
-    <div class="smart-heading"><div><p class="eyebrow">SLIM LEREN</p><h2>别只学更多，先学适合你现在的。</h2></div><p class="zh-help">搜索可以看全部内容；FSRS 会优先引入你当前难度的新句子，但以前学过、已经到期的内容仍照常复习。</p></div>
+    <div class="smart-heading"><div><p class="eyebrow">SLIM LEREN</p><h2>别只学更多，先学适合你现在的。</h2></div><p class="zh-help">搜索可以看全部内容；FSRS 会优先引入你当前难度的新词和新句，到期复习则始终优先。</p></div>
     <div class="smart-grid">
       <article class="smart-card search-tool"><span class="smart-chip">Fuse.js</span><p class="eyebrow">SNEL ZOEKEN</p><h3>我现在想说什么？</h3><p class="zh-help">中文、荷兰文都能搜。同级内容优先，但不会把其他难度藏起来。</p><label class="smart-search-box"><span>⌕</span><input id="smartSearchInput" type="search" autocomplete="off" placeholder="例如：预约 / afspraak / 慢一点"></label><div class="smart-search-results" id="smartSearchResults" aria-live="polite"></div><p class="smart-source zh-help">OpenTaal 拼写助手按需加载；课程搜索和难度排序都在本机完成。</p></article>
-      <article class="smart-card review-tool"><span class="smart-chip">FSRS v6</span><p class="eyebrow">HERHALEN</p><div class="smart-card-titleline"><h3>今天该复习什么？</h3><strong id="reviewDueCount">—</strong></div><p class="zh-help" id="reviewLevelNote">已到期的旧卡优先；每天最多引入 5 条当前难度的新句子。</p><div class="review-stage" id="reviewStage"><p class="review-empty zh-help">正在加载智能复习器…</p></div></article>
+      <article class="smart-card review-tool"><span class="smart-chip">FSRS v6</span><p class="eyebrow">HERHALEN</p><div class="smart-card-titleline"><h3>今天该复习什么？</h3><strong id="reviewDueCount">—</strong></div><p class="zh-help" id="reviewLevelNote">到期旧卡优先；免费版每天最多加入 ${FREE_DAILY_NEW_LIMIT} 个新词 / 新卡，复习不计入额度。</p><div class="review-stage" id="reviewStage"><p class="review-empty zh-help">正在加载智能复习器…</p></div></article>
     </div>
-    <article class="shadow-card" id="shadowing"><div class="shadow-copy"><span class="smart-chip">WaveSurfer.js</span><p class="eyebrow">NAZEGGEN · SHADOWING</p><h3>听一句，自己说，再听自己。</h3><p class="zh-help">跟读句子也会跟随当前难度。录音只留在浏览器，不上传。</p><label class="shadow-select-label" for="shadowPhrase">今天跟读</label><select id="shadowPhrase" class="shadow-select"></select><div class="shadow-actions"><button class="btn secondary" id="shadowReference" type="button">🔊 听原句</button><button class="btn primary" id="shadowRecord" type="button">● 开始录音</button><button class="btn secondary" id="shadowMine" type="button" disabled>▶ 听我的</button></div><p class="shadow-status zh-help" id="shadowStatus">第一次使用时，浏览器会询问麦克风权限。</p></div><div class="wave-panel"><div class="wave-caption"><span>我的声音</span><small id="shadowTimer">00:00</small></div><div id="shadowWaveform" class="shadow-waveform" aria-label="录音波形"></div></div></article>
+    <article class="shadow-card" id="shadowing"><div class="shadow-copy"><span class="smart-chip">WaveSurfer.js</span><p class="eyebrow">NAZEGGEN · SHADOWING</p><h3>听一句，自己说，再听自己。</h3><p class="zh-help">跟读句子会跟随当前难度。录音只留在浏览器，不上传。</p><label class="shadow-select-label" for="shadowPhrase">今天跟读</label><select id="shadowPhrase" class="shadow-select"></select><div class="shadow-actions"><button class="btn secondary" id="shadowReference" type="button">🔊 听原句</button><button class="btn primary" id="shadowRecord" type="button">● 开始录音</button><button class="btn secondary" id="shadowMine" type="button" disabled>▶ 听我的</button></div><p class="shadow-status zh-help" id="shadowStatus">第一次使用时，浏览器会询问麦克风权限。</p></div><div class="wave-panel"><div class="wave-caption"><span>我的声音</span><small id="shadowTimer">00:00</small></div><div id="shadowWaveform" class="shadow-waveform" aria-label="录音波形"></div></div></article>
   </div></section>
   <section class="easy-dutch-section" id="easyDutch"><div class="shell"><div class="smart-heading easy-heading"><div><p class="eyebrow">ECHT NEDERLANDS · EASY DUTCH</p><h2>课本之外，听荷兰人真的怎么说。</h2></div><p class="zh-help">默认推荐与你当前难度最接近的一条；三条公开内容始终都可以看。</p></div><div class="easy-layout"><div class="easy-player-wrap"><iframe id="easyDutchPlayer" class="easy-player" title="Easy Dutch" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div><div class="easy-side"><div id="easyDutchChoices" class="easy-choices"></div><div class="watch-plan"><strong>别把视频当背景音：</strong><ol class="zh-help"><li>第一遍不暂停，先抓主题和节奏。</li><li>第二遍开 YouTube 自带字幕，记 3 个你真想用的表达。</li><li>第三遍挑一句，回到跟读区自己说一遍。</li></ol></div><a class="btn secondary easy-channel-link" href="https://www.youtube.com/@EasyDutch" target="_blank" rel="noopener">在 YouTube 打开 Easy Dutch ↗</a></div></div></div></section>`;
   [...wrapper.children].forEach(node=>future.parentNode.insertBefore(node,future));
@@ -118,13 +117,13 @@ async function initReview(){
       let ids=Array.isArray(state.byLevel[level])?state.byLevel[level]:[];
       ids=ids.filter(id=>REVIEW_ITEMS.some(item=>item.id===id)&&!cards[id]);
       const pool=REVIEW_ITEMS.filter(item=>item.level===level&&!cards[item.id]&&!ids.includes(item.id));
-      while(ids.length<5&&pool.length)ids.push(pool.shift().id);
-      state.byLevel[level]=ids.slice(0,5);saveIntro(state);
+      while(ids.length<FREE_DAILY_NEW_LIMIT&&pool.length)ids.push(pool.shift().id);
+      state.byLevel[level]=ids.slice(0,FREE_DAILY_NEW_LIMIT);saveIntro(state);
       return ids.map(id=>REVIEW_ITEMS.find(item=>item.id===id)).filter(Boolean);
     };
     const dueItems=()=>{const old=reviewedDue();const oldIds=new Set(old.map(x=>x.id));return[...old,...selectedNew().filter(x=>!oldIds.has(x.id))];};
-    const updateCount=()=>{const old=reviewedDue().length,fresh=selectedNew().length,total=dueItems().length;dueCount.textContent=`${total} 条（到期 ${old} / 新 ${fresh}）`;if(note)note.textContent=`当前：${LEVEL_LABEL[currentLevel()]} · 每天最多 5 条同级新句；已学过的到期卡不受等级切换影响。`;};
-    const pickNext=()=>{const due=dueItems();current=due[0]||null;updateCount();if(!current){stage.innerHTML='<div class="review-done"><strong>今天先到这里 ✓</strong><p class="zh-help">当前等级没有更多到期卡或今日新句了。</p></div>';return;}const card=getCard(current.id),preview=scheduler.repeat(card,new Date()),ratings=[[Rating.Again,'忘了'],[Rating.Hard,'有点难'],[Rating.Good,'记得'],[Rating.Easy,'太简单']];stage.innerHTML=`<div class="review-scene">${escapeHtml(current.scene)} · ${LEVEL_LABEL[current.level]}</div><button class="review-speak" type="button" data-review-speak="${escapeHtml(current.nl)}">🔊</button><p class="review-dutch">${escapeHtml(current.nl)}</p><p class="review-cn zh-help">${escapeHtml(current.zh)}</p><p class="review-question zh-help">先自己回忆，再按真实感觉选：</p><div class="rating-grid">${ratings.map(([r,l])=>`<button type="button" data-fsrs-rating="${r}"><strong>${l}</strong><small>${formatWhen(preview[r].card.due)}</small></button>`).join('')}</div>`;};
+    const updateCount=()=>{const old=reviewedDue().length,fresh=selectedNew().length,total=dueItems().length;dueCount.textContent=`${total} 条（到期 ${old} / 新 ${fresh}）`;if(note)note.textContent=`当前：${LEVEL_LABEL[currentLevel()]} · 免费版每天最多 ${FREE_DAILY_NEW_LIMIT} 个同级新词 / 新卡；到期复习不占额度。`;};
+    const pickNext=()=>{const due=dueItems();current=due[0]||null;updateCount();if(!current){stage.innerHTML='<div class="review-done"><strong>今天先到这里 ✓</strong><p class="zh-help">当前等级没有更多到期卡或今日新内容了。</p></div>';return;}const card=getCard(current.id),preview=scheduler.repeat(card,new Date()),ratings=[[Rating.Again,'忘了'],[Rating.Hard,'有点难'],[Rating.Good,'记得'],[Rating.Easy,'太简单']];stage.innerHTML=`<div class="review-scene">${escapeHtml(current.scene)} · ${escapeHtml(current.kind)} · ${LEVEL_LABEL[current.level]}</div><button class="review-speak" type="button" data-review-speak="${escapeHtml(current.nl)}">🔊</button><p class="review-dutch">${escapeHtml(current.nl)}</p><p class="review-cn zh-help">${escapeHtml(current.zh)}</p><p class="review-question zh-help">先自己回忆，再按真实感觉选：</p><div class="rating-grid">${ratings.map(([r,l])=>`<button type="button" data-fsrs-rating="${r}"><strong>${l}</strong><small>${formatWhen(preview[r].card.due)}</small></button>`).join('')}</div>`;};
     stage.addEventListener('click',e=>{const s=e.target.closest('[data-review-speak]');if(s)return speak(s.dataset.reviewSpeak);const b=e.target.closest('[data-fsrs-rating]');if(!b||!current)return;const result=scheduler.next(getCard(current.id),new Date(),Number(b.dataset.fsrsRating));cards[current.id]=serializeCard(result.card);saveCards(cards);pickNext();});
     addEventListener('learn-nl-level-change',()=>{current=null;pickNext();});pickNext();
   }catch(error){console.error('FSRS failed to load.',error);dueCount.textContent='离线';stage.innerHTML='<p class="review-empty zh-help">智能复习组件暂时没有加载成功。普通课程仍可正常使用。</p>';}
@@ -132,7 +131,7 @@ async function initReview(){
 
 async function initShadowing(){
   const select=$('shadowPhrase'),recordButton=$('shadowRecord'),mineButton=$('shadowMine'),referenceButton=$('shadowReference'),status=$('shadowStatus'),timer=$('shadowTimer');if(!select||!recordButton||!mineButton||!referenceButton||!status||!timer)return;
-  const renderOptions=()=>{let picks=REVIEW_ITEMS.filter(x=>x.level===currentLevel()).slice(0,5);if(!picks.length)picks=prioritized(REVIEW_ITEMS).slice(0,5);select.innerHTML=picks.map(item=>`<option value="${escapeHtml(item.nl)}">${escapeHtml(item.nl)} — ${escapeHtml(item.zh)}</option>`).join('');};
+  const renderOptions=()=>{let picks=SHADOW_ITEMS.filter(x=>x.level===currentLevel()).slice(0,5);if(!picks.length)picks=prioritized(SHADOW_ITEMS).slice(0,5);select.innerHTML=picks.map(item=>`<option value="${escapeHtml(item.nl)}">${escapeHtml(item.nl)} — ${escapeHtml(item.zh)}</option>`).join('');};
   renderOptions();addEventListener('learn-nl-level-change',renderOptions);referenceButton.addEventListener('click',()=>speak(select.value,.9));
   try{
     const [waveModule,recordModule]=await Promise.all([import('https://cdn.jsdelivr.net/npm/wavesurfer.js@7.12.11/+esm'),import('https://cdn.jsdelivr.net/npm/wavesurfer.js@7.12.11/dist/plugins/record.esm.js')]);const WaveSurfer=waveModule.default,RecordPlugin=recordModule.default;
