@@ -31,7 +31,7 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: npx --yes wrangler@4 deploy --config wrangler.jsonc
 
-      - name: Smoke-test brand homepage, learning app and private exclusions
+      - name: Smoke-test brand homepage, learning app, Lock and private exclusions
         shell: bash
         run: |
           set -euo pipefail
@@ -61,6 +61,12 @@ jobs:
           wait_for_marker "$base/home.css?v=1" 'hero-visual' /tmp/taalvia-home.css
           wait_for_marker "$base/learn/" 'portable.js' /tmp/taalvia-learn.html
           wait_for_marker "$base/learn/manifest.webmanifest" 'TAALVIA' /tmp/taalvia-manifest.json
+
+          wait_for_marker "$base/lock/" '3 WOORDEN' /tmp/taalvia-lock.html
+          grep -q 'TAALVIA Lock' /tmp/taalvia-lock.html
+          wait_for_marker "$base/lock/manifest.webmanifest" 'TAALVIA Lock' /tmp/taalvia-lock-manifest.json
+          wait_for_marker "$base/lock/sw.js" 'TAALVIA_LOCK_SHOW' /tmp/taalvia-lock-sw.js
+          wait_for_marker "$base/lock/lock.js?v=1" 'WORDS_PER_DAY = 3' /tmp/taalvia-lock-js.js
 
           for hidden_path in 'BRAND-BRIEF.md' '.wrangler/cache/wrangler-account.json' 'wrangler.jsonc' 'router.js'; do
             code="$(curl -sS -o /dev/null -w '%{http_code}' "$base/$hidden_path")"
