@@ -1,6 +1,7 @@
 import { handleSinanApi } from './sinan-ops.js';
 import { handleMediaApi } from './media-ingest.js';
 import { handleActivityApi } from './activity-gallery.js';
+import { handleHeroApi } from './hero-slides.js';
 
 const TZ = 'Europe/Amsterdam';
 
@@ -282,6 +283,8 @@ async function syncCalendar(env) {
 }
 
 async function handleApi(request, env, url) {
+  const heroResponse = await handleHeroApi(request, env, url);
+  if (heroResponse) return heroResponse;
   const activityResponse = await handleActivityApi(request, env, url);
   if (activityResponse) return activityResponse;
   const mediaResponse = await handleMediaApi(request, env, url);
