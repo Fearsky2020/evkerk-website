@@ -29,7 +29,7 @@
       .auto-location-list{display:grid;gap:18px}.auto-location-group{padding:16px;border:1px solid var(--line);border-radius:18px;background:color-mix(in srgb,var(--paper) 88%,#eaf8fd)}.auto-location-title{margin:0 0 14px;padding-left:12px;border-left:5px solid #12afe6;font-size:24px;font-weight:950;line-height:1.15;color:#087fae}.auto-event-list{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
       .auto-event{padding:17px;border:1px solid var(--line);border-radius:16px;background:var(--paper)}
       .auto-event time{font-size:12px;font-weight:850;color:var(--accent)}.auto-event h4{font-size:17px;margin:9px 0 7px}
-      .auto-event p{margin:0;color:var(--muted);font-size:13px;line-height:1.55}.auto-event .auto-event-location{font-size:15px;font-weight:750;line-height:1.45;color:var(--ink)}.auto-event .auto-time{margin-top:10px;color:var(--ink);font-weight:750}.auto-event .auto-special-note{margin-top:8px;color:#9b5939;font-weight:800}
+      .auto-event p{margin:0;color:var(--muted);font-size:13px;line-height:1.55}.auto-event .auto-event-location{font-size:15px;font-weight:750;line-height:1.45;color:var(--ink)}.auto-event .auto-time{margin-top:10px;color:var(--ink);font-weight:750}.auto-event .auto-special-note{margin-top:8px;color:#9b5939;font-weight:800}.auto-joint-service{margin:0 0 18px;padding:20px 22px;border:2px solid #12afe6;border-radius:18px;background:linear-gradient(135deg,#eaf8fd,#fff);box-shadow:0 12px 30px rgba(8,127,174,.12)}.auto-joint-service time{display:block;color:#087fae;font-size:15px;font-weight:950}.auto-joint-service h4{margin:7px 0;font-size:24px}.auto-joint-service p{margin:3px 0;color:var(--ink);font-size:15px;font-weight:750}.auto-joint-service .auto-special-note{color:#9b5939;font-weight:900}
       .auto-sermon-meta{display:flex;gap:9px;flex-wrap:wrap;margin:8px 0 12px;color:var(--muted);font-size:13px}
       .auto-sermon-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:15px}.auto-sermon-actions a{padding:9px 12px;border-radius:9px;border:1px solid var(--line);text-decoration:none;font-weight:800;font-size:13px}
       @media(max-width:900px){.auto-event-list{grid-template-columns:1fr 1fr}}
@@ -75,9 +75,11 @@
       });
     }
     if (!events.length) return;
+    const specialEvent = events.find(event => event.id === 'special-2026-09-06');
+    const regularEvents = events.filter(event => event.id !== 'special-2026-09-06');
     const locationOrder = ['Rijswijk', 'Zoetermeer', '其他'];
     const groups = new Map(locationOrder.map(name => [name, []]));
-    events.slice().sort((left,right) => String(left.start_at || left.date || '').localeCompare(String(right.start_at || right.date || ''))).forEach(event => {
+    regularEvents.slice().sort((left,right) => String(left.start_at || left.date || '').localeCompare(String(right.start_at || right.date || ''))).forEach(event => {
       const place = String(event.location || '');
       const key = /rijswijk/i.test(place) ? 'Rijswijk' : /zoetermeer/i.test(place) ? 'Zoetermeer' : '其他';
       groups.get(key).push(event);
@@ -85,6 +87,7 @@
     const visibleGroups = [...groups.entries()].filter(([,items]) => items.length).map(([place,items]) => [place,items.slice(0,6)]);
     wrapper.innerHTML = `
       <div class="auto-upcoming-head"><h3>${isNl() ? 'Komende bijeenkomsten per locatie' : '接下来聚会（按地点）'}</h3><span>${isNl() ? 'Automatisch bijgewerkt' : '自动更新'}</span></div>
+      ${specialEvent ? `<article class="auto-joint-service"><time>${esc(dateLabel('2026-09-06'))}</time><h4>${esc(t(specialEvent.title_zh,specialEvent.title_nl))}</h4><p>${esc(specialEvent.location)}</p><p>${esc([specialEvent.start_time,specialEvent.end_time].join('–'))}</p><p class="auto-special-note">${esc(t(specialEvent.notice_zh,specialEvent.notice_nl))}</p></article>` : ''}
       <div class="auto-location-list">${visibleGroups.map(([place,items]) => `
         <section class="auto-location-group">
           <h4 class="auto-location-title">${esc(place === '其他' ? (isNl() ? 'Overige locaties' : '其他地点') : place)}</h4>
