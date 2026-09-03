@@ -1,6 +1,6 @@
 # EVKERK Workboard
 
-_Last updated: 2026-09-02_
+_Last updated: 2026-09-03_
 
 This board records the current church website work plus the boundaries/status of closely related projects. Status claims follow this evidence order: executable code/live behavior → executed test or live validation → repository documentation → roadmap.
 
@@ -45,9 +45,9 @@ This remains a continuing workflow; real-content end-to-end validation is still 
 
 **Verified repository:** `Fearsky2020/evkerk-scripture-cards` (private; independent of `evkerk-website`).
 
-**Current verified status:** the first **50/50 Chinese + Dutch launch cards are synchronized, presentation-cleaned and promoted into the chunked runtime dataset**. The Worker configuration has now passed a full real-assets Wrangler dry-run, a local Worker HTTP smoke, and a temporary Cloudflare external HTTP smoke. The project is still **not production-attached to an EVKERK domain** and has **not completed iPhone/Android real-device interaction/PWA validation**.
+**Current verified status:** the v0.1 launch corpus has completed pastoral/context approval and contains **50/50 synchronized Chinese + Dutch cards** in five 10-card runtime chunks. The six pastor-approved context resolutions are present in the runtime dataset and the curated plan is marked `pastor-approved-synchronized`. The current synchronized source-corpus SHA-256 is `ef767a248feebea3e33fef3a27a4ff6ac81b51444692e1b8bcbd7a27ffa36d95`.
 
-Latest main-line evidence update: `32a80f68b22f95e6b07015f5203054c0f079ddf9`. The Worker routing fix itself is commit `60d2a4a82de8055beef5a500829760e9011ff6ec`.
+Post-approval validation evidence is recorded in `docs/POST-APPROVAL-VALIDATION.md` in the Scripture Cards repository, committed as `0e5c5962263de0c2b45c1b360d1089cd9c8c0dd4`.
 
 **Ownership:** Church Work / 教会工作, as a peer project to `evkerk-website`, not normal website feature code.
 
@@ -69,51 +69,65 @@ The repository contains:
 - curated-plan/runtime validation scripts;
 - Midvash pinned-data importer and batch API sync script;
 - deterministic card-display cleanup rules in `scripts/text-cleanup.mjs`;
-- schema-v2 runtime manifest + chunk loader/writer in `scripts/runtime-dataset.mjs`.
+- schema-v2 runtime manifest + five-chunk loader/writer in `scripts/runtime-dataset.mjs`.
 
 ### Curation/data status — verified
 
-- `public/data/featured-plan.json`: **50 curated references**.
-- `public/data/featured.json`: small schema-v2 runtime manifest/provenance file.
-- `public/data/cards-01.json` … `cards-05.json`: **50/50 synchronized Chinese + Dutch launch cards**, 10 cards per chunk.
-- Runtime and curated-plan IDs are required to match exactly.
-- Chinese translation: CUVS 1919; Dutch: De Heilige Schrift 1917; both recorded as public-domain for this launch dataset.
+- `public/data/featured-plan.json`: **50 curated references**, status `pastor-approved-synchronized`.
+- `public/data/featured.json`: schema-v2 runtime manifest/provenance file, count 50, chunk size 10, five chunks.
+- `public/data/cards-01.json` … `cards-05.json`: **50/50 synchronized Chinese + Dutch launch cards**.
+- Chinese translation: CUVS 1919; Dutch: De Heilige Schrift / Statenvertaling 1917; both recorded as public-domain for this launch dataset.
 - Pinned Midvash reference revision: `d9fe1779447717bbfcb578e505b893125cad581c`.
-- Final synchronized original bilingual source-corpus SHA-256: `6aba66858bb8706cf5fac3a5752bede6729082dfd1c6831505486240c08653cc`.
-- Final full review sync: `Fearsky2020/sinan` Actions run `33676610510`; both translation batches resolved **50/50 with 0 failed**.
-- Final review artifact: `scripture-cards-review-sync-utf8`, id `9864592633`, digest `sha256:1bce6d15359eac8540c18e8906c260ac35b781f81a7854a618a7d82916916814`.
-- Full provenance, including the rejected PowerShell-encoding incident and the accepted UTF-8 raw-byte method, is recorded in `docs/DATA-PROVENANCE.md`.
+- Current source-corpus SHA-256: `ef767a248feebea3e33fef3a27a4ff6ac81b51444692e1b8bcbd7a27ffa36d95`.
+- Synchronized launch-corpus commit: `64729b7384de8d5c870206f237dc2ce069d55da8`.
+- Pastor approval record: `e9ef942365f4cf2ddddcdf9c021fbabb9714dff1`.
+- Final metadata/reference-label fix before validation: `f0fd92fb6282b353fc0083bc52e3692a145ef092`.
 
-### Editorial presentation review — verified
+The six approved resolutions are:
+
+1. `PHP.4.6` → `PHP.4.6-7`
+2. `JER.29.11` → `ROM.5.5`
+3. `MAT.6.33` → `MAT.6.31-33`
+4. `MAT.7.7` → `MAT.6.9-10`
+5. `MAT.19.26` → `MAT.19.25-26`
+6. `PHP.4.13` → `PHP.4.12-13`
+
+### Editorial/pastoral review — verified
 
 - CUVS editorial square brackets are removed from card display while their words remain.
 - Chinese standalone-card quotation artifacts are removed.
 - Selected Psalm/acrostic superscriptions are removed from card display where they would read like accidental verse text.
 - Embedded Statenvertaling verse markers such as `(55:23)` are removed from Dutch card display.
 - Dutch-facing references reflect Statenvertaling Psalm versification where superscriptions shift the displayed verse number: `诗篇 46:1 ↔ Psalm 46:2`, `诗篇 55:22 ↔ Psalm 55:23`, `诗篇 56:3 ↔ Psalm 56:4`.
-- `Colossians 3:23` was expanded to `Colossians 3:23–24` because verse 23 alone ended as an incomplete sentence in both launch translations; the complete 50-card corpus was then re-fetched rather than hand-patched.
-- This is **presentation/text review**, not final pastoral/context approval. Context/pastoral suitability remains a deployment gate.
+- `Colossians 3:23` was previously expanded to `Colossians 3:23–24` because verse 23 alone ended as an incomplete sentence in both launch translations.
+- The pastor approved the six-card context-resolution proposal on 2026-09-03. Pastoral/context review is therefore no longer an open v0.1 gate.
 
 ### Data/cache hardening
 
-- Runtime content no longer lives in one growing JSON blob; it is a manifest plus five 10-card chunks, designed to scale toward the planned 300–500-card pool.
-- `scripts/sync-midvash-api.mjs` and the pinned repository importer both regenerate the same chunked runtime format.
-- `scripts/check.mjs` requires schema-v2 manifest integrity, declared chunks, exact 50/50 ID parity, public-domain licenses, matching source revision and valid provenance SHA.
-- Service Worker cache is `v3`; every `/data/*.json` request uses network-first with offline fallback so installed PWAs do not remain stuck on stale scripture data.
+- Runtime content is a manifest plus five 10-card chunks, designed to scale toward the planned 300–500-card pool.
+- `scripts/sync-midvash-api.mjs` and the pinned repository importer regenerate the chunked runtime format.
+- `scripts/check.mjs` requires schema-v2 manifest integrity, declared chunks, exact 50/50 ID parity, public-domain licenses, matching source revision and a valid provenance SHA.
+- Service Worker Scripture JSON uses network-first with offline fallback to avoid installed PWAs remaining stuck on stale Scripture data.
 
-### Check/CI/runtime status
+### Post-approval validation — executed evidence
 
-- The exact final runtime set was checked locally successfully: **50 verified cards / 50 curated refs**, five chunks, exact ID parity, syntax/license/provenance guards, deterministic daily verse, no-repeat random and bilingual sharing.
-- The final GitHub `main` tree was checked after promotion: the manifest and all five chunk blobs are present with the expected SHA values, and the temporary review workflow is absent.
-- A SHA-verified full deployment payload passed Wrangler `4.128.0` full real-assets dry-run and local Worker HTTP smoke in `Fearsky2020/sinan` Actions run `33683689238`.
-- Local HTTP smoke passed `/health`, `/`, the runtime manifest, all five chunks / 50 cards, the 50-item curation plan, PWA manifest, `app.js`, and `sw.js`.
-- The first unauthenticated Cloudflare temporary deployment produced a Worker URL but external `/health` returned Cloudflare error `1042`.
-- A controlled A/B run added only `global_fetch_strictly_public` to the SHA-verified test copy. In Actions run `33685559789`, the temporary Cloudflare deployment then passed `/health` on the **first external attempt**, plus `/`, all five chunks / 50 cards, PWA manifest, `app.js`, and `sw.js`.
-- Commit `60d2a4a82de8055beef5a500829760e9011ff6ec` changes only `wrangler.jsonc` and commits that compatibility flag to real `main`.
-- Detailed evidence and remaining gates are recorded in `docs/DEPLOYMENT-PREFLIGHT.md`.
-- An attempted repo-native self-hosted validation remained queued with no steps; a one-time GitHub-hosted validation ended before job steps/log output. Neither reached project code, so neither is treated as application-test evidence.
-- Earlier hosted Actions red runs were also not code-test failures: the job had `runner_id: 0`, empty runner name and `steps: []`.
-- GitHub previously confirmed the account had used **2,278 / 2,000 included Actions minutes**; automatic hosted push/PR checks remain constrained for this billing cycle.
+- A cached ZIP labelled as current was explicitly rejected as current evidence after it was tested and found to contain the older `6aba66858bb8706cf5fac3a5752bede6729082dfd1c6831505486240c08653cc` corpus and all six superseded IDs.
+- The post-approval dataset was reconstructed from the actual Git diffs and matched the GitHub blob IDs byte-for-byte for all changed runtime files plus the final curated plan.
+- Executed structural checks passed: **50 runtime cards / 50 curated refs**, five chunks of 10, 50 unique IDs, exact runtime/plan parity, all six new IDs present, all six old IDs absent, bilingual fields present, public-domain license guards intact, matching source revision and valid provenance SHA.
+- Core JavaScript behavior was executed successfully: deterministic daily verse, no-repeat random selection, bilingual sharing and Worker `/health`.
+- `app.js`, `app-core.js`, `sw.js` and `src/worker.js` passed Node syntax checks.
+- A local HTTP server returned the current manifest with count 50 and SHA prefix `ef767a248feebea3`.
+- `2CO.12.9` is currently labelled correctly as `哥林多后书 12:9`.
+
+### Actions / Cloudflare / browser boundary
+
+- There is **no 2026-09-03 GitHub Actions run** corresponding to the post-approval `ef767...` corpus. Earlier run `33676610510` and related artifacts belong to the older pre-approval corpus and are not cited as proof of the new dataset.
+- Current repo-native `check.yml` is manual (`workflow_dispatch`) and uses `ubuntu-latest`; no new run was started during this validation.
+- Earlier temporary Cloudflare external smoke proved the Worker routing approach for the older corpus, including the `global_fetch_strictly_public` routing fix. It does **not** prove that the current `ef767...` corpus is deployed externally.
+- A fresh post-approval Cloudflare temporary Preview has **not yet been run** in the current environment because no Cloudflare deployment credentials are available here.
+- Headless Chromium in the current container timed out and produced no DOM. Therefore real browser rendering is **not marked passed**.
+- iPhone Safari and Android Chrome interaction/PWA validation remain open.
+- The project is not yet production-attached to an EVKERK subdomain.
 
 ### Open-source research incorporated
 
@@ -127,12 +141,13 @@ The repository contains:
 
 ### Next gate
 
-1. Pastoral/context-review the 50 launch cards for suitability as standalone daily verses.
-2. Use a temporary/preview origin for real-device smoke on iPhone Safari and Android Chrome: card rendering, random/daily, language switch, themes, favorites, PNG, share, PWA install and offline refresh.
-3. Fix any device-only behavior found in that smoke.
-4. Choose and attach the final EVKERK subdomain only after real-device validation.
-5. Run final-origin smoke after production attachment.
-6. Only then ask `evkerk-website` to add the main-site entry/homepage daily-verse integration/routing.
+1. Create a fresh temporary Cloudflare deployment from current `main`.
+2. Verify `/health`, `featured.json` = current `ef767...` corpus, all five chunks / 50 cards, the six approved new IDs, PWA manifest, `app.js` and `sw.js`.
+3. Run real-device smoke on iPhone Safari and Android Chrome: card rendering, daily/random, language switch, themes, favorites, PNG, share, PWA install and offline refresh.
+4. Fix any device-only behavior found in that smoke.
+5. Choose and attach the final EVKERK subdomain only after real-device validation.
+6. Run final-origin smoke after production attachment.
+7. Only then ask `evkerk-website` to add the main-site entry/homepage daily-verse integration/routing.
 
 ## INDEPENDENT PRODUCT — TAALVIA Dutch Learning
 
@@ -167,7 +182,7 @@ Repository documentation records `taalvia.nl` / `taalvia.com`, Cloudflare namese
 1. EVKERK: finish the private-QQ announcement + undo live validation.
 2. EVKERK: connect Google Calendar write executor after that path is proven.
 3. EVKERK: validate sermon/media automation with real material.
-4. Scripture Cards: pastoral/context-review the 50-card corpus, then real-device smoke on the already-proven temporary Worker path before choosing the final subdomain.
+4. Scripture Cards: fresh current-main Cloudflare temporary Preview, then iPhone/Android real-device smoke before choosing the final subdomain.
 5. TAALVIA: run repository checks/preview and smoke-test `/`, `/learn/`, `/lock/`.
 6. TAALVIA Lock: decide later whether true unlock-trigger behavior warrants a native Android component/widget.
 
