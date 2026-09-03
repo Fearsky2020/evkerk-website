@@ -73,6 +73,75 @@
   color: rgba(255, 255, 255, .78);
 }
 
+/* Warm, welcoming default palette for the public church homepage. */
+:root {
+  --bg: #fbf6ec;
+  --paper: #fffdf8;
+  --ink: #33291f;
+  --muted: #75695e;
+  --line: #eadfce;
+  --accent: #a9683f;
+  --accent-soft: #f3dfc4;
+  --dark: #7b452e;
+  --shadow: 0 22px 60px rgba(112, 77, 43, .13);
+}
+
+.site-header {
+  background: color-mix(in srgb, #fffaf1 94%, transparent);
+  border-bottom-color: rgba(151, 101, 62, .13);
+}
+
+.visit-btn,
+.btn.primary,
+.play {
+  background: #9b5939;
+}
+
+.hero-visual::before {
+  background: linear-gradient(transparent 68%, rgba(67, 39, 22, .32));
+}
+
+.hero-photo-note {
+  border-color: rgba(255, 246, 228, .46);
+  background: rgba(74, 45, 27, .55);
+}
+
+.welcome {
+  background: #f1dfc7;
+  color: var(--ink);
+}
+
+.welcome .section-heading > p:last-child,
+.expect-list p {
+  color: #6f6154;
+}
+
+.expect-list article {
+  border-color: #e1c8a9;
+  background: rgba(255, 253, 248, .72);
+}
+
+.expect-list article > strong {
+  color: #a35f3b;
+}
+
+.gathering-card.featured {
+  background: #a65f3d;
+  border-color: #a65f3d;
+}
+
+.contact-card {
+  background: linear-gradient(135deg, #9d5838, #bd7650);
+}
+
+.contact-card p {
+  color: #fff3e7;
+}
+
+.btn.light {
+  color: #6d3d29;
+}
+
 @media (max-width: 640px) {
   .brand-mark {
     width: 34px;
