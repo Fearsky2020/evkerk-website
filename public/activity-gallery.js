@@ -3,6 +3,7 @@
   if (!carousel) return;
   const track = carousel.querySelector('.activity-track');
   const dotBox = carousel.querySelector('.carousel-dots');
+  const summaryBox = document.querySelector('[data-activity-summaries]');
   const categoryNames = {
     zh: { church: '教会活动', fellowship: '团契活动', small_group: '小组活动' },
     nl: { church: 'Gemeenteactiviteit', fellowship: 'Fellowship', small_group: 'Kringactiviteit' },
@@ -34,6 +35,12 @@
     };
   }
 
+  function renderSummaries() {
+    if (!summaryBox) return;
+    summaryBox.innerHTML = records.slice(0, 4).map((record, index) => { const text = caption(record); return `<button class="activity-summary${index === activeSlide ? ' is-active' : ''}" type="button" data-summary-index="${index}"><img src="${escapeText(record.image_url)}" alt=""><span><small>${escapeText(text.category)}</small><strong>${escapeText(text.title)}</strong><em>${escapeText(text.meta)}</em></span></button>`; }).join('');
+    summaryBox.querySelectorAll('[data-summary-index]').forEach(button => button.addEventListener('click', () => { showSlide(Number(button.dataset.summaryIndex)); start(); }));
+  }
+
   function updateCaptions() {
     records.forEach((record, index) => {
       const text = caption(record);
@@ -43,6 +50,7 @@
       slide.querySelector('h3').textContent = text.title;
       slide.querySelector('p').textContent = text.meta;
     });
+    renderSummaries();
   }
 
   function render(items) {
@@ -59,6 +67,7 @@
     dots = [...carousel.querySelectorAll('[data-carousel-dot]')];
     dots.forEach((dot, index) => dot.addEventListener('click', () => { showSlide(index); start(); }));
     showSlide(0);
+    renderSummaries();
     start();
   }
 
@@ -74,6 +83,7 @@
       dot.classList.toggle('is-active', active);
       dot.setAttribute('aria-selected', String(active));
     });
+    summaryBox?.querySelectorAll('[data-summary-index]').forEach((button, i) => button.classList.toggle('is-active', i === activeSlide));
   }
 
   function stop() { clearInterval(timer); }

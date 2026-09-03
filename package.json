@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
-    "check": "node --check src/worker.js && node --check src/sinan-ops.js && node --check src/media-ingest.js && node --check src/activity-gallery.js && node --check public/app.js && node --check public/auto-content.js && node --check public/activity-gallery.js && node --check public/sermon.js",
+    "check": "node --check src/worker.js && node --check src/sinan-ops.js && node --check src/media-ingest.js && node --check src/activity-gallery.js && node --check src/hero-slides.js && node --check public/app.js && node --check public/auto-content.js && node --check public/activity-gallery.js && node --check public/hero-carousel.js && node --check public/sermon.js",
     "deploy": "npm run check && wrangler deploy",
     "dev": "vite public"
   },

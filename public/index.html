@@ -8,13 +8,13 @@
   <meta name="description" content="基督教福音教会 Evangeliekerk — 海牙/Rijswijk 与 Zoetermeer 聚会。欢迎认识耶稣、参加主日敬拜、小组与教会生活。">
   <link rel="icon" href="/assets/evkerk-logo.webp" type="image/webp">
   <link rel="stylesheet" href="/styles.css?v=1">
-  <link rel="stylesheet" href="/brand.css?v=9">
+  <link rel="stylesheet" href="/brand.css?v=10">
 </head>
 <body>
   <header class="site-header">
     <a class="brand" href="#top" aria-label="Evangeliekerk home">
       <img class="brand-mark" src="/assets/evkerk-logo.webp" alt="" width="40" height="40">
-      <span class="brand-copy"><strong data-i18n="brand.cn">福音教会</strong><small>EVANGELIEKERK</small></span>
+      <span class="brand-copy"><strong data-i18n="brand.cn">基督教福音教会</strong><small>EVANGELIEKERK</small></span>
     </a>
     <nav class="desktop-nav" aria-label="Main navigation">
       <a href="#gatherings" data-i18n="nav.gatherings">聚会</a>
@@ -56,6 +56,7 @@
         </div>
         <p data-i18n="activities.text">教会活动、团契活动和小组生活都会在这里更新。照片会自动轮播，点击左右箭头也能查看。</p>
       </div>
+      <div class="activity-layout">
       <div class="activity-carousel" data-carousel aria-roledescription="carousel">
         <div class="activity-track">
           <article class="activity-slide is-active" data-slide>
@@ -81,6 +82,8 @@
           <button class="is-active" type="button" data-carousel-dot="0" aria-label="第 1 张" aria-selected="true"></button>
           <button type="button" data-carousel-dot="1" aria-label="第 2 张" aria-selected="false"></button>
         </div>
+      </div>
+        <aside class="activity-summary-list" data-activity-summaries aria-label="近期活动"></aside>
       </div>
     </section>
 
@@ -172,13 +175,14 @@
   </main>
 
   <footer class="site-footer shell">
-    <div class="footer-brand"><img src="/assets/evkerk-logo.webp" alt="" width="34" height="34"><span><strong data-i18n="brand.cn">福音教会</strong><small>EVANGELIEKERK</small></span></div>
+    <div class="footer-brand"><img src="/assets/evkerk-logo.webp" alt="" width="34" height="34"><span><strong data-i18n="brand.cn">基督教福音教会</strong><small>EVANGELIEKERK</small></span></div>
     <div class="footer-links"><a href="#gatherings" data-i18n="nav.gatherings">聚会</a><a href="#welcome" data-i18n="nav.welcome">第一次来</a><a href="#sermons" data-i18n="nav.sermons">讲道</a><a href="#about" data-i18n="nav.about">关于我们</a></div>
     <small>© 2026 Evangeliekerk</small>
   </footer>
 
   <script src="/app.js?v=9"></script>
-  <script src="/activity-gallery.js?v=1"></script>
+  <script src="/hero-carousel.js?v=1"></script>
+  <script src="/activity-gallery.js?v=2"></script>
   <script src="/auto-content.js?v=3"></script>
 </body>
 </html>
