@@ -69,6 +69,83 @@
   }
 }
 
+/* Header: grouped navigation with a lighter, less toolbar-like rhythm. */
+@media (min-width: 981px) {
+  .site-header {
+    min-height: 82px;
+    gap: 18px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    background: rgba(255, 250, 242, .9);
+    box-shadow:
+      inset 0 3px 0 rgba(18, 175, 230, .72),
+      0 10px 30px rgba(87, 61, 39, .055);
+  }
+
+  .brand {
+    min-width: 315px;
+    gap: 13px;
+  }
+
+  .desktop-nav {
+    gap: 2px;
+    margin-left: auto;
+    padding: 5px;
+    border: 1px solid rgba(18, 175, 230, .12);
+    border-radius: 999px;
+    background: rgba(234, 248, 253, .58);
+  }
+
+  .desktop-nav a {
+    position: relative;
+    padding: 9px 12px;
+    border-radius: 999px;
+    color: #4d443c;
+    font-size: 13px;
+    font-weight: 720;
+    transition: color .18s ease, background .18s ease, transform .18s ease;
+  }
+
+  .desktop-nav a:hover {
+    background: rgba(255, 255, 255, .9);
+    color: var(--brand-blue-deep);
+    transform: translateY(-1px);
+  }
+
+  .header-actions {
+    gap: 7px;
+  }
+
+  .visit-btn {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    padding-inline: 18px;
+    border-radius: 999px;
+  }
+
+  html[data-theme="dark"] .site-header {
+    background: rgba(6, 19, 28, .9);
+    box-shadow:
+      inset 0 3px 0 rgba(18, 175, 230, .8),
+      0 12px 32px rgba(0, 4, 8, .32);
+  }
+
+  html[data-theme="dark"] .desktop-nav {
+    border-color: rgba(82, 193, 230, .22);
+    background: rgba(14, 52, 69, .68);
+  }
+
+  html[data-theme="dark"] .desktop-nav a {
+    color: #d9edf5;
+  }
+
+  html[data-theme="dark"] .desktop-nav a:hover {
+    background: rgba(25, 91, 116, .78);
+    color: #fff;
+  }
+}
+
 /* Ministry cards: gentle colour, depth and line-art instead of empty white boxes. */
 .ministry-grid article {
   position: relative;
