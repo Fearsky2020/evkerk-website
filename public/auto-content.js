@@ -63,6 +63,15 @@
     if (today <= '2026-09-06') {
       events = events.filter(event => (event.date || event.start_at?.slice(0,10)) !== '2026-09-06');
       events.push({
+        id: 'rijswijk-closed-2026-09-06',
+        date: '2026-09-06',
+        title_zh: 'Rijswijk 当天暂停聚会',
+        title_nl: 'Geen dienst in Rijswijk',
+        location: 'Oranjelaan 62, 2281 GG Rijswijk',
+        notice_zh: '请前往 Zoetermeer 参加联合崇拜暨洗礼（10:00–12:00）',
+        notice_nl: 'Ga naar Zoetermeer voor de gezamenlijke dienst en doop (10:00–12:00)'
+      });
+      events.push({
         id: 'special-2026-09-06',
         date: '2026-09-06',
         title_zh: '联合崇拜暨洗礼',
@@ -76,7 +85,7 @@
     }
     if (!events.length) return;
     const specialEvent = events.find(event => event.id === 'special-2026-09-06');
-    const regularEvents = events.filter(event => event.id !== 'special-2026-09-06');
+    const regularEvents = events.slice();
     const locationOrder = ['Rijswijk', 'Zoetermeer', '其他'];
     const groups = new Map(locationOrder.map(name => [name, []]));
     regularEvents.slice().sort((left,right) => String(left.start_at || left.date || '').localeCompare(String(right.start_at || right.date || ''))).forEach(event => {
