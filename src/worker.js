@@ -131,8 +131,8 @@ async function listAdminSermons(request, env) {
   const sermons = await queryAll(
     env,
     `SELECT id, sermon_date, title_zh, title_nl, speaker, scripture,
-            summary_zh, summary_nl, youtube_url, audio_url, transcript_url,
-            status, published_at, updated_at
+            summary_zh, summary_nl, article_zh, article_nl,
+            youtube_url, audio_url, transcript_url, status, published_at, updated_at
        FROM sermons
       ORDER BY sermon_date DESC, updated_at DESC
       LIMIT 100`,
@@ -209,17 +209,20 @@ async function upsertSermon(request, env) {
   await env.DB.prepare(
     `INSERT INTO sermons
       (id, sermon_date, title_zh, title_nl, speaker, scripture, summary_zh, summary_nl,
-       youtube_url, audio_url, transcript_url, status, published_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+       youtube_url, audio_url, transcript_url, article_zh, article_nl, status, published_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
      ON CONFLICT(id) DO UPDATE SET
        sermon_date=excluded.sermon_date, title_zh=excluded.title_zh, title_nl=excluded.title_nl,
        speaker=excluded.speaker, scripture=excluded.scripture, summary_zh=excluded.summary_zh,
        summary_nl=excluded.summary_nl, youtube_url=excluded.youtube_url, audio_url=excluded.audio_url,
-       transcript_url=excluded.transcript_url, status=excluded.status, updated_at=datetime('now')`,
+       transcript_url=excluded.transcript_url, article_zh=excluded.article_zh, article_nl=excluded.article_nl,
+       status=excluded.status, updated_at=datetime('now')`,
   ).bind(
     id, sermonDate, clean(body.title_zh, 300), clean(body.title_nl, 300), clean(body.speaker, 200),
     clean(body.scripture, 300), clean(body.summary_zh), clean(body.summary_nl), clean(body.youtube_url, 1000),
-    clean(body.audio_url, 1000), clean(body.transcript_url, 1000), body.status === 'draft' ? 'draft' : 'published',
+    clean(body.audio_url, 1000), clean(body.transcript_url, 1000),
+    clean(body.article_zh, 100000), clean(body.article_nl, 100000),
+    body.status === 'draft' ? 'draft' : 'published',
   ).run();
   return json({ ok: true, id }, 201);
 }
