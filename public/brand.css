@@ -496,3 +496,34 @@
     bottom: 48px;
   }
 }
+
+
+/* Use opacity-based slide changes for consistent rendering across browsers. */
+.activity-track {
+  position: relative;
+  display: block;
+}
+
+.activity-slide {
+  position: absolute;
+  inset: 0;
+  min-width: 0;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .55s ease, visibility .55s ease;
+}
+
+.activity-slide:first-child {
+  position: relative;
+}
+
+.activity-slide.is-active {
+  opacity: 1;
+  visibility: visible;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .activity-slide {
+    transition: none;
+  }
+}
