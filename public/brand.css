@@ -2398,3 +2398,71 @@ html[data-theme="dark"] .contact-form small {
     font-size: 17px;
   }
 }
+
+
+/* Put the coverage names on the map instead of in a detached legend. */
+.group-map-copy h2 {
+  font-size: clamp(38px, 3.25vw, 50px);
+  line-height: 1.12;
+}
+
+.group-map-label {
+  position: absolute;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 10px;
+  border: 1px solid rgba(255,255,255,.9);
+  border-radius: 999px;
+  background: rgba(7,95,130,.92);
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(0,50,72,.25);
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 1;
+  white-space: nowrap;
+  transform: translate(-50%,-50%);
+  pointer-events: none;
+}
+
+.group-map-label::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  flex: 0 0 auto;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: #21c4ef;
+}
+
+.group-map-label[data-map-area="centre"] { left: 46%; top: 51%; }
+.group-map-label[data-map-area="loosduinen"] { left: 35%; top: 53%; }
+.group-map-label[data-map-area="wateringen"] { left: 40%; top: 65%; }
+.group-map-label[data-map-area="laakkwartier"] { left: 48%; top: 57%; }
+.group-map-label[data-map-area="rijswijk"] { left: 50%; top: 64%; }
+.group-map-label[data-map-area="voorburg"] { left: 57%; top: 51%; }
+.group-map-label[data-map-area="ypenburg"] { left: 61%; top: 61%; }
+.group-map-label[data-map-area="sassenheim"] { left: 60%; top: 17%; }
+
+html[data-theme="dark"] .group-map-label {
+  border-color: rgba(117,213,244,.72);
+  background: rgba(6,48,67,.94);
+}
+
+@media (max-width: 640px) {
+  .group-map-copy h2 {
+    font-size: 36px;
+  }
+
+  .group-map-label {
+    padding: 6px 8px;
+    gap: 5px;
+    font-size: 8px;
+  }
+
+  .group-map-label::before {
+    width: 6px;
+    height: 6px;
+  }
+}
