@@ -122,6 +122,31 @@ async function listAnnouncements(env) {
   );
 }
 
+async function listAdminAnnouncements(request, env) {
+  const denied = requireToken(request, env);
+  if (denied) return denied;
+  if (!env.DB) return json({ ok: false, error: 'D1 database is not configured' }, 503);
+  const announcements = await queryAll(
+    env,
+    `SELECT id, title_zh, title_nl, body_zh, body_nl, starts_at, ends_at, priority, status, published_at, updated_at
+       FROM announcements
+      ORDER BY updated_at DESC
+      LIMIT 50`,
+  );
+  return json({ ok: true, announcements });
+}
+
+async function unpublishAnnouncement(request, env, id) {
+  const denied = requireToken(request, env);
+  if (denied) return denied;
+  if (!env.DB) return json({ ok: false, error: 'D1 database is not configured' }, 503);
+  const result = await env.DB.prepare(
+    `UPDATE announcements SET status='draft', updated_at=datetime('now') WHERE id=?`,
+  ).bind(id).run();
+  if (!Number(result.meta?.changes || 0)) return json({ ok: false, error: '公告不存在' }, 404);
+  return json({ ok: true, id, status: 'draft' });
+}
+
 function bearer(request) {
   return request.headers.get('authorization')?.replace(/^Bearer\s+/i, '') || '';
 }
@@ -274,6 +299,9 @@ async function handleApi(request, env, url) {
   if (request.method === 'GET' && url.pathname === '/api/events') return json({ ok: true, events: await listEvents(env) });
   if (request.method === 'GET' && url.pathname === '/api/sermons') return json({ ok: true, sermons: await listSermons(env) });
   if (request.method === 'GET' && url.pathname === '/api/announcements') return json({ ok: true, announcements: await listAnnouncements(env) });
+  if (request.method === 'GET' && url.pathname === '/api/admin/announcements') return listAdminAnnouncements(request, env);
+  const announcementMatch = url.pathname.match(/^\/api\/admin\/announcements\/([^/]+)\/hide$/);
+  if (announcementMatch && request.method === 'POST') return unpublishAnnouncement(request, env, decodeURIComponent(announcementMatch[1]));
   if (request.method === 'POST' && url.pathname === '/api/ingest/sermon') return upsertSermon(request, env);
   if (request.method === 'POST' && url.pathname === '/api/ingest/announcement') return upsertAnnouncement(request, env);
   if (request.method === 'POST' && url.pathname === '/api/sync/calendar') {
