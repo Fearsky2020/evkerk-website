@@ -36,6 +36,8 @@
       button.sermon-play-toggle:hover{transform:scale(1.04);box-shadow:0 14px 30px rgba(8,127,174,.28)}
       button.sermon-play-toggle:focus-visible{outline:4px solid rgba(17,171,227,.3);outline-offset:4px}
       button.sermon-play-toggle.is-playing{background:linear-gradient(135deg,#075f84,#0b8fbe)}
+      button.sermon-play-toggle span{color:#fff!important;font-size:30px;font-weight:900;line-height:1;margin-left:4px;text-shadow:none}
+      button.sermon-play-toggle.is-playing span{margin-left:0;font-size:27px}
       @media(max-width:900px){.auto-event-list{grid-template-columns:1fr 1fr}}
       @media(max-width:640px){.auto-announcements{width:min(100% - 24px,1180px)}.auto-announcement{display:block}.auto-announcement strong{display:block;margin-bottom:7px}.auto-event-list{grid-template-columns:1fr}}
     `;
@@ -138,7 +140,6 @@
           <div class="auto-sermon-actions">
             <a href="/sermon.html?id=${encodeURIComponent(sermon.id)}">${isNl() ? 'Bekijk preek' : '查看讲道'}</a>
             ${sermon.youtube_url ? `<a href="${esc(sermon.youtube_url)}" target="_blank" rel="noopener">YouTube</a>` : ''}
-            ${sermon.audio_url ? `<a href="${esc(sermon.audio_url)}" target="_blank" rel="noopener">${isNl() ? 'Audio' : '音频'}</a>` : ''}
           </div>
         </div>
       </div>
