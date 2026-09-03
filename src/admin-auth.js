@@ -27,6 +27,18 @@ export async function authorize(request,env,minimum='uploader'){
   return{response:null,user};
 }
 
+async function loginUser(request,env){
+  const user=await authenticate(request,env);
+  if(!user)return json({ok:false,error:'账号或密码不正确'},401);
+  const body=await request.json().catch(()=>({}));
+  const identifier=clean(body.identifier,200).toLowerCase();
+  const matches=user.master
+    ? ['主管理员','master'].includes(identifier)
+    : identifier&&[clean(user.name,120).toLowerCase(),clean(user.email,200).toLowerCase()].filter(Boolean).includes(identifier);
+  if(!matches)return json({ok:false,error:'账号或密码不正确'},401);
+  return json({ok:true,user});
+}
+
 async function listUsers(request,env){
   const auth=await authorize(request,env,'owner');if(auth.response)return auth.response;
   const result=await env.DB.prepare("SELECT id,name,email,role,status,last_used_at,created_at,updated_at FROM admin_users ORDER BY status ASC,created_at DESC LIMIT 100").all();
@@ -66,6 +78,7 @@ async function rotateKey(request,env,id){
 }
 
 export async function handleAdminAuthApi(request,env,url){
+  if(request.method==='POST'&&url.pathname==='/api/admin/login')return loginUser(request,env);
   if(request.method==='GET'&&url.pathname==='/api/admin/me'){const user=await authenticate(request,env);return user?json({ok:true,user}):json({ok:false,error:'后台访问密钥不正确'},401)}
   if(request.method==='GET'&&url.pathname==='/api/admin/users')return listUsers(request,env);
   if(request.method==='POST'&&url.pathname==='/api/admin/users')return createUser(request,env);
