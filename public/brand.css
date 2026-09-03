@@ -1836,3 +1836,34 @@ html[data-theme="dark"] .hero-location-strip a {
 .pin-loosduinen{left:50%;top:72%}
 .pin-rijswijk{left:60%;top:77%}
 .pin-sassenheim{left:59%;top:43%}
+
+
+/* Keep both church cards aligned; the temporary notice overlays the photo. */
+.gathering-card {
+  position: relative;
+}
+
+.service-alert:not([hidden]) {
+  position: absolute;
+  z-index: 4;
+  top: 154px;
+  left: 14px;
+  right: 14px;
+  margin: 0;
+  padding: 10px 14px;
+  border-color: rgba(255,255,255,.72);
+  background: rgba(5, 89, 122, .9);
+  color: #fff;
+  box-shadow: 0 8px 22px rgba(0, 48, 67, .2);
+  backdrop-filter: blur(8px);
+}
+
+@media (max-width: 640px) {
+  .service-alert:not([hidden]) {
+    top: 128px;
+    left: 10px;
+    right: 10px;
+    padding: 8px 11px;
+    font-size: 12px;
+  }
+}
