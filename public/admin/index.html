@@ -93,9 +93,9 @@
           <label class="full">中文摘要<textarea name="summary_zh"></textarea></label>
           <label class="full">荷兰文摘要<textarea name="summary_nl"></textarea></label>
           <label>YouTube<input name="youtube_url" type="url" placeholder="可粘贴 YouTube 链接"></label>
-          <label>音频网址<input name="audio_url" type="url" placeholder="上传后自动填写，也可粘贴外部链接"></label>
+          <label>音频网址<input name="audio_url" type="text" inputmode="url" placeholder="上传后自动填写，也可粘贴外部链接"></label>
           <label class="full">上传讲道录音（最大 95MB）<input name="audio_file" type="file" accept=".mp3,.m4a,.wav,.aac,.flac,.ogg,.opus,.wma,.mp4,audio/*"><span class="hint">支持常用录音格式，上传后会直接存入网站的 Cloudflare R2。</span></label>
-          <label class="full">文字稿<input name="transcript_url" type="url"></label>
+          <label class="full">文字稿<input name="transcript_url" type="text" inputmode="url"></label>
           <label>状态<select name="status"><option value="published">发布</option><option value="draft">草稿</option></select></label>
         </div>
         <div class="actions"><button class="btn" id="sermonSubmit" type="submit">保存讲道</button><button class="btn secondary" id="sermonCancel" type="button" hidden>取消编辑</button><span class="msg" id="sermonMsg"></span></div>
