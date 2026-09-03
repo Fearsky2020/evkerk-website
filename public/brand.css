@@ -2372,3 +2372,29 @@ html[data-theme="dark"] .contact-form small {
     font-size: 15px;
   }
 }
+
+
+/* Final desktop navigation size pass for comfortable reading. */
+@media (min-width: 981px) {
+  .desktop-nav a {
+    padding: 11px 15px;
+    font-size: 17px;
+    line-height: 1.2;
+  }
+
+  .round-btn,
+  .lang-btn {
+    height: 44px;
+    font-size: 17px;
+  }
+
+  .round-btn {
+    width: 44px;
+  }
+
+  .visit-btn {
+    min-height: 48px;
+    padding-inline: 21px;
+    font-size: 17px;
+  }
+}
