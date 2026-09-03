@@ -93,7 +93,7 @@
       const key = /rijswijk/i.test(place) ? 'Rijswijk' : /zoetermeer/i.test(place) ? 'Zoetermeer' : '其他';
       groups.get(key).push(event);
     });
-    const visibleGroups = [...groups.entries()].filter(([,items]) => items.length).map(([place,items]) => [place,items.slice(0,6)]);
+    const visibleGroups = [...groups.entries()].filter(([,items]) => items.length).map(([place,items]) => [place,items.slice(0,3)]);
     wrapper.innerHTML = `
       <div class="auto-upcoming-head"><h3>${isNl() ? 'Komende bijeenkomsten per locatie' : '接下来聚会（按地点）'}</h3><span>${isNl() ? 'Automatisch bijgewerkt' : '自动更新'}</span></div>
       ${specialEvent ? `<article class="auto-joint-service"><time>${esc(dateLabel('2026-09-06'))}</time><h4>${esc(t(specialEvent.title_zh,specialEvent.title_nl))}</h4><p>${esc(specialEvent.location)}</p><p>${esc([specialEvent.start_time,specialEvent.end_time].join('–'))}</p><p class="auto-special-note">${esc(t(specialEvent.notice_zh,specialEvent.notice_nl))}</p></article>` : ''}
