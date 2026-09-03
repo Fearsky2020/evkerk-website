@@ -1,3 +1,5 @@
+import { authorize } from './admin-auth.js';
+
 const AUDIO_EXTENSIONS = new Set([
   '.wav', '.mp3', '.m4a', '.aac', '.flac', '.ogg', '.opus', '.wma', '.mp4', '.m4b',
 ]);
@@ -407,6 +409,49 @@ async function failJob(request, env, id) {
   return json({ ok: true, id, status: 'failed' });
 }
 
+async function uploadSermonAudio(request, env) {
+  const auth = await authorize(request, env, 'editor');
+  if (auth.response) return auth.response;
+  if (!env.MEDIA) return json({ ok: false, error: 'R2 MEDIA bucket is not configured' }, 503);
+  const form = await request.formData().catch(() => null);
+  const file = form?.get('audio');
+  if (!(file instanceof File) || !file.size) return json({ ok: false, error: '请选择讲道录音' }, 400);
+  if (!allowedAudio(file.name, file.type)) return json({ ok: false, error: '支持 MP3、M4A、WAV、AAC、FLAC、OGG、OPUS、WMA 或 MP4' }, 415);
+  const maxBytes = maxUploadBytes(env);
+  if (file.size > maxBytes) return json({ ok: false, error: `录音不能超过 ${Math.floor(maxBytes / 1024 / 1024)}MB` }, 413);
+  const ext = extension(file.name) || '.mp3';
+  const year = new Date().getUTCFullYear();
+  const id = crypto.randomUUID();
+  const key = `sermon-direct/${year}/${id}${ext}`;
+  await env.MEDIA.put(key, file.stream(), {
+    httpMetadata: { contentType: file.type || 'audio/mpeg' },
+    customMetadata: { originalName: safeFilename(file.name), uploadedBy: auth.user.id || 'master' },
+  });
+  return json({ ok: true, audio_url: `/api/media/sermon-audio/${year}/${id}${ext}`, size_bytes: file.size }, 201);
+}
+
+async function directSermonAudio(request, env, year, filename) {
+  if (!env.MEDIA || !/^\d{4}$/.test(year) || !/^[a-f0-9-]+\.[a-z0-9]+$/i.test(filename)) {
+    return new Response('not found', { status: 404 });
+  }
+  const object = await env.MEDIA.get(`sermon-direct/${year}/${filename}`, { range: request.headers });
+  if (!object) return new Response('not found', { status: 404 });
+  const headers = new Headers();
+  object.writeHttpMetadata(headers);
+  headers.set('cache-control', 'public, max-age=3600');
+  headers.set('accept-ranges', 'bytes');
+  headers.set('etag', object.httpEtag);
+  if (object.range) {
+    const offset = object.range.offset || 0;
+    const length = object.range.length || object.size;
+    headers.set('content-range', `bytes ${offset}-${offset + length - 1}/${object.size}`);
+    headers.set('content-length', String(length));
+    return new Response(object.body, { status: 206, headers });
+  }
+  headers.set('content-length', String(object.size));
+  return new Response(object.body, { headers });
+}
+
 async function publicAudio(env, id) {
   const unavailable = requireStorage(env);
   if (unavailable) return unavailable;
@@ -438,6 +483,9 @@ export async function handleMediaApi(request, env, url) {
   const path = url.pathname;
 
   if (request.method === 'POST' && path === '/api/media/upload') return upload(request, env);
+  if (request.method === 'POST' && path === '/api/admin/sermon-audio') return uploadSermonAudio(request, env);
+  let directMatch = path.match(/^\/api\/media\/sermon-audio\/(\d{4})\/([^/]+)$/);
+  if (directMatch && request.method === 'GET') return directSermonAudio(request, env, directMatch[1], directMatch[2]);
   if (request.method === 'GET' && path === '/api/media/jobs') return listAdminJobs(request, env, url);
 
   let match = path.match(/^\/api\/media\/jobs\/([^/]+)$/);
