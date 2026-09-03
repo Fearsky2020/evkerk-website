@@ -159,3 +159,162 @@
     margin: -22px -22px 20px;
   }
 }
+
+/* Focused layout polish: clearer hierarchy and a shorter, calmer page. */
+.section {
+  padding-top: 68px;
+  padding-bottom: 68px;
+}
+
+.section-heading {
+  margin-bottom: 28px;
+}
+
+.section-heading h2 {
+  font-size: clamp(34px, 4vw, 50px);
+  line-height: 1.08;
+}
+
+.section-heading > p:last-child {
+  max-width: 680px;
+  font-size: 16px;
+}
+
+.gathering-grid {
+  align-items: stretch;
+  gap: 22px;
+}
+
+.gathering-card {
+  border-radius: 20px;
+}
+
+.gathering-card.featured {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.welcome .split {
+  grid-template-columns: .92fr 1.08fr;
+  gap: 52px;
+  align-items: center;
+}
+
+.expect-list {
+  gap: 12px;
+}
+
+.expect-list article {
+  padding: 18px 20px;
+}
+
+.sermon-placeholder {
+  min-height: 176px;
+  padding: 26px 30px;
+}
+
+.play {
+  width: 64px;
+  height: 64px;
+}
+
+.ministry-grid article {
+  min-height: 218px;
+}
+
+.ministry-grid span {
+  margin-bottom: 34px;
+}
+
+.about-card {
+  padding: 38px 40px;
+}
+
+.about-card h2 {
+  max-width: 760px;
+  font-size: clamp(36px, 4vw, 52px);
+}
+
+.about-card > p:last-child {
+  font-size: 17px;
+  line-height: 1.7;
+}
+
+.contact-card {
+  padding: 32px 36px;
+}
+
+.contact-card h2 {
+  font-size: clamp(34px, 4vw, 48px);
+}
+
+@media (min-width: 981px) {
+  .hero {
+    grid-template-columns: .9fr 1.1fr;
+    gap: 48px;
+    padding-top: 46px;
+    padding-bottom: 54px;
+  }
+
+  .hero h1 {
+    max-width: 540px;
+    font-size: clamp(48px, 4.7vw, 64px);
+    line-height: 1.03;
+  }
+
+  html[lang="nl"] .hero h1 {
+    font-size: clamp(46px, 4.25vw, 58px);
+  }
+
+  .hero-lead {
+    max-width: 560px;
+    font-size: 18px;
+  }
+
+  .hero-visual {
+    min-height: 460px;
+  }
+}
+
+@media (max-width: 640px) {
+  .section {
+    padding-top: 48px;
+    padding-bottom: 48px;
+  }
+
+  .section-heading {
+    margin-bottom: 24px;
+  }
+
+  .section-heading h2 {
+    font-size: clamp(32px, 9.5vw, 38px);
+  }
+
+  .hero h1,
+  html[lang="nl"] .hero h1 {
+    font-size: clamp(38px, 11vw, 46px);
+  }
+
+  .hero-visual {
+    min-height: 300px;
+  }
+
+  .gathering-card.featured {
+    justify-content: flex-start;
+  }
+
+  .sermon-placeholder {
+    min-height: 0;
+    padding: 24px 22px;
+  }
+
+  .ministry-grid article {
+    min-height: 188px;
+  }
+
+  .about-card,
+  .contact-card {
+    padding: 26px 22px;
+  }
+}
