@@ -1,7 +1,7 @@
 (() => {
   const translations = {
     zh: {
-      'brand.cn':'基督教福音教会','brand.subtitle':'EVANGELIEKERK','nav.gatherings':'聚会','nav.activities':'近期活动','nav.welcome':'第一次来','nav.sermons':'讲道','nav.ministries':'咖啡会友小组','nav.about':'关于我们','nav.visit':'来参加聚会',
+      'brand.cn':'基督教福音教会','brand.subtitle':'EVANGELIEKERK','nav.gatherings':'聚会','nav.activities':'近期活动','nav.welcome':'第一次来','nav.sermons':'讲道','nav.ministries':'咖啡会友小组','nav.about':'关于我们','nav.visit':'来参加聚会','nav.menu':'菜单',
       'hero.eyebrow':'DEN HAAG · RIJSWIJK · ZOETERMEER','hero.title':'在恩典中认识耶稣\n在真理中活出自由','hero.lead':'无论你刚开始认识信仰，还是正在寻找一个属灵的家，都欢迎你来到福音教会。','hero.primary':'查看本周聚会','hero.secondary':'第一次来？','hero.photo.title':'Zoetermeer 福音教会','hero.photo':'每周日 10:00–12:00',
       'gatherings.eyebrow':'SUNDAY GATHERINGS','gatherings.title':'这个星期天，欢迎回家。','gatherings.text':'两个聚会地点，都欢迎第一次来的朋友。主日若有临时调整，将在网站首页更新。','gatherings.dh.label':'海牙 / Rijswijk','gatherings.dh.sep6':'9月6日 Rijswijk 暂停聚会；联合崇拜暨洗礼请前往 Zoetermeer（10:00）','gatherings.dh.title':'海牙基督教福音教会','gatherings.dh.meta':'每周日 · 中文崇拜 · 敬拜、讲道、圣餐、主日学','gatherings.zm.title':'Zoetermeer 基督教福音教会','gatherings.zm.meta':'每周日上午 · 中文崇拜与荷兰文崇拜 · 敬拜、讲道、圣餐、主日学','gatherings.map':'打开地图 →','schedule.monday':'每周一','schedule.saturday':'每周六','schedule.sunday':'每周日','schedule.serviceCourse':'服事小组课程','schedule.sundayService':'主日聚会','schedule.bilingualService':'中文及荷兰文主日聚会','schedule.sundaySchool':'主日学','schedule.bibleStudy':'查经班',
       'welcome.eyebrow':'FIRST TIME HERE?','welcome.title':'第一次来，不需要准备什么。','welcome.text':'你可以安静听信息、一起敬拜，也可以只是先认识这里。无需报名，也不会有人要求你一定做什么。','welcome.1.title':'有人欢迎你','welcome.1.text':'接待同工会帮助你找到座位、儿童主日学或合适的语言聚会。','welcome.2.title':'敬拜与信息','welcome.2.text':'用诗歌、祷告和圣经信息，一起认识神的恩典。','welcome.3.title':'留下来聊一会儿','welcome.3.text':'聚会后通常有交通时间，可以认识弟兄姊妹，也可以请同工为你祷告。',
@@ -13,7 +13,7 @@
       'contact.eyebrow':'CONTACT US','contact.title':'想了解更多？给我们留言。','contact.text':'有关聚会、咖啡会友小组或第一次来教会的问题，都可以直接告诉我们。我们会通过你留下的联系方式回复。','contact.button':'查看聚会地点 →','contact.form.name':'怎么称呼你？','contact.form.contact':'怎样联系你？','contact.form.contactPlaceholder':'邮箱、电话或 WhatsApp','contact.form.message':'想了解什么？','contact.form.messagePlaceholder':'例如：第一次来、聚会时间、咖啡会友小组、儿童主日学……','contact.form.submit':'发送留言','contact.form.sending':'正在发送…','contact.form.success':'留言已提交，我们会尽快回复。','contact.form.error':'发送失败，请稍后再试。','contact.form.note':'提交后，我们会尽快通过你留下的联系方式回复。'
     },
     nl: {
-      'brand.cn':'Evangeliekerk','brand.subtitle':'基督教福音教会','nav.gatherings':'Samenkomsten','nav.activities':'Activiteiten','nav.welcome':'Eerste keer','nav.sermons':'Preken','nav.ministries':'Koffie & ontmoeting','nav.about':'Over ons','nav.visit':'Bezoek een dienst',
+      'brand.cn':'Evangeliekerk','brand.subtitle':'基督教福音教会','nav.gatherings':'Samenkomsten','nav.activities':'Activiteiten','nav.welcome':'Eerste keer','nav.sermons':'Preken','nav.ministries':'Koffie & ontmoeting','nav.about':'Over ons','nav.visit':'Bezoek een dienst','nav.menu':'Menu',
       'hero.eyebrow':'DEN HAAG · RIJSWIJK · ZOETERMEER','hero.title':'Jezus leren kennen.\nLeven in genade en waarheid.','hero.lead':'Of je het christelijk geloof net ontdekt of op zoek bent naar een geestelijk thuis: je bent van harte welkom bij Evangeliekerk.','hero.primary':'Bekijk de zondag','hero.secondary':'Eerste keer?','hero.photo.title':'Evangeliekerk Zoetermeer','hero.photo':'Elke zondag 10:00–12:00',
       'gatherings.eyebrow':'SUNDAY GATHERINGS','gatherings.title':'Welkom thuis, deze zondag.','gatherings.text':'Op beide locaties zijn nieuwe bezoekers van harte welkom. Tijdelijke wijzigingen worden op de homepage vermeld.','gatherings.dh.label':'Den Haag / Rijswijk','gatherings.dh.sep6':'Op 6 september is er geen dienst in Rijswijk. De gezamenlijke dienst en doop zijn om 10:00 in Zoetermeer.','gatherings.dh.title':'Evangeliekerk Den Haag','gatherings.dh.meta':'Elke zondag · Chinese dienst · aanbidding, preek, avondmaal en zondagsschool','gatherings.zm.title':'Evangeliekerk Zoetermeer','gatherings.zm.meta':'Elke zondagochtend · Chinese en Nederlandstalige dienst · aanbidding, preek, avondmaal en zondagsschool','gatherings.map':'Open kaart →','schedule.monday':'Elke maandag','schedule.saturday':'Elke zaterdag','schedule.sunday':'Elke zondag','schedule.serviceCourse':'Cursus voor bedieningsteam','schedule.sundayService':'Zondagsdienst','schedule.bilingualService':'Chinese en Nederlandstalige zondagsdienst','schedule.sundaySchool':'Zondagsschool','schedule.bibleStudy':'Bijbelstudie',
       'welcome.eyebrow':'FIRST TIME HERE?','welcome.title':'Voor je eerste bezoek hoef je niets voor te bereiden.','welcome.text':'Je mag rustig luisteren, meezingen of gewoon eerst kennismaken. Aanmelden is niet nodig en er wordt niets van je verwacht.','welcome.1.title':'Je wordt welkom geheten','welcome.1.text':'Ons ontvangstteam helpt je met een plek, de zondagsschool of de passende taalgroep.','welcome.2.title':'Aanbidding & boodschap','welcome.2.text':'Met liederen, gebed en de Bijbel leren we samen Gods genade kennen.','welcome.3.title':'Blijf gerust even','welcome.3.text':'Na de dienst is er tijd voor ontmoeting, gesprek en persoonlijk gebed.',
@@ -67,6 +67,23 @@
   document.querySelectorAll('[data-special-until]').forEach(notice => {
     notice.hidden = todayAmsterdam > notice.dataset.specialUntil;
   });
+
+  const mobileNavToggle = document.getElementById('mobileNavToggle');
+  const mobileNav = document.getElementById('mobileNav');
+  if (mobileNavToggle && mobileNav) {
+    const closeMobileNav = () => {
+      mobileNav.hidden = true;
+      mobileNavToggle.setAttribute('aria-expanded', 'false');
+    };
+    mobileNavToggle.addEventListener('click', () => {
+      const opening = mobileNav.hidden;
+      mobileNav.hidden = !opening;
+      mobileNavToggle.setAttribute('aria-expanded', String(opening));
+    });
+    mobileNav.querySelectorAll('a').forEach(link => link.addEventListener('click', closeMobileNav));
+    document.addEventListener('keydown', event => { if (event.key === 'Escape') closeMobileNav(); });
+    matchMedia('(min-width: 981px)').addEventListener('change', event => { if (event.matches) closeMobileNav(); });
+  }
 
   const contactForm = document.getElementById('contactForm');
   const contactStatus = document.getElementById('contactFormStatus');
