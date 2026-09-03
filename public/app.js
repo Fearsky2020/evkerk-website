@@ -10,7 +10,7 @@
       'ministries.eyebrow':'LIFE TOGETHER','ministries.title':'不只是在星期天见面。','ministries.text':'在小组、儿童和青少年事工中一起生活、祷告、学习和彼此扶持。','ministries.groups':'咖啡会友小组','ministries.children':'儿童主日学','ministries.children.text':'帮助不同年龄的孩子用他们能理解的方式认识神。','ministries.youth':'青少年','ministries.youth.text':'为青少年预备适合他们阶段的信息、关系和活动。',
       'groups.eyebrow':'COFFEE & CONNECTION NEAR YOU','groups.title':'一杯咖啡，一顿饭，认识附近的新朋友。','groups.text':'中文咖啡会友小组基本每天都在不同地点开放，适合轻松聊天、认识新朋友。所有小组提供茶水和小点心，部分小组也供应晚饭；通常18:30开始，21:00前结束。荷兰文小组的时间另行公布。地图只显示大致范围，不公开家庭地址。','groups.button':'帮我找到附近的咖啡会友小组','groups.coverage':'咖啡会友小组覆盖范围','groups.fact.days':'基本每天','groups.fact.time':'通常 18:30–21:00','groups.fact.snacks':'茶水与小点心','groups.fact.dinner':'部分供应晚饭','groups.mapnote':'标记为大致服务范围，具体聚会地点请联系教会',
       'about.eyebrow':'ABOUT EVANGELIEKERK','about.title':'一个把恩典与真理放在中心的教会。','about.text':'我们盼望人在耶稣基督里认识神的爱，在圣经真理中成长，并在真实生活里彼此扶持。','about.values':'恩典 · 真理 · 生命',
-      'contact.eyebrow':'COME AND SEE','contact.title':'这个星期天，来坐坐。','contact.text':'无需预约。提前 10–15 分钟到达，会更方便认识接待同工和找到座位。','contact.button':'查看聚会地点'
+      'contact.eyebrow':'CONTACT US','contact.title':'想了解更多？给我们留言。','contact.text':'有关聚会、咖啡会友小组或第一次来教会的问题，都可以直接告诉我们。我们会通过你留下的联系方式回复。','contact.button':'查看聚会地点 →','contact.form.name':'怎么称呼你？','contact.form.contact':'怎样联系你？','contact.form.contactPlaceholder':'邮箱、电话或 WhatsApp','contact.form.message':'想咨询什么？','contact.form.submit':'发送留言','contact.form.note':'提交后，我们会尽快通过你留下的联系方式回复。'
     },
     nl: {
       'brand.cn':'Evangeliekerk','brand.subtitle':'基督教福音教会','nav.gatherings':'Samenkomsten','nav.activities':'Activiteiten','nav.welcome':'Eerste keer','nav.sermons':'Preken','nav.ministries':'Kringen & bediening','nav.about':'Over ons','nav.visit':'Bezoek een dienst',
@@ -22,7 +22,7 @@
       'ministries.eyebrow':'LIFE TOGETHER','ministries.title':'Gemeente-zijn is meer dan zondag.','ministries.text':'In kringen en kinder- en jongerenwerk delen we leven, gebed, groei en onderlinge steun.','ministries.groups':'Koffie & ontmoeting','ministries.children':'Zondagsschool','ministries.children.text':'Kinderen leren God kennen op een manier die past bij hun leeftijd.','ministries.youth':'Jongeren','ministries.youth.text':'Ruimte voor geloof, relaties en activiteiten die aansluiten bij jongeren.',
       'groups.eyebrow':'COFFEE & CONNECTION NEAR YOU','groups.title':'Koffie, eten en nieuwe mensen bij jou in de buurt.','groups.text':'Bijna elke dag is er op een andere plek in Den Haag en omgeving een Chineestalige koffie- en ontmoetingsgroep. Een ontspannen avond om mensen te leren kennen. Elke groep biedt koffie, thee en iets lekkers; sommige groepen verzorgen ook een avondmaaltijd. Meestal beginnen deze groepen om 18:30 en ronden ze vóór 21:00 af. Dag en tijd van de Nederlandstalige groep worden later bekendgemaakt. De kaart toont alleen globale gebieden, nooit huisadressen.','groups.button':'Vind een koffiegroep bij mij in de buurt','groups.coverage':'Gebieden met koffie- en ontmoetingsgroepen','groups.fact.days':'Bijna elke dag','groups.fact.time':'Meestal 18:30–21:00','groups.fact.snacks':'Koffie, thee en iets lekkers','groups.fact.dinner':'Soms met avondmaaltijd','groups.mapnote':'De markeringen tonen globale gebieden; neem contact op voor de ontmoetingsplek',
       'about.eyebrow':'ABOUT EVANGELIEKERK','about.title':'Een gemeente met genade en waarheid in het centrum.','about.text':'Wij verlangen ernaar dat mensen Gods liefde leren kennen in Jezus Christus, groeien in de waarheid van de Bijbel en elkaar in het dagelijks leven ondersteunen.','about.values':'GENADE · WAARHEID · LEVEN',
-      'contact.eyebrow':'COME AND SEE','contact.title':'Kom deze zondag eens kijken.','contact.text':'Aanmelden is niet nodig. Kom bij voorkeur 10–15 minuten eerder om rustig binnen te komen en kennis te maken.','contact.button':'Bekijk locaties'
+      'contact.eyebrow':'CONTACT US','contact.title':'Meer weten? Stuur ons een bericht.','contact.text':'Vragen over een samenkomst, een koffie- en ontmoetingsgroep of je eerste bezoek? Laat het ons gerust weten. We nemen contact met je op via de gegevens die je achterlaat.','contact.button':'Bekijk locaties →','contact.form.name':'Hoe mogen we je noemen?','contact.form.contact':'Hoe kunnen we je bereiken?','contact.form.contactPlaceholder':'E-mail, telefoon of WhatsApp','contact.form.message':'Waar kunnen we je mee helpen?','contact.form.submit':'Verstuur bericht','contact.form.note':'We reageren zo snel mogelijk via de contactgegevens die je achterlaat.'
     }
   };
   const langToggle = document.getElementById('langToggle');
@@ -38,6 +38,10 @@
       if (!value) return;
       if (el.tagName === 'H1') el.innerHTML = value.replace('\n','<br>');
       else el.textContent = value;
+    });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+      const value = dict[el.dataset.i18nPlaceholder];
+      if (value) el.placeholder = value;
     });
     langToggle.textContent = lang === 'nl' ? '中文' : 'NL';
     if (remember) localStorage.setItem(langKey, lang);
