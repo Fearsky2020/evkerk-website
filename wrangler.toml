@@ -20,3 +20,7 @@ MAX_MEDIA_MB = "95"
 binding = "DB"
 database_name = "evkerk-website-db"
 database_id = "2817f829-f9d3-4426-b35c-f8eb21b6b934"
+
+[[r2_buckets]]
+binding = "MEDIA"
+bucket_name = "evkerk-website-media"
