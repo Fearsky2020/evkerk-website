@@ -897,3 +897,31 @@ body {
     grid-column: 1 / -1;
   }
 }
+
+
+/* Make each church identity and address unmistakable. */
+.gathering-card > h3 {
+  margin-bottom: 16px;
+  font-size: clamp(25px, 2.5vw, 34px);
+  line-height: 1.16;
+  letter-spacing: -.025em;
+}
+
+.gathering-card .address {
+  display: inline-block;
+  margin: 0 0 16px;
+  padding: 11px 14px;
+  border: 1px solid var(--brand-blue-line);
+  border-radius: 11px;
+  background: var(--brand-blue-soft);
+  color: #075f82;
+  font-size: 17px;
+  font-weight: 850;
+  line-height: 1.45;
+}
+
+.gathering-card.featured .address {
+  border-color: rgba(255, 255, 255, .4);
+  background: rgba(255, 255, 255, .16);
+  color: #fff;
+}
