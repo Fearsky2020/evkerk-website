@@ -236,3 +236,22 @@ BLOCKER / WAIT CONDITION: Awaiting user visual approval and, separately, labelle
 REQUIRES USER APPROVAL: Yes — merge and production deployment.
 ISSUE / PR / COMMIT / CI: Fearsky2020/evkerk-website PR #3; commit 6a2d1f1824c73106e24c2bdaf0ef9ec4325ddf02; CI run #198 success.
 ```
+
+
+## Session closeout — homepage layout polish
+
+```text
+PROJECT / TRACK: EVKERK Website / Homepage layout polish
+SESSION ROLE: Executor
+STATUS: READY TO DEPLOY PREVIEW
+USER DECISION: Make the warm homepage layout more professional now; keep scope limited to layout and deploy only to preview.
+WORK COMPLETED: Reduced oversized hero typography, rebalanced hero copy/photo columns, tightened page-wide vertical rhythm, aligned gathering cards, and refined welcome, sermon, ministry, about, contact and mobile spacing.
+EVIDENCE: PR #6 changed only public/brand.css; church-site-check run #205 completed successfully; PR #6 was squash-merged to main as 0bfdeb43486c4b6171d70571a0bca31db4dfde48.
+OPEN RISKS: The merged layout has not yet been deployed from the church computer or visually accepted on the live preview; Rijswijk photography remains intentionally absent.
+LAST VERIFIED: 2026-09-03T13:47:30Z
+EXACT NEXT ACTION: On the church computer, pull main, run npm run check, deploy the preview, then inspect the Dutch and Chinese desktop/mobile layouts.
+MACHINE / LOCATION REQUIREMENT: Church computer with the configured Cloudflare Wrangler login.
+BLOCKER / WAIT CONDITION: Waiting for the user to deploy the merged main branch to the preview Worker.
+REQUIRES USER APPROVAL: Yes — visual acceptance after preview deployment; evkerk.nl production remains untouched.
+ISSUE / PR / COMMIT / CI: Fearsky2020/evkerk-website PR #6; head 31e077615fe628365b82612420d8fba859c3051f; merge 0bfdeb43486c4b6171d70571a0bca31db4dfde48; CI run #205 success.
+```
