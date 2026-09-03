@@ -2510,3 +2510,13 @@ html[data-theme="dark"] .group-map-label {
     height: 460px;
   }
 }
+
+
+/* Reposition the seven local labels for the closer z=11 The Hague view. */
+.group-map-label[data-map-area="centre"] { left: 44%; top: 52%; }
+.group-map-label[data-map-area="loosduinen"] { left: 20%; top: 56%; }
+.group-map-label[data-map-area="wateringen"] { left: 30%; top: 80%; }
+.group-map-label[data-map-area="laakkwartier"] { left: 46%; top: 64%; }
+.group-map-label[data-map-area="rijswijk"] { left: 50%; top: 78%; }
+.group-map-label[data-map-area="voorburg"] { left: 64%; top: 52%; }
+.group-map-label[data-map-area="ypenburg"] { left: 72%; top: 72%; }
