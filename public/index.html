@@ -8,7 +8,7 @@
   <meta name="description" content="基督教福音教会 Evangeliekerk — 海牙/Rijswijk 与 Zoetermeer 聚会。欢迎认识耶稣、参加主日敬拜、小组与教会生活。">
   <link rel="icon" href="/assets/evkerk-logo.webp" type="image/webp">
   <link rel="stylesheet" href="/styles.css?v=1">
-  <link rel="stylesheet" href="/brand.css?v=1">
+  <link rel="stylesheet" href="/brand.css?v=2">
 </head>
 <body>
   <header class="site-header">
@@ -87,6 +87,42 @@
       </div>
     </section>
 
+    <section class="activity-gallery section shell" id="activities" aria-labelledby="activities-title">
+      <div class="section-heading row-heading">
+        <div>
+          <p class="eyebrow" data-i18n="activities.eyebrow">RECENT LIFE</p>
+          <h2 id="activities-title" data-i18n="activities.title">最近，我们一起经历的时光。</h2>
+        </div>
+        <p data-i18n="activities.text">这里记录教会、团契和小组的近期活动，也让第一次来的朋友先认识真实的我们。</p>
+      </div>
+      <div class="activity-carousel" data-carousel aria-roledescription="carousel">
+        <div class="activity-track">
+          <article class="activity-slide is-active" data-slide>
+            <img src="/assets/zoetermeer-exterior.webp" alt="Zoetermeer 福音教会外观" width="1800" height="1350" loading="lazy">
+            <div class="activity-caption">
+              <span class="activity-type" data-i18n="activities.churchlife">教会生活</span>
+              <h3 data-i18n="activities.zoetermeer.title">Zoetermeer 福音教会</h3>
+              <p data-i18n="activities.zoetermeer.meta">Piet Heinplein 13 · Zoetermeer</p>
+            </div>
+          </article>
+          <article class="activity-slide" data-slide aria-hidden="true">
+            <img src="/assets/zoetermeer-sanctuary.webp" alt="Zoetermeer 福音教会礼堂" width="1800" height="1350" loading="lazy">
+            <div class="activity-caption">
+              <span class="activity-type" data-i18n="activities.gathering">主日聚会</span>
+              <h3 data-i18n="activities.sanctuary.title">一起敬拜、聆听与相遇</h3>
+              <p data-i18n="activities.sanctuary.meta">每周日 10:00–12:00 · Zoetermeer</p>
+            </div>
+          </article>
+        </div>
+        <button class="carousel-arrow previous" type="button" data-carousel-prev aria-label="上一张">←</button>
+        <button class="carousel-arrow next" type="button" data-carousel-next aria-label="下一张">→</button>
+        <div class="carousel-dots" role="tablist" aria-label="活动照片">
+          <button class="is-active" type="button" data-carousel-dot="0" aria-label="第 1 张" aria-selected="true"></button>
+          <button type="button" data-carousel-dot="1" aria-label="第 2 张" aria-selected="false"></button>
+        </div>
+      </div>
+    </section>
+
     <section class="sermons section shell" id="sermons">
       <div class="section-heading row-heading">
         <div><p class="eyebrow" data-i18n="sermons.eyebrow">LATEST MESSAGE</p><h2 data-i18n="sermons.title">最新讲道</h2></div>
@@ -131,7 +167,7 @@
     <small>© 2026 Evangeliekerk</small>
   </footer>
 
-  <script src="/app.js?v=1"></script>
+  <script src="/app.js?v=2"></script>
   <script src="/auto-content.js?v=1"></script>
 </body>
 </html>
