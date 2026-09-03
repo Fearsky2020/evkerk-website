@@ -173,6 +173,25 @@ html[data-theme="dark"] .gathering-card .text-link {
   color: #72d4f5;
 }
 
+/* Small-group coverage map: useful geography without exposing home addresses. */
+.group-map{display:grid;grid-template-columns:minmax(340px,.78fr) minmax(0,1.22fr);gap:clamp(32px,5vw,76px);align-items:center}
+.group-map-copy h2{max-width:590px;margin:0 0 20px;font-size:clamp(38px,4.4vw,58px);line-height:1.06;letter-spacing:-.045em}
+.group-map-copy>p:not(.eyebrow){max-width:620px;color:#57493e;font-size:17px;line-height:1.75}
+.group-area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 28px}
+.group-area-list span{padding:8px 12px;border:1px solid var(--brand-blue-line);border-radius:999px;background:var(--brand-blue-soft);color:#075f82;font-size:12px;font-weight:850}
+.group-map-visual{position:relative;min-height:500px;overflow:hidden;border:4px solid rgba(18,175,230,.28);border-radius:28px;background:#dcecf1;box-shadow:0 24px 58px rgba(8,127,174,.15)}
+.group-map-visual iframe{position:absolute;inset:0;width:100%;height:100%;border:0;filter:saturate(.72) contrast(.94)}
+.group-map-shade{position:absolute;inset:0;pointer-events:none;background:linear-gradient(135deg,rgba(234,248,253,.12),transparent 55%)}
+.group-pin{position:absolute;z-index:2;padding:7px 10px 7px 25px;border:1px solid rgba(255,255,255,.8);border-radius:999px;background:rgba(7,95,130,.9);color:#fff;box-shadow:0 7px 18px rgba(0,50,72,.25);font-size:11px;font-weight:900;white-space:nowrap;transform:translate(-50%,-50%)}
+.group-pin::before{content:"";position:absolute;left:9px;top:50%;width:8px;height:8px;border:2px solid #fff;border-radius:50%;background:#20c2ef;transform:translateY(-50%)}
+.pin-centre{left:38%;top:54%}.pin-laakkwartier{left:42%;top:64%}.pin-voorburg{left:52%;top:59%}.pin-ypenburg{left:63%;top:70%}.pin-wateringen{left:29%;top:78%}.pin-loosduinen{left:19%;top:67%}.pin-rijswijk{left:43%;top:74%}.pin-sassenheim{left:88%;top:12%}
+.group-map-visual small{position:absolute;z-index:2;right:14px;bottom:14px;max-width:320px;padding:8px 11px;border-radius:10px;background:rgba(255,253,248,.9);color:#514940;font-size:10px;font-weight:750;backdrop-filter:blur(8px)}
+html[data-theme="dark"] .group-map-copy>p:not(.eyebrow){color:#c4d8e2}
+html[data-theme="dark"] .group-area-list span{border-color:#31596b;background:#123548;color:#d9f5ff}
+html[data-theme="dark"] .group-map-visual iframe{filter:saturate(.62) brightness(.72) contrast(1.08)}
+@media(max-width:900px){.group-map{grid-template-columns:1fr}.group-map-visual{min-height:430px}}
+@media(max-width:640px){.group-map-copy h2{font-size:36px}.group-map-visual{min-height:390px;border-radius:22px}.group-pin{padding:6px 8px 6px 21px;font-size:9px}.group-pin::before{left:7px;width:7px;height:7px}}
+
 /* Ministry cards: gentle colour, depth and line-art instead of empty white boxes. */
 .ministry-grid article {
   position: relative;
