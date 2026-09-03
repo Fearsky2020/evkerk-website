@@ -184,7 +184,7 @@ html[data-theme="dark"] .gathering-card .text-link {
 .group-map-shade{position:absolute;inset:0;pointer-events:none;background:linear-gradient(135deg,rgba(234,248,253,.12),transparent 55%)}
 .group-pin{position:absolute;z-index:2;padding:7px 10px 7px 25px;border:1px solid rgba(255,255,255,.8);border-radius:999px;background:rgba(7,95,130,.9);color:#fff;box-shadow:0 7px 18px rgba(0,50,72,.25);font-size:11px;font-weight:900;white-space:nowrap;transform:translate(-50%,-50%)}
 .group-pin::before{content:"";position:absolute;left:9px;top:50%;width:8px;height:8px;border:2px solid #fff;border-radius:50%;background:#20c2ef;transform:translateY(-50%)}
-.pin-centre{left:38%;top:57%}.pin-voorburg{left:50%;top:60%}.pin-ypenburg{left:61%;top:70%}.pin-loosduinen{left:19%;top:66%}.pin-rijswijk{left:41%;top:72%}.pin-sassenheim{left:88%;top:12%}
+.pin-centre{left:38%;top:57%}.pin-voorburg{left:50%;top:60%}.pin-ypenburg{left:61%;top:70%}.pin-wateringen{left:29%;top:76%}.pin-loosduinen{left:19%;top:68%}.pin-rijswijk{left:41%;top:72%}.pin-sassenheim{left:88%;top:12%}
 .group-map-visual small{position:absolute;z-index:2;right:14px;bottom:14px;max-width:320px;padding:8px 11px;border-radius:10px;background:rgba(255,253,248,.9);color:#514940;font-size:10px;font-weight:750;backdrop-filter:blur(8px)}
 html[data-theme="dark"] .group-map-copy>p:not(.eyebrow){color:#c4d8e2}
 html[data-theme="dark"] .group-area-list span{border-color:#31596b;background:#123548;color:#d9f5ff}
