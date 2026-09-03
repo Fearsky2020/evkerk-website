@@ -2,6 +2,7 @@ import { handleSinanApi } from './sinan-ops.js';
 import { handleMediaApi } from './media-ingest.js';
 import { handleActivityApi } from './activity-gallery.js';
 import { handleHeroApi } from './hero-slides.js';
+import { authorize, handleAdminAuthApi } from './admin-auth.js';
 
 const TZ = 'Europe/Amsterdam';
 
@@ -124,7 +125,7 @@ async function listAnnouncements(env) {
 }
 
 async function listAdminSermons(request, env) {
-  const denied = requireToken(request, env);
+  const denied = await requireToken(request, env);
   if (denied) return denied;
   if (!env.DB) return json({ ok: false, error: 'D1 database is not configured' }, 503);
   const sermons = await queryAll(
@@ -140,7 +141,7 @@ async function listAdminSermons(request, env) {
 }
 
 async function unpublishSermon(request, env, id) {
-  const denied = requireToken(request, env);
+  const denied = await requireToken(request, env);
   if (denied) return denied;
   if (!env.DB) return json({ ok: false, error: 'D1 database is not configured' }, 503);
   const result = await env.DB.prepare(
@@ -151,7 +152,7 @@ async function unpublishSermon(request, env, id) {
 }
 
 async function listAdminAnnouncements(request, env) {
-  const denied = requireToken(request, env);
+  const denied = await requireToken(request, env);
   if (denied) return denied;
   if (!env.DB) return json({ ok: false, error: 'D1 database is not configured' }, 503);
   const announcements = await queryAll(
@@ -165,7 +166,7 @@ async function listAdminAnnouncements(request, env) {
 }
 
 async function unpublishAnnouncement(request, env, id) {
-  const denied = requireToken(request, env);
+  const denied = await requireToken(request, env);
   if (denied) return denied;
   if (!env.DB) return json({ ok: false, error: 'D1 database is not configured' }, 503);
   const result = await env.DB.prepare(
@@ -179,7 +180,15 @@ function bearer(request) {
   return request.headers.get('authorization')?.replace(/^Bearer\s+/i, '') || '';
 }
 
-function requireToken(request, env, name = 'INGEST_TOKEN') {
+async function requireToken(request, env, name = 'INGEST_TOKEN') {
+  if (name === 'INGEST_TOKEN') return (await authorize(request, env, 'editor')).response;
+  if (name === 'SYNC_TOKEN') {
+    const admin = await authorize(request, env, 'owner');
+    if (!admin.response) return null;
+    const expected = env.SYNC_TOKEN;
+    if (expected && bearer(request) === expected) return null;
+    return admin.response;
+  }
   const expected = env[name];
   if (!expected) return json({ ok: false, error: `${name} is not configured` }, 503);
   if (bearer(request) !== expected) return json({ ok: false, error: 'unauthorized' }, 401);
@@ -191,7 +200,7 @@ function clean(value, max = 12000) {
 }
 
 async function upsertSermon(request, env) {
-  const denied = requireToken(request, env);
+  const denied = await requireToken(request, env);
   if (denied) return denied;
   if (!env.DB) return json({ ok: false, error: 'D1 database is not configured' }, 503);
   const body = await request.json().catch(() => ({}));
@@ -216,7 +225,7 @@ async function upsertSermon(request, env) {
 }
 
 async function upsertAnnouncement(request, env) {
-  const denied = requireToken(request, env);
+  const denied = await requireToken(request, env);
   if (denied) return denied;
   if (!env.DB) return json({ ok: false, error: 'D1 database is not configured' }, 503);
   const body = await request.json().catch(() => ({}));
@@ -310,6 +319,8 @@ async function syncCalendar(env) {
 }
 
 async function handleApi(request, env, url) {
+  const authResponse = await handleAdminAuthApi(request, env, url);
+  if (authResponse) return authResponse;
   const heroResponse = await handleHeroApi(request, env, url);
   if (heroResponse) return heroResponse;
   const activityResponse = await handleActivityApi(request, env, url);
@@ -338,7 +349,7 @@ async function handleApi(request, env, url) {
   if (request.method === 'POST' && url.pathname === '/api/ingest/sermon') return upsertSermon(request, env);
   if (request.method === 'POST' && url.pathname === '/api/ingest/announcement') return upsertAnnouncement(request, env);
   if (request.method === 'POST' && url.pathname === '/api/sync/calendar') {
-    const denied = requireToken(request, env, 'SYNC_TOKEN');
+    const denied = await requireToken(request, env, 'SYNC_TOKEN');
     if (denied) return denied;
     try { return json(await syncCalendar(env)); }
     catch (error) { return json({ ok: false, error: error.message }, 500); }
