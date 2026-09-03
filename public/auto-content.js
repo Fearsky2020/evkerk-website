@@ -116,26 +116,30 @@
     const host = document.querySelector('.sermon-placeholder');
     if (!host || !state.sermons.length) return;
     const sermon = state.sermons[0];
-    const articleAvailable = Boolean(sermon.article_zh || sermon.article_nl);
+    const summary = t(sermon.summary_zh, sermon.summary_nl);
     host.dataset.dynamic = '1';
     host.innerHTML = `
-      <div class="play" aria-hidden="true">▶</div>
-      <div>
-        <span>${isNl() ? 'LAATSTE PREEK' : '最新讲道'}</span>
-        <h3>${esc(t(sermon.title_zh, sermon.title_nl) || (isNl() ? 'Preek' : '讲道'))}</h3>
-        <div class="auto-sermon-meta">
-          ${sermon.sermon_date ? `<b>${esc(dateLabel(sermon.sermon_date))}</b>` : ''}
-          ${sermon.speaker ? `<span>${esc(sermon.speaker)}</span>` : ''}
-          ${sermon.scripture ? `<span>${esc(sermon.scripture)}</span>` : ''}
+      <div class="latest-sermon-main">
+        <div class="play" aria-hidden="true">▶</div>
+        <div>
+          <span>${isNl() ? 'LAATSTE PREEK' : '最新讲道'}</span>
+          <h3>${esc(t(sermon.title_zh, sermon.title_nl) || (isNl() ? 'Preek' : '讲道'))}</h3>
+          <div class="auto-sermon-meta">
+            ${sermon.sermon_date ? `<b>${esc(dateLabel(sermon.sermon_date))}</b>` : ''}
+            ${sermon.speaker ? `<span>${esc(sermon.speaker)}</span>` : ''}
+            ${sermon.scripture ? `<span>${esc(sermon.scripture)}</span>` : ''}
+          </div>
+          <div class="auto-sermon-actions">
+            <a href="/sermon.html?id=${encodeURIComponent(sermon.id)}">${isNl() ? 'Bekijk preek' : '查看讲道'}</a>
+            ${sermon.youtube_url ? `<a href="${esc(sermon.youtube_url)}" target="_blank" rel="noopener">YouTube</a>` : ''}
+            ${sermon.audio_url ? `<a href="${esc(sermon.audio_url)}" target="_blank" rel="noopener">${isNl() ? 'Audio' : '音频'}</a>` : ''}
+          </div>
         </div>
-        <p>${esc(t(sermon.summary_zh, sermon.summary_nl))}</p>
-        <div class="auto-sermon-actions">
-          ${articleAvailable ? `<a href="/sermon.html?id=${encodeURIComponent(sermon.id)}">${isNl() ? 'Lees artikel' : '阅读文章'}</a>` : ''}
-          ${sermon.youtube_url ? `<a href="${esc(sermon.youtube_url)}" target="_blank" rel="noopener">YouTube</a>` : ''}
-          ${sermon.audio_url ? `<a href="${esc(sermon.audio_url)}" target="_blank" rel="noopener">${isNl() ? 'Audio' : '音频'}</a>` : ''}
-          ${sermon.transcript_url ? `<a href="${esc(sermon.transcript_url)}" target="_blank" rel="noopener">${isNl() ? 'Transcript' : '文字稿'}</a>` : ''}
-        </div>
-      </div>`;
+      </div>
+      <aside class="sermon-summary-band">
+        <strong>${isNl() ? 'KORTE SAMENVATTING' : '信息摘要'}</strong>
+        <p>${esc(summary || (isNl() ? 'De korte samenvatting verschijnt hier zodra deze is toegevoegd.' : '后台填写讲道摘要后，会自动显示在这里。'))}</p>
+      </aside>`;
   }
 
   function renderAll() {
