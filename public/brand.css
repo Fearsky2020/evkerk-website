@@ -826,3 +826,21 @@ body {
     opacity: .32;
   }
 }
+
+
+/* Temporary service exception shown directly on the Rijswijk gathering card. */
+.service-alert {
+  margin: 0 0 20px;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, .55);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, .18);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 850;
+  line-height: 1.55;
+}
+
+.service-alert[hidden] {
+  display: none;
+}
