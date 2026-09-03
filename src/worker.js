@@ -1,5 +1,6 @@
 import { handleSinanApi } from './sinan-ops.js';
 import { handleMediaApi } from './media-ingest.js';
+import { handleActivityApi } from './activity-gallery.js';
 
 const TZ = 'Europe/Amsterdam';
 
@@ -256,6 +257,8 @@ async function syncCalendar(env) {
 }
 
 async function handleApi(request, env, url) {
+  const activityResponse = await handleActivityApi(request, env, url);
+  if (activityResponse) return activityResponse;
   const mediaResponse = await handleMediaApi(request, env, url);
   if (mediaResponse) return mediaResponse;
   if (url.pathname.startsWith('/api/sinan/')) return handleSinanApi(request, env, url);
