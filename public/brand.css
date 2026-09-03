@@ -664,3 +664,71 @@
     padding-top: 50px;
   }
 }
+
+
+/* Logo-blue accents: keep the warm base, add fresh light-blue rhythm. */
+:root {
+  --brand-blue: #12afe6;
+  --brand-blue-deep: #087fae;
+  --brand-blue-soft: #eaf8fd;
+  --brand-blue-line: #bfe9f8;
+}
+
+body {
+  background:
+    radial-gradient(circle at 82% 5%, rgba(18, 175, 230, .12), transparent 25rem),
+    linear-gradient(180deg, #fffaf2 0, var(--bg) 42rem);
+}
+
+.site-header {
+  box-shadow: inset 0 3px 0 rgba(18, 175, 230, .72);
+}
+
+.eyebrow {
+  color: var(--brand-blue-deep);
+}
+
+.hero-visual {
+  border: 4px solid rgba(18, 175, 230, .28);
+  box-shadow: 0 26px 70px rgba(8, 127, 174, .16);
+}
+
+.hero-copy::before {
+  content: "";
+  display: block;
+  width: 74px;
+  height: 6px;
+  margin-bottom: 22px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--brand-blue), #76d7f5);
+}
+
+#activities {
+  background: linear-gradient(180deg, rgba(234, 248, 253, .74), rgba(251, 246, 236, 0));
+  border-top: 1px solid var(--brand-blue-line);
+}
+
+#activities .section-heading h2::after,
+#gatherings .section-heading h2::after {
+  content: "";
+  display: block;
+  width: 56px;
+  height: 4px;
+  margin-top: 14px;
+  border-radius: 999px;
+  background: var(--brand-blue);
+}
+
+.lang-btn:hover,
+.round-btn:hover,
+.btn.secondary:hover {
+  border-color: var(--brand-blue);
+  background: var(--brand-blue-soft);
+}
+
+@media (max-width: 640px) {
+  .hero-copy::before {
+    width: 58px;
+    margin-bottom: 16px;
+  }
+}
