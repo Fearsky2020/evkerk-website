@@ -2553,3 +2553,17 @@ html[data-theme="dark"] .group-map-static figcaption{background:rgba(8,27,39,.94
 .contact-form-status.success{color:#b9f3d0!important}
 .contact-form-status.error{color:#ffd0ca!important}
 .contact-form button:disabled{cursor:wait;opacity:.65}
+
+
+/* Latest sermon: use the blue side panel for the concise backend summary. */
+.sermon-placeholder{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,.72fr);gap:22px;align-items:stretch}
+.latest-sermon-main{display:flex;align-items:center;gap:24px;min-width:0}
+.sermon-summary-band{display:flex;flex-direction:column;justify-content:center;margin:-12px -12px -12px 0;padding:24px 28px;border-radius:18px;background:linear-gradient(135deg,#e8f8fd,#cceffc);border:1px solid var(--brand-blue-line)}
+.sermon-summary-band strong{color:var(--brand-blue-deep);font-size:12px;letter-spacing:.13em}
+.sermon-summary-band p{margin:10px 0 0!important;color:#254958!important;font-size:15px;line-height:1.7}
+.sermon-heading-actions{max-width:520px}.sermon-heading-actions p{margin:0 0 10px}.sermon-heading-actions .text-link{color:var(--brand-blue-deep);font-weight:900}
+html[data-theme="dark"] .sermon-summary-band{border-color:#31596b;background:linear-gradient(135deg,#0d3547,#102b39)}
+html[data-theme="dark"] .sermon-summary-band strong{color:#72d4f5}
+html[data-theme="dark"] .sermon-summary-band p{color:#e5f4fa!important}
+html[data-theme="dark"] .sermon-heading-actions .text-link{color:#72d4f5}
+@media(max-width:760px){.sermon-placeholder{grid-template-columns:1fr}.sermon-summary-band{margin:0;padding:20px}.latest-sermon-main{align-items:flex-start}}
