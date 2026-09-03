@@ -12,11 +12,15 @@
 <body>
   <main class="shell">
     <div class="top"><div class="admin-brand"><img src="/assets/evkerk-logo.webp" alt="福音教会 Logo"><div><h1>EVKERK 内容后台</h1><div class="hint">照片、公告与讲道管理</div></div></div><a href="/">返回官网</a></div>
-    <div class="card">
-      <label>后台访问密钥</label>
-      <div class="token"><input id="token" type="password" autocomplete="current-password" placeholder="请输入你的个人访问密钥"><button class="btn secondary" id="saveToken">登录 / 记住</button><button class="btn secondary" id="logoutAdmin" type="button">退出 / 切换账号</button></div>
-      <p class="hint">保存在本机浏览器，不上传到页面源码。主管理员可在“管理员”页面为同工创建个人密钥，并随时停用。主 Token 仍可作为紧急入口。</p>
-    </div>
+    <form class="card" id="loginForm">
+      <h2>管理员登录</h2>
+      <div class="grid">
+        <label>账号（姓名或邮箱）<input id="adminAccount" autocomplete="username" placeholder="输入管理员姓名或邮箱" required></label>
+        <label>密码（个人访问密钥）<input id="token" type="password" autocomplete="current-password" placeholder="输入创建账号时获得的密钥" required></label>
+      </div>
+      <div class="actions"><button class="btn" id="saveToken" type="submit">登录</button><button class="btn secondary" id="logoutAdmin" type="button">退出 / 切换账号</button><span class="msg" id="loginMsg"></span></div>
+      <p class="hint">每位同工使用自己的账号和个人密钥登录。主管理员账号填写“主管理员”，密码填写主 Token。</p>
+    </form>
     <div class="status" id="health">正在检查后端状态…</div><div class="status" id="adminIdentity" hidden></div>
 
     <div class="tabs">
@@ -148,9 +152,12 @@
   <script>
     (()=>{
       const token=document.getElementById('token');
+      const account=document.getElementById('adminAccount');
+      const loginForm=document.getElementById('loginForm');
       token.value=localStorage.getItem('evkerk-admin-token')||'';
-      document.getElementById('saveToken').onclick=()=>{localStorage.setItem('evkerk-admin-token',token.value.trim());document.getElementById('health').textContent='访问密钥已保存在这台设备。';loadProfile();loadActivities();loadAnnouncements();loadSermons();loadHeroSlides()};
-      document.getElementById('logoutAdmin').onclick=()=>{localStorage.removeItem('evkerk-admin-token');token.value='';location.reload()};
+      account.value=localStorage.getItem('evkerk-admin-account')||'';
+      loginForm.onsubmit=async(event)=>{event.preventDefault();const msg=document.getElementById('loginMsg'),button=document.getElementById('saveToken');button.disabled=true;msg.textContent='正在登录…';try{const response=await fetch('/api/admin/login',{method:'POST',headers:{Authorization:`Bearer ${token.value.trim()}`,'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify({identifier:account.value.trim()})});const body=await response.json().catch(()=>({}));if(!response.ok||body.ok===false)throw new Error(body.error||`HTTP ${response.status}`);localStorage.setItem('evkerk-admin-token',token.value.trim());localStorage.setItem('evkerk-admin-account',account.value.trim());msg.textContent='登录成功';msg.className='msg ok';document.getElementById('health').textContent='登录成功，可以开始管理内容。';await loadProfile();loadActivities();loadAnnouncements();loadSermons();loadHeroSlides()}catch(err){msg.textContent=err.message;msg.className='msg'}finally{button.disabled=false}};
+      document.getElementById('logoutAdmin').onclick=()=>{localStorage.removeItem('evkerk-admin-token');localStorage.removeItem('evkerk-admin-account');token.value='';account.value='';location.reload()};
       document.querySelectorAll('[data-tab]').forEach(btn=>btn.onclick=()=>{document.querySelectorAll('[data-tab]').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');document.getElementById(btn.dataset.tab).classList.add('active')});
       let currentUser=null;
       const roleName={owner:'管理员',editor:'编辑',uploader:'上传者'};
