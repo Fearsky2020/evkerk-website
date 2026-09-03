@@ -732,3 +732,97 @@ body {
     margin-bottom: 16px;
   }
 }
+
+
+/* Airy Evangeliekerk blue: buttons and soft wind-like ribbons. */
+.visit-btn,
+.btn.primary,
+.play {
+  background: linear-gradient(135deg, #087fae, #16afe5);
+  box-shadow: 0 10px 24px rgba(8, 127, 174, .2);
+}
+
+.visit-btn:hover,
+.btn.primary:hover {
+  background: linear-gradient(135deg, #076f99, #0e9fd2);
+  transform: translateY(-1px);
+}
+
+.text-link {
+  color: #087fae;
+}
+
+.hero,
+#activities,
+.welcome {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.hero > *,
+#activities > *,
+.welcome > * {
+  position: relative;
+  z-index: 1;
+}
+
+.hero::after,
+#activities::after,
+.welcome::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  width: 72%;
+  height: 220px;
+  pointer-events: none;
+  opacity: .48;
+  background: repeating-linear-gradient(
+    166deg,
+    transparent 0 24px,
+    rgba(18, 175, 230, .16) 25px 27px,
+    transparent 28px 48px
+  );
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 22%, #000 74%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 22%, #000 74%, transparent);
+  transform: rotate(-5deg);
+}
+
+.hero::after {
+  top: 18px;
+  right: -21%;
+}
+
+#activities::after {
+  bottom: 4%;
+  left: -24%;
+  transform: rotate(7deg);
+}
+
+.welcome::after {
+  top: 12%;
+  right: -30%;
+  opacity: .3;
+}
+
+.gathering-card.featured {
+  background: linear-gradient(145deg, #087fae, #16a9dc);
+  border-color: #087fae;
+}
+
+.contact-card {
+  background: linear-gradient(135deg, #087fae, #19afe1);
+}
+
+.btn.light {
+  color: #08769f;
+}
+
+@media (max-width: 640px) {
+  .hero::after,
+  #activities::after,
+  .welcome::after {
+    width: 120%;
+    opacity: .32;
+  }
+}
