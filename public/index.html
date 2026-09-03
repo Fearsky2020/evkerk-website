@@ -205,8 +205,22 @@
 
     <section class="contact section shell" id="contact">
       <div class="contact-card">
-        <div><p class="eyebrow" data-i18n="contact.eyebrow">COME AND SEE</p><h2 data-i18n="contact.title">这个星期天，来坐坐。</h2><p data-i18n="contact.text">无需预约。提前 10–15 分钟到达，会更方便认识接待同工和找到座位。</p></div>
-        <a class="btn light" href="#gatherings" data-i18n="contact.button">查看聚会地点</a>
+        <div class="contact-copy">
+          <p class="eyebrow" data-i18n="contact.eyebrow">CONTACT US</p>
+          <h2 data-i18n="contact.title">想了解更多？给我们留言。</h2>
+          <p data-i18n="contact.text">有关聚会、咖啡会友小组或第一次来教会的问题，都可以直接告诉我们。我们会通过你留下的联系方式回复。</p>
+          <a class="text-link contact-location-link" href="#gatherings" data-i18n="contact.button">查看聚会地点 →</a>
+        </div>
+        <form class="contact-form" action="https://formsubmit.co/emsitao@gmail.com" method="POST">
+          <input type="hidden" name="_subject" value="evkerk.nl 新留言">
+          <input type="hidden" name="_template" value="table">
+          <input type="text" name="_honey" tabindex="-1" autocomplete="off" class="contact-honey">
+          <label><span data-i18n="contact.form.name">怎么称呼你？</span><input type="text" name="姓名 / Naam" required maxlength="100" autocomplete="name"></label>
+          <label><span data-i18n="contact.form.contact">怎样联系你？</span><input type="text" name="联系方式 / Contact" required maxlength="200" data-i18n-placeholder="contact.form.contactPlaceholder" placeholder="邮箱、电话或 WhatsApp"></label>
+          <label><span data-i18n="contact.form.message">想咨询什么？</span><textarea name="留言 / Bericht" required maxlength="3000" rows="5"></textarea></label>
+          <button class="btn light" type="submit" data-i18n="contact.form.submit">发送留言</button>
+          <small data-i18n="contact.form.note">提交后，我们会尽快通过你留下的联系方式回复。</small>
+        </form>
       </div>
     </section>
   </main>
