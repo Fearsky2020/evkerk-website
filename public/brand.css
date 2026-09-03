@@ -2337,3 +2337,38 @@ html[data-theme="dark"] .contact-form small {
     width: 100%;
   }
 }
+
+
+/* Larger, easier-to-read desktop navigation. */
+@media (min-width: 981px) {
+  .desktop-nav {
+    gap: 4px;
+    padding: 6px;
+  }
+
+  .desktop-nav a {
+    padding: 10px 14px;
+    font-size: 15px;
+    font-weight: 760;
+  }
+
+  .round-btn,
+  .lang-btn {
+    height: 42px;
+  }
+
+  .round-btn {
+    width: 42px;
+  }
+
+  .lang-btn {
+    padding-inline: 14px;
+    font-size: 15px;
+  }
+
+  .visit-btn {
+    min-height: 46px;
+    padding-inline: 20px;
+    font-size: 15px;
+  }
+}
