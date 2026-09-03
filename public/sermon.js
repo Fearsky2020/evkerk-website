@@ -74,6 +74,20 @@
     paragraphs.forEach((part) => container.appendChild(el('p', '', part)));
   }
 
+  async function loadTranscriptInto(container, href) {
+    try {
+      const url = new URL(href, location.origin);
+      if (!['http:', 'https:'].includes(url.protocol)) throw new Error('unsupported URL');
+      const response = await fetch(url.href, { headers: { Accept: 'text/plain' } });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const text = await response.text();
+      container.replaceChildren();
+      articleParagraphs(container, text);
+    } catch {
+      container.replaceChildren(el('p', '', isNl() ? 'Het transcript kan tijdelijk niet worden geladen.' : '讲道正文暂时加载失败，请稍后再试。'));
+    }
+  }
+
   function renderNotFound() {
     page.replaceChildren();
     const card = el('section', 'state-card');
@@ -129,7 +143,15 @@
     }
 
     const body = el('article', 'article-body');
-    articleParagraphs(body, choose(sermon.article_zh, sermon.article_nl));
+    const articleText = choose(sermon.article_zh, sermon.article_nl);
+    if (articleText) {
+      articleParagraphs(body, articleText);
+    } else if (sermon.transcript_url) {
+      body.appendChild(el('p', '', isNl() ? 'Transcript laden…' : '正在加载讲道正文…'));
+      loadTranscriptInto(body, sermon.transcript_url);
+    } else {
+      articleParagraphs(body, '');
+    }
     page.appendChild(body);
 
     const footer = el('footer', 'article-footer', isNl()
