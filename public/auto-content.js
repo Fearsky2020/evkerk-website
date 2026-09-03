@@ -32,6 +32,10 @@
       .auto-event p{margin:0;color:var(--muted);font-size:13px;line-height:1.55}.auto-event .auto-event-location{font-size:15px;font-weight:750;line-height:1.45;color:var(--ink)}.auto-event .auto-time{margin-top:10px;color:var(--ink);font-weight:750}.auto-event .auto-special-note{margin-top:8px;color:#9b5939;font-weight:800}.auto-joint-service{margin:0 0 18px;padding:20px 22px;border:2px solid #12afe6;border-radius:18px;background:linear-gradient(135deg,#eaf8fd,#fff);box-shadow:0 12px 30px rgba(8,127,174,.12)}.auto-joint-service time{display:block;color:#087fae;font-size:15px;font-weight:950}.auto-joint-service h4{margin:7px 0;font-size:24px}.auto-joint-service p{margin:3px 0;color:var(--ink);font-size:15px;font-weight:750}.auto-joint-service .auto-special-note{color:#9b5939;font-weight:900}
       .auto-sermon-meta{display:flex;gap:9px;flex-wrap:wrap;margin:8px 0 12px;color:var(--muted);font-size:13px}
       .auto-sermon-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:15px}.auto-sermon-actions a{padding:9px 12px;border-radius:9px;border:1px solid var(--line);text-decoration:none;font-weight:800;font-size:13px}
+      button.sermon-play-toggle{border:0;padding:0;flex:0 0 auto;cursor:pointer;font:inherit;display:grid;place-items:center}
+      button.sermon-play-toggle:hover{transform:scale(1.04);box-shadow:0 14px 30px rgba(8,127,174,.28)}
+      button.sermon-play-toggle:focus-visible{outline:4px solid rgba(17,171,227,.3);outline-offset:4px}
+      button.sermon-play-toggle.is-playing{background:linear-gradient(135deg,#075f84,#0b8fbe)}
       @media(max-width:900px){.auto-event-list{grid-template-columns:1fr 1fr}}
       @media(max-width:640px){.auto-announcements{width:min(100% - 24px,1180px)}.auto-announcement{display:block}.auto-announcement strong{display:block;margin-bottom:7px}.auto-event-list{grid-template-columns:1fr}}
     `;
@@ -120,7 +124,9 @@
     host.dataset.dynamic = '1';
     host.innerHTML = `
       <div class="latest-sermon-main">
-        <div class="play" aria-hidden="true">▶</div>
+        ${sermon.audio_url
+          ? `<button class="play sermon-play-toggle" type="button" aria-label="${isNl() ? 'Speel de preek af' : '播放讲道'}" aria-pressed="false"><span aria-hidden="true">▶</span></button>`
+          : `<div class="play" aria-hidden="true">▶</div>`}
         <div>
           <span>${isNl() ? 'LAATSTE PREEK' : '最新讲道'}</span>
           <h3>${esc(t(sermon.title_zh, sermon.title_nl) || (isNl() ? 'Preek' : '讲道'))}</h3>
@@ -139,7 +145,32 @@
       <aside class="sermon-summary-band">
         <strong>${isNl() ? 'KORTE SAMENVATTING' : '信息摘要'}</strong>
         <p>${esc(summary || (isNl() ? 'De korte samenvatting verschijnt hier zodra deze is toegevoegd.' : '后台填写讲道摘要后，会自动显示在这里。'))}</p>
-      </aside>`;
+      </aside>
+      ${sermon.audio_url ? `<audio class="latest-sermon-audio" preload="metadata" src="${esc(sermon.audio_url)}"></audio>` : ''}`;
+    const playButton = host.querySelector('.sermon-play-toggle');
+    const audio = host.querySelector('.latest-sermon-audio');
+    if (playButton && audio) {
+      const setPlaying = (playing) => {
+        playButton.classList.toggle('is-playing', playing);
+        playButton.setAttribute('aria-pressed', String(playing));
+        playButton.setAttribute('aria-label', isNl()
+          ? (playing ? 'Pauzeer de preek' : 'Speel de preek af')
+          : (playing ? '暂停讲道' : '播放讲道'));
+        playButton.querySelector('span').textContent = playing ? 'Ⅱ' : '▶';
+      };
+      playButton.addEventListener('click', async () => {
+        if (audio.paused) {
+          try { await audio.play(); setPlaying(true); }
+          catch { setPlaying(false); }
+        } else {
+          audio.pause();
+          setPlaying(false);
+        }
+      });
+      audio.addEventListener('play', () => setPlaying(true));
+      audio.addEventListener('pause', () => setPlaying(false));
+      audio.addEventListener('ended', () => setPlaying(false));
+    }
   }
 
   function renderAll() {
