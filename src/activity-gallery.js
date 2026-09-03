@@ -1,3 +1,5 @@
+import { authorize } from './admin-auth.js';
+
 const CATEGORIES = new Set(['church', 'fellowship', 'small_group']);
 const IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/avif']);
 
@@ -12,14 +14,10 @@ function clean(value, max = 500) {
   return String(value ?? '').trim().slice(0, max);
 }
 
-function bearer(request) {
-  return request.headers.get('authorization')?.replace(/^Bearer\s+/i, '') || '';
-}
-
-function requireAdmin(request, env) {
-  if (!env.INGEST_TOKEN) return json({ ok: false, error: '后台密码尚未配置' }, 503);
-  if (bearer(request) !== env.INGEST_TOKEN) return json({ ok: false, error: '后台密码不正确' }, 401);
-  if (!env.DB || !env.MEDIA) return json({ ok: false, error: '图片存储尚未配置' }, 503);
+async function requireAdmin(request, env, minimum = 'uploader') {
+  const auth = await authorize(request, env, minimum);
+  if (auth.response) return auth.response;
+  if (!env.MEDIA) return json({ ok: false, error: '图片存储尚未配置' }, 503);
   return null;
 }
 
@@ -47,7 +45,7 @@ async function listPublic(env) {
 }
 
 async function listAdmin(request, env) {
-  const denied = requireAdmin(request, env);
+  const denied = await requireAdmin(request, env);
   if (denied) return denied;
   const result = await env.DB.prepare(
     `SELECT id, album_id, category, title_zh, title_nl, event_date, location, image_size, sort_order, status, created_at, updated_at
@@ -57,7 +55,7 @@ async function listAdmin(request, env) {
 }
 
 async function upload(request, env) {
-  const denied = requireAdmin(request, env);
+  const denied = await requireAdmin(request, env);
   if (denied) return denied;
   const form = await request.formData().catch(() => null);
   if (!form) return json({ ok: false, error: '无法读取表单' }, 400);
@@ -92,7 +90,7 @@ async function upload(request, env) {
 }
 
 async function update(request, env, id) {
-  const denied = requireAdmin(request, env);
+  const denied = await requireAdmin(request, env, 'editor');
   if (denied) return denied;
   const body = await request.json().catch(() => ({}));
   const category = clean(body.category, 30);
@@ -112,7 +110,7 @@ async function update(request, env, id) {
 }
 
 async function replaceImage(request, env, id) {
-  const denied = requireAdmin(request, env);
+  const denied = await requireAdmin(request, env, 'editor');
   if (denied) return denied;
   const form = await request.formData().catch(() => null);
   if (!form) return json({ ok: false, error: '无法读取表单' }, 400);
@@ -148,7 +146,7 @@ async function replaceImage(request, env, id) {
 }
 
 async function unpublish(request, env, albumId) {
-  const denied = requireAdmin(request, env);
+  const denied = await requireAdmin(request, env, 'editor');
   if (denied) return denied;
   const result = await env.DB.prepare(
     `UPDATE activity_gallery SET status='hidden', updated_at=datetime('now')
@@ -159,7 +157,7 @@ async function unpublish(request, env, albumId) {
 }
 
 async function deletePhoto(request, env, id) {
-  const denied = requireAdmin(request, env);
+  const denied = await requireAdmin(request, env, 'editor');
   if (denied) return denied;
   const current = await env.DB.prepare(
     `SELECT image_key FROM activity_gallery WHERE id=? AND status='published'`,
