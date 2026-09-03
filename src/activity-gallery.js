@@ -31,14 +31,14 @@ function publicItem(row) {
     title_nl: row.title_nl || '',
     event_date: row.event_date || '',
     location: row.location || '',
-    image_url: `/api/activities/${encodeURIComponent(row.id)}/image`,
+    image_url: `/api/activities/${encodeURIComponent(row.id)}/image?v=${encodeURIComponent(row.updated_at || '')}`,
   };
 }
 
 async function listPublic(env) {
   if (!env.DB) return json({ ok: true, activities: [] });
   const result = await env.DB.prepare(
-    `SELECT id, category, title_zh, title_nl, event_date, location
+    `SELECT id, category, title_zh, title_nl, event_date, location, updated_at
        FROM activity_gallery WHERE status='published'
       ORDER BY sort_order DESC, event_date DESC, created_at DESC LIMIT 20`,
   ).all();
@@ -49,10 +49,10 @@ async function listAdmin(request, env) {
   const denied = requireAdmin(request, env);
   if (denied) return denied;
   const result = await env.DB.prepare(
-    `SELECT id, category, title_zh, title_nl, event_date, location, image_size, sort_order, status, created_at
+    `SELECT id, category, title_zh, title_nl, event_date, location, image_size, sort_order, status, created_at, updated_at
        FROM activity_gallery ORDER BY created_at DESC LIMIT 50`,
   ).all();
-  return json({ ok: true, activities: (result.results || []).map((row) => ({ ...row, image_url: `/api/activities/${encodeURIComponent(row.id)}/image` })) });
+  return json({ ok: true, activities: (result.results || []).map((row) => ({ ...row, image_url: `/api/activities/${encodeURIComponent(row.id)}/image?v=${encodeURIComponent(row.updated_at || row.created_at || '')}` })) });
 }
 
 async function upload(request, env) {
@@ -109,6 +109,42 @@ async function update(request, env, id) {
   return json({ ok: true, id });
 }
 
+async function replaceImage(request, env, id) {
+  const denied = requireAdmin(request, env);
+  if (denied) return denied;
+  const form = await request.formData().catch(() => null);
+  if (!form) return json({ ok: false, error: '无法读取表单' }, 400);
+  const image = form.get('image');
+  if (!(image instanceof File) || !image.size) return json({ ok: false, error: '请选择新照片' }, 400);
+  if (!IMAGE_TYPES.has(image.type)) return json({ ok: false, error: '只支持 JPG、PNG、WebP 或 AVIF' }, 415);
+  if (image.size > 12 * 1024 * 1024) return json({ ok: false, error: '照片不能超过 12MB' }, 413);
+
+  const current = await env.DB.prepare(
+    `SELECT image_key FROM activity_gallery WHERE id=? AND status='published'`,
+  ).bind(id).first();
+  if (!current) return json({ ok: false, error: '照片不存在或已下架' }, 404);
+
+  const ext = image.type === 'image/jpeg' ? 'jpg' : image.type.split('/')[1];
+  const key = `activity-gallery/${new Date().getUTCFullYear()}/${id}-${crypto.randomUUID()}.${ext}`;
+  await env.MEDIA.put(key, image.stream(), { httpMetadata: { contentType: image.type } });
+  try {
+    const result = await env.DB.prepare(
+      `UPDATE activity_gallery
+          SET image_key=?, image_mime=?, image_size=?, updated_at=datetime('now')
+        WHERE id=? AND status='published'`,
+    ).bind(key, image.type, image.size, id).run();
+    if (!Number(result.meta?.changes || 0)) {
+      await env.MEDIA.delete(key);
+      return json({ ok: false, error: '照片不存在或已下架' }, 404);
+    }
+  } catch (error) {
+    await env.MEDIA.delete(key);
+    throw error;
+  }
+  await env.MEDIA.delete(current.image_key);
+  return json({ ok: true, id, image_url: `/api/activities/${encodeURIComponent(id)}/image?v=${Date.now()}` });
+}
+
 async function unpublish(request, env, id) {
   const denied = requireAdmin(request, env);
   if (denied) return denied;
@@ -140,6 +176,8 @@ export async function handleActivityApi(request, env, url) {
   if (match && request.method === 'POST') return unpublish(request, env, decodeURIComponent(match[1]));
   match = url.pathname.match(/^\/api\/admin\/activities\/([^/]+)\/update$/);
   if (match && request.method === 'POST') return update(request, env, decodeURIComponent(match[1]));
+  match = url.pathname.match(/^\/api\/admin\/activities\/([^/]+)\/image$/);
+  if (match && request.method === 'POST') return replaceImage(request, env, decodeURIComponent(match[1]));
   match = url.pathname.match(/^\/api\/activities\/([^/]+)\/image$/);
   if (match && request.method === 'GET') return image(env, decodeURIComponent(match[1]));
   return null;
