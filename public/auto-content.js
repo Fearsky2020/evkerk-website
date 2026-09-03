@@ -26,10 +26,10 @@
       .auto-announcement h3{margin:0 0 5px;font-size:17px}.auto-announcement p{margin:0;color:var(--muted);line-height:1.55}
       .auto-upcoming{margin-top:24px}.auto-upcoming-head{display:flex;justify-content:space-between;gap:16px;align-items:end;margin-bottom:12px}
       .auto-upcoming-head h3{margin:0;font-size:20px}.auto-upcoming-head span{font-size:12px;color:var(--muted)}
-      .auto-event-list{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+      .auto-location-list{display:grid;gap:18px}.auto-location-group{padding:16px;border:1px solid var(--line);border-radius:18px;background:color-mix(in srgb,var(--paper) 88%,#eaf8fd)}.auto-location-title{margin:0 0 12px;font-size:15px;color:#087fae}.auto-event-list{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
       .auto-event{padding:17px;border:1px solid var(--line);border-radius:16px;background:var(--paper)}
       .auto-event time{font-size:12px;font-weight:850;color:var(--accent)}.auto-event h4{font-size:17px;margin:9px 0 7px}
-      .auto-event p{margin:0;color:var(--muted);font-size:13px;line-height:1.55}.auto-event .auto-time{margin-top:10px;color:var(--ink);font-weight:750}
+      .auto-event p{margin:0;color:var(--muted);font-size:13px;line-height:1.55}.auto-event .auto-time{margin-top:10px;color:var(--ink);font-weight:750}.auto-event .auto-special-note{margin-top:8px;color:#9b5939;font-weight:800}
       .auto-sermon-meta{display:flex;gap:9px;flex-wrap:wrap;margin:8px 0 12px;color:var(--muted);font-size:13px}
       .auto-sermon-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:15px}.auto-sermon-actions a{padding:9px 12px;border-radius:9px;border:1px solid var(--line);text-decoration:none;font-weight:800;font-size:13px}
       @media(max-width:900px){.auto-event-list{grid-template-columns:1fr 1fr}}
@@ -53,21 +53,50 @@
 
   function renderEvents() {
     document.querySelector('.auto-upcoming')?.remove();
-    if (!state.events.length) return;
     const section = document.getElementById('gatherings');
     if (!section) return;
     const wrapper = document.createElement('div');
     wrapper.className = 'auto-upcoming';
-    const events = state.events.slice(0, 6);
+    const todayParts = Object.fromEntries(new Intl.DateTimeFormat('en-GB', {timeZone:'Europe/Amsterdam', year:'numeric', month:'2-digit', day:'2-digit'}).formatToParts(new Date()).map(part => [part.type, part.value]));
+    const today = `${todayParts.year}-${todayParts.month}-${todayParts.day}`;
+    let events = state.events.slice();
+    if (today <= '2026-09-06') {
+      events = events.filter(event => (event.date || event.start_at?.slice(0,10)) !== '2026-09-06');
+      events.push({
+        id: 'special-2026-09-06',
+        date: '2026-09-06',
+        title_zh: '联合崇拜暨洗礼',
+        title_nl: 'Gezamenlijke dienst en doop',
+        location: 'Evangeliekerk Zoetermeer · Piet Heinplein 13',
+        start_time: '10:00',
+        end_time: '12:00',
+        notice_zh: 'Rijswijk 当天暂停聚会',
+        notice_nl: 'Geen dienst in Rijswijk op deze dag'
+      });
+    }
+    if (!events.length) return;
+    const locationOrder = ['Rijswijk', 'Zoetermeer', '其他'];
+    const groups = new Map(locationOrder.map(name => [name, []]));
+    events.slice().sort((left,right) => String(left.start_at || left.date || '').localeCompare(String(right.start_at || right.date || ''))).forEach(event => {
+      const place = String(event.location || '');
+      const key = /rijswijk/i.test(place) ? 'Rijswijk' : /zoetermeer/i.test(place) ? 'Zoetermeer' : '其他';
+      groups.get(key).push(event);
+    });
+    const visibleGroups = [...groups.entries()].filter(([,items]) => items.length).map(([place,items]) => [place,items.slice(0,6)]);
     wrapper.innerHTML = `
-      <div class="auto-upcoming-head"><h3>${isNl() ? 'Komende bijeenkomsten' : '接下来几次聚会'}</h3><span>${isNl() ? 'Automatisch bijgewerkt' : '自动更新'}</span></div>
-      <div class="auto-event-list">${events.map((event) => `
-        <article class="auto-event">
-          <time>${esc(dateLabel(event.date || event.start_at?.slice(0,10)))}</time>
-          <h4>${esc(t(event.title_zh, event.title_nl))}</h4>
-          <p>${esc(event.location || '')}</p>
-          <p class="auto-time">${esc([event.start_time, event.end_time].filter(Boolean).join('–'))}</p>
-        </article>`).join('')}</div>`;
+      <div class="auto-upcoming-head"><h3>${isNl() ? 'Komende bijeenkomsten per locatie' : '接下来聚会（按地点）'}</h3><span>${isNl() ? 'Automatisch bijgewerkt' : '自动更新'}</span></div>
+      <div class="auto-location-list">${visibleGroups.map(([place,items]) => `
+        <section class="auto-location-group">
+          <h4 class="auto-location-title">${esc(place === '其他' ? (isNl() ? 'Overige locaties' : '其他地点') : place)}</h4>
+          <div class="auto-event-list">${items.map((event) => `
+            <article class="auto-event">
+              <time>${esc(dateLabel(event.date || event.start_at?.slice(0,10)))}</time>
+              <h4>${esc(t(event.title_zh, event.title_nl))}</h4>
+              <p>${esc(event.location || '')}</p>
+              <p class="auto-time">${esc([event.start_time, event.end_time].filter(Boolean).join('–'))}</p>
+              ${event.notice_zh ? `<p class="auto-special-note">${esc(t(event.notice_zh, event.notice_nl))}</p>` : ''}
+            </article>`).join('')}</div>
+        </section>`).join('')}</div>`;
     section.querySelector('.gathering-grid')?.insertAdjacentElement('afterend', wrapper);
   }
 
