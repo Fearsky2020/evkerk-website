@@ -8,52 +8,55 @@
     zh: { church: '教会活动', fellowship: '团契活动', small_group: '小组活动' },
     nl: { church: 'Gemeenteactiviteit', fellowship: 'Fellowship', small_group: 'Kringactiviteit' },
   };
+  let albums = [];
   let records = [];
   let slides = [];
   let dots = [];
   let activeSlide = 0;
+  let activeAlbumId = '';
   let timer;
   let pointerStart = 0;
 
-  function language() {
-    return document.documentElement.lang === 'nl' ? 'nl' : 'zh';
-  }
-
+  const language = () => document.documentElement.lang === 'nl' ? 'nl' : 'zh';
   function escapeText(value) {
     const node = document.createElement('span');
     node.textContent = value || '';
     return node.innerHTML;
   }
-
   function caption(record) {
     const lang = language();
-    const title = lang === 'nl' && record.title_nl ? record.title_nl : record.title_zh;
     return {
       category: categoryNames[lang][record.category] || categoryNames[lang].church,
-      title,
+      title: lang === 'nl' && record.title_nl ? record.title_nl : record.title_zh,
       meta: [record.event_date, record.location].filter(Boolean).join(' · '),
     };
   }
-
+  function groupAlbums(items) {
+    const map = new Map();
+    items.forEach(record => {
+      const id = record.album_id || record.id;
+      if (!map.has(id)) map.set(id, { id, lead: record, photos: [] });
+      map.get(id).photos.push(record);
+    });
+    return [...map.values()];
+  }
   function renderSummaries() {
     if (!summaryBox) return;
-    summaryBox.innerHTML = records.slice(0, 4).map((record, index) => { const text = caption(record); return `<button class="activity-summary${index === activeSlide ? ' is-active' : ''}" type="button" data-summary-index="${index}"><img src="${escapeText(record.image_url)}" alt=""><span><small>${escapeText(text.category)}</small><strong>${escapeText(text.title)}</strong><em>${escapeText(text.meta)}</em></span></button>`; }).join('');
-    summaryBox.querySelectorAll('[data-summary-index]').forEach(button => button.addEventListener('click', () => { showSlide(Number(button.dataset.summaryIndex)); start(); }));
+    const lang = language();
+    summaryBox.innerHTML = albums.slice(0, 4).map(album => {
+      const text = caption(album.lead);
+      const count = album.photos.length;
+      const countLabel = lang === 'nl' ? `${count} foto's` : `${count} 张照片`;
+      return `<button class="activity-summary${album.id === activeAlbumId ? ' is-active' : ''}" type="button" data-album-id="${escapeText(album.id)}">
+        <img src="${escapeText(album.lead.image_url)}" alt="">
+        <span><small>${escapeText(text.category)} · ${countLabel}</small><strong>${escapeText(text.title)}</strong><em>${escapeText(text.meta)}</em></span>
+      </button>`;
+    }).join('');
+    summaryBox.querySelectorAll('[data-album-id]').forEach(button => button.addEventListener('click', () => {
+      selectAlbum(button.dataset.albumId);
+    }));
   }
-
-  function updateCaptions() {
-    records.forEach((record, index) => {
-      const text = caption(record);
-      const slide = slides[index];
-      if (!slide) return;
-      slide.querySelector('.activity-type').textContent = text.category;
-      slide.querySelector('h3').textContent = text.title;
-      slide.querySelector('p').textContent = text.meta;
-    });
-    renderSummaries();
-  }
-
-  function render(items) {
+  function buildSlides(items) {
     records = items;
     track.innerHTML = items.map((record, index) => {
       const text = caption(record);
@@ -67,11 +70,32 @@
     dots = [...carousel.querySelectorAll('[data-carousel-dot]')];
     dots.forEach((dot, index) => dot.addEventListener('click', () => { showSlide(index); start(); }));
     showSlide(0);
-    renderSummaries();
     start();
   }
-
+  function selectAlbum(id) {
+    const album = albums.find(item => item.id === id);
+    if (!album) return;
+    activeAlbumId = id;
+    buildSlides(album.photos);
+    renderSummaries();
+  }
+  function render(items) {
+    albums = groupAlbums(items);
+    if (albums.length) selectAlbum(albums[0].id);
+  }
+  function updateLanguage() {
+    records.forEach((record, index) => {
+      const slide = slides[index];
+      if (!slide) return;
+      const text = caption(record);
+      slide.querySelector('.activity-type').textContent = text.category;
+      slide.querySelector('h3').textContent = text.title;
+      slide.querySelector('p').textContent = text.meta;
+    });
+    renderSummaries();
+  }
   function showSlide(index) {
+    if (!slides.length) return;
     activeSlide = (index + slides.length) % slides.length;
     slides.forEach((slide, i) => {
       const active = i === activeSlide;
@@ -83,9 +107,7 @@
       dot.classList.toggle('is-active', active);
       dot.setAttribute('aria-selected', String(active));
     });
-    summaryBox?.querySelectorAll('[data-summary-index]').forEach((button, i) => button.classList.toggle('is-active', i === activeSlide));
   }
-
   function stop() { clearInterval(timer); }
   function start() {
     stop();
@@ -93,7 +115,6 @@
       timer = setInterval(() => showSlide(activeSlide + 1), 5500);
     }
   }
-
   carousel.querySelector('[data-carousel-prev]').addEventListener('click', () => { showSlide(activeSlide - 1); start(); });
   carousel.querySelector('[data-carousel-next]').addEventListener('click', () => { showSlide(activeSlide + 1); start(); });
   carousel.addEventListener('mouseenter', stop);
@@ -106,7 +127,7 @@
     if (Math.abs(distance) > 50) showSlide(activeSlide + (distance < 0 ? 1 : -1));
     start();
   });
-  new MutationObserver(updateCaptions).observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
+  new MutationObserver(updateLanguage).observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
 
   fetch('/api/activities')
     .then(response => response.ok ? response.json() : Promise.reject(new Error('activities unavailable')))
