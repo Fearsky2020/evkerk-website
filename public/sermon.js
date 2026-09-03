@@ -26,7 +26,7 @@
   function applyLanguage(lang, remember = true) {
     document.documentElement.lang = lang === 'nl' ? 'nl' : 'zh-CN';
     langToggle.textContent = lang === 'nl' ? '中文' : 'NL';
-    brandName.textContent = lang === 'nl' ? 'Evangeliekerk' : '福音教会';
+    brandName.textContent = lang === 'nl' ? 'Evangeliekerk' : '基督教福音教会';
     homeLink.textContent = lang === 'nl' ? 'Naar home' : '返回首页';
     themeToggle.setAttribute('aria-label', lang === 'nl' ? 'Wissel licht/donker' : '切换明暗模式');
     if (remember) localStorage.setItem(langKey, lang === 'nl' ? 'nl' : 'zh');
