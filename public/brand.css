@@ -2567,3 +2567,6 @@ html[data-theme="dark"] .sermon-summary-band strong{color:#72d4f5}
 html[data-theme="dark"] .sermon-summary-band p{color:#e5f4fa!important}
 html[data-theme="dark"] .sermon-heading-actions .text-link{color:#72d4f5}
 @media(max-width:760px){.sermon-placeholder{grid-template-columns:1fr}.sermon-summary-band{margin:0;padding:20px}.latest-sermon-main{align-items:flex-start}}
+
+
+.activity-heading-actions{max-width:520px}.activity-heading-actions p{margin:0 0 10px}.activity-heading-actions .text-link{color:var(--brand-blue-deep);font-weight:900}html[data-theme="dark"] .activity-heading-actions .text-link{color:#72d4f5}

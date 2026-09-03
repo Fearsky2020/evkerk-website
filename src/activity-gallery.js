@@ -41,7 +41,7 @@ async function listPublic(env) {
   const result = await env.DB.prepare(
     `SELECT id, album_id, category, title_zh, title_nl, event_date, location, updated_at
        FROM activity_gallery WHERE status='published'
-      ORDER BY sort_order DESC, event_date DESC, created_at DESC LIMIT 20`,
+      ORDER BY sort_order DESC, event_date DESC, created_at DESC LIMIT 200`,
   ).all();
   return json({ ok: true, activities: (result.results || []).map(publicItem) });
 }
