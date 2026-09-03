@@ -26,10 +26,10 @@
       .auto-announcement h3{margin:0 0 5px;font-size:17px}.auto-announcement p{margin:0;color:var(--muted);line-height:1.55}
       .auto-upcoming{margin-top:24px}.auto-upcoming-head{display:flex;justify-content:space-between;gap:16px;align-items:end;margin-bottom:12px}
       .auto-upcoming-head h3{margin:0;font-size:20px}.auto-upcoming-head span{font-size:12px;color:var(--muted)}
-      .auto-location-list{display:grid;gap:18px}.auto-location-group{padding:16px;border:1px solid var(--line);border-radius:18px;background:color-mix(in srgb,var(--paper) 88%,#eaf8fd)}.auto-location-title{margin:0 0 12px;font-size:15px;color:#087fae}.auto-event-list{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+      .auto-location-list{display:grid;gap:18px}.auto-location-group{padding:16px;border:1px solid var(--line);border-radius:18px;background:color-mix(in srgb,var(--paper) 88%,#eaf8fd)}.auto-location-title{margin:0 0 14px;padding-left:12px;border-left:5px solid #12afe6;font-size:24px;font-weight:950;line-height:1.15;color:#087fae}.auto-event-list{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
       .auto-event{padding:17px;border:1px solid var(--line);border-radius:16px;background:var(--paper)}
       .auto-event time{font-size:12px;font-weight:850;color:var(--accent)}.auto-event h4{font-size:17px;margin:9px 0 7px}
-      .auto-event p{margin:0;color:var(--muted);font-size:13px;line-height:1.55}.auto-event .auto-time{margin-top:10px;color:var(--ink);font-weight:750}.auto-event .auto-special-note{margin-top:8px;color:#9b5939;font-weight:800}
+      .auto-event p{margin:0;color:var(--muted);font-size:13px;line-height:1.55}.auto-event .auto-event-location{font-size:15px;font-weight:750;line-height:1.45;color:var(--ink)}.auto-event .auto-time{margin-top:10px;color:var(--ink);font-weight:750}.auto-event .auto-special-note{margin-top:8px;color:#9b5939;font-weight:800}
       .auto-sermon-meta{display:flex;gap:9px;flex-wrap:wrap;margin:8px 0 12px;color:var(--muted);font-size:13px}
       .auto-sermon-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:15px}.auto-sermon-actions a{padding:9px 12px;border-radius:9px;border:1px solid var(--line);text-decoration:none;font-weight:800;font-size:13px}
       @media(max-width:900px){.auto-event-list{grid-template-columns:1fr 1fr}}
@@ -92,7 +92,7 @@
             <article class="auto-event">
               <time>${esc(dateLabel(event.date || event.start_at?.slice(0,10)))}</time>
               <h4>${esc(t(event.title_zh, event.title_nl))}</h4>
-              <p>${esc(event.location || '')}</p>
+              <p class="auto-event-location">${esc(event.location || '')}</p>
               <p class="auto-time">${esc([event.start_time, event.end_time].filter(Boolean).join('–'))}</p>
               ${event.notice_zh ? `<p class="auto-special-note">${esc(t(event.notice_zh, event.notice_nl))}</p>` : ''}
             </article>`).join('')}</div>
