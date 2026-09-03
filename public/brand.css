@@ -2520,3 +2520,24 @@ html[data-theme="dark"] .group-map-label {
 .group-map-label[data-map-area="rijswijk"] { left: 50%; top: 78%; }
 .group-map-label[data-map-area="voorburg"] { left: 64%; top: 52%; }
 .group-map-label[data-map-area="ypenburg"] { left: 72%; top: 72%; }
+
+
+/* Dark-mode contrast for the special joint-service notice. */
+html[data-theme="dark"] .auto-joint-service {
+  border-color: #25b8e9;
+  background: linear-gradient(135deg, #0d3547, #102b39);
+  box-shadow: 0 14px 34px rgba(0,0,0,.28);
+}
+
+html[data-theme="dark"] .auto-joint-service time {
+  color: #72d8f7;
+}
+
+html[data-theme="dark"] .auto-joint-service h4,
+html[data-theme="dark"] .auto-joint-service p {
+  color: #f5fbfe;
+}
+
+html[data-theme="dark"] .auto-joint-service .auto-special-note {
+  color: #ffb384;
+}
