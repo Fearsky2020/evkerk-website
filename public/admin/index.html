@@ -13,18 +13,18 @@
   <main class="shell">
     <div class="top"><div class="admin-brand"><img src="/assets/evkerk-logo.webp" alt="福音教会 Logo"><div><h1>EVKERK 内容后台</h1><div class="hint">照片、公告与讲道管理</div></div></div><a href="/">返回官网</a></div>
     <div class="card">
-      <label>后台 Token</label>
-      <div class="token"><input id="token" type="password" autocomplete="current-password" placeholder="INGEST_TOKEN / SYNC_TOKEN"><button class="btn secondary" id="saveToken">记住</button></div>
-      <p class="hint">保存在本机浏览器，不上传到页面源码。正式上线后会再加 Cloudflare Access。</p>
+      <label>后台访问密钥</label>
+      <div class="token"><input id="token" type="password" autocomplete="current-password" placeholder="请输入你的个人访问密钥"><button class="btn secondary" id="saveToken">记住</button></div>
+      <p class="hint">保存在本机浏览器，不上传到页面源码。主管理员可在“管理员”页面为同工创建个人密钥，并随时停用。主 Token 仍可作为紧急入口。</p>
     </div>
-    <div class="status" id="health">正在检查后端状态…</div>
+    <div class="status" id="health">正在检查后端状态…</div><div class="status" id="adminIdentity" hidden></div>
 
     <div class="tabs">
       <button class="active" data-tab="activities">活动照片</button>
       <button data-tab="hero">首页大图</button>
-      <button data-tab="announcement">发布公告</button>
-      <button data-tab="sermon">补充讲道</button>
-      <button data-tab="sync">日历同步</button>
+      <button data-tab="announcement" data-editor-only>发布公告</button>
+      <button data-tab="sermon" data-editor-only>补充讲道</button>
+      <button data-tab="sync" data-owner-only>日历同步</button><button data-tab="users" data-owner-only>管理员</button>
     </div>
 
     <section class="panel active" id="activities">
@@ -41,7 +41,7 @@
         </div>
         <div class="actions"><button class="btn" type="submit">发布到官网</button><span class="msg" id="activityMsg"></span></div>
       </form>
-      <div class="card"><h2>管理已经发布的活动</h2><p class="hint">每个活动可以有多张照片。点“管理活动”可继续加照片，也能单独更换或删除某一张。</p><div class="photo-list" id="activityList"><p class="hint">保存后台密码后会显示。</p></div></div>
+      <div class="card" data-editor-only><h2>管理已经发布的活动</h2><p class="hint">每个活动可以有多张照片。点“管理活动”可继续加照片，也能单独更换或删除某一张。</p><div class="photo-list" id="activityList"><p class="hint">保存后台密码后会显示。</p></div></div>
     </section>
 
     <section class="panel" id="hero">
@@ -58,10 +58,10 @@
         </div>
         <div class="actions"><button class="btn" type="submit">添加到首页轮播</button><span class="msg" id="heroMsg"></span></div>
       </form>
-      <div class="card"><h2>管理首页轮播</h2><p class="hint">可修改标题和顺序、替换图片，或删除某一张。</p><div class="hero-admin-list" id="heroList"><p class="hint">保存后台密码后会显示。</p></div></div>
+      <div class="card" data-editor-only><h2>管理首页轮播</h2><p class="hint">可修改标题和顺序、替换图片，或删除某一张。</p><div class="hero-admin-list" id="heroList"><p class="hint">保存后台密码后会显示。</p></div></div>
     </section>
 
-    <section class="panel" id="announcement">
+    <section class="panel" id="announcement" data-editor-only>
       <form class="card" id="announcementForm">
         <input name="id" type="hidden">
         <h2 id="announcementFormTitle">发布公告</h2>
@@ -80,7 +80,7 @@
       <div class="card"><h2>管理公告</h2><p class="hint">可以编辑已有公告，或将公告从首页下架。</p><div class="announcement-list" id="announcementList"><p class="hint">保存后台密码后会显示。</p></div></div>
     </section>
 
-    <section class="panel" id="sermon">
+    <section class="panel" id="sermon" data-editor-only>
       <form class="card" id="sermonForm">
         <input name="id" type="hidden">
         <h2 id="sermonFormTitle">添加讲道</h2>
@@ -102,13 +102,28 @@
       <div class="card"><h2>管理讲道</h2><p class="hint">可以编辑已发布或草稿讲道，也可以将已发布讲道从官网下架。</p><div class="sermon-list" id="sermonList"><p class="hint">保存后台密码后会显示。</p></div></div>
     </section>
 
-    <section class="panel" id="sync">
+    <section class="panel" id="sync" data-owner-only>
       <div class="card">
         <h2>Google Calendar</h2>
         <p class="hint">配置日历地址后，Cloudflare 每 30 分钟自动同步一次。只有临时改时间、刚加活动又想马上看到时，才需要点这里。</p>
         <p class="upload-note" id="calendarNotice">正在检查日历配置…</p>
         <div class="actions"><button class="btn" id="syncNow" type="button">立即同步</button><span class="msg" id="syncMsg"></span></div>
       </div>
+    </section>
+
+    <section class="panel" id="users" data-owner-only>
+      <form class="card" id="adminUserForm">
+        <h2>新建管理员</h2>
+        <p class="upload-note">创建后只显示一次访问密钥，请立即复制给对应同工。不要在群聊中公开。</p>
+        <div class="grid">
+          <label>姓名<input name="name" required maxlength="120" placeholder="例如：张弟兄"></label>
+          <label>邮箱（选填）<input name="email" type="email" maxlength="200"></label>
+          <label>权限<select name="role"><option value="uploader">上传者：只能新增和上传</option><option value="editor">编辑：可新增、修改、发布和下架</option><option value="owner">管理员：可管理账号和全部内容</option></select></label>
+        </div>
+        <div class="actions"><button class="btn" type="submit">创建管理员</button><span class="msg" id="adminUserMsg"></span></div>
+        <div class="upload-note" id="newAccessKey" hidden></div>
+      </form>
+      <div class="card"><h2>管理员账号</h2><div class="announcement-list" id="adminUserList"><p class="hint">保存主管理员密钥后会显示。</p></div></div>
     </section>
   </main>
 
@@ -132,8 +147,11 @@
     (()=>{
       const token=document.getElementById('token');
       token.value=localStorage.getItem('evkerk-admin-token')||'';
-      document.getElementById('saveToken').onclick=()=>{localStorage.setItem('evkerk-admin-token',token.value.trim());document.getElementById('health').textContent='后台密码已保存在这台设备。';loadActivities();loadAnnouncements();loadSermons();loadHeroSlides()};
+      document.getElementById('saveToken').onclick=()=>{localStorage.setItem('evkerk-admin-token',token.value.trim());document.getElementById('health').textContent='访问密钥已保存在这台设备。';loadProfile();loadActivities();loadAnnouncements();loadSermons();loadHeroSlides()};
       document.querySelectorAll('[data-tab]').forEach(btn=>btn.onclick=()=>{document.querySelectorAll('[data-tab]').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');document.getElementById(btn.dataset.tab).classList.add('active')});
+      let currentUser=null;
+      const roleName={owner:'管理员',editor:'编辑',uploader:'上传者'};
+      async function loadProfile(){if(!token.value.trim())return;try{const r=await fetch('/api/admin/me',{headers:{Authorization:`Bearer ${token.value.trim()}`,Accept:'application/json'}});const body=await r.json();if(!r.ok)throw new Error(body.error||`HTTP ${r.status}`);currentUser=body.user;const identity=document.getElementById('adminIdentity');identity.hidden=false;identity.textContent=`当前账号：${currentUser.name} · ${roleName[currentUser.role]||currentUser.role}`;document.querySelectorAll('[data-editor-only]').forEach(el=>el.hidden=!['owner','editor'].includes(currentUser.role));document.querySelectorAll('[data-owner-only]').forEach(el=>el.hidden=currentUser.role!=='owner');if(currentUser.role==='owner')loadAdminUsers()}catch(err){currentUser=null;const identity=document.getElementById('adminIdentity');identity.hidden=false;identity.textContent=err.message}}
       const auth=()=>({'Authorization':`Bearer ${token.value.trim()}`,'Content-Type':'application/json','Accept':'application/json'});
       async function post(url,data){const r=await fetch(url,{method:'POST',headers:auth(),body:JSON.stringify(data||{})});const body=await r.json().catch(()=>({}));if(!r.ok||body.ok===false)throw new Error(body.error||`HTTP ${r.status}`);return body}
       function data(form){const out=Object.fromEntries(new FormData(form));for(const k of Object.keys(out))if(out[k]==='')delete out[k];return out}
@@ -168,8 +186,12 @@
       sermonCancel.onclick=resetSermonForm;
       async function loadSermons(){const list=document.getElementById('sermonList');if(!token.value.trim()){list.innerHTML='<p class="hint">请先填写并保存后台密码。</p>';return}try{const r=await fetch('/api/admin/sermons',{headers:{Authorization:`Bearer ${token.value.trim()}`,Accept:'application/json'}});const body=await r.json();if(!r.ok)throw new Error(body.error||`HTTP ${r.status}`);const items=body.sermons||[];list.innerHTML=items.length?items.map(item=>`<article class="sermon-item"><header><div><h3>${esc(item.title_zh||item.title_nl||'未命名讲道')}</h3><span class="status-pill ${item.status==='draft'?'draft':''}">${item.status==='draft'?'草稿/已下架':'官网显示中'}</span></div><div class="photo-actions"><button class="btn secondary" type="button" data-sermon-edit="${esc(item.id)}">编辑</button>${item.status==='published'?`<button class="btn danger" type="button" data-sermon-hide="${esc(item.id)}">下架</button>`:''}</div></header><p>${esc(item.summary_zh||item.scripture||'暂无摘要')}</p><p class="sermon-meta">${esc(item.sermon_date||'')}${item.speaker?' · 讲员：'+esc(item.speaker):''}</p></article>`).join(''):'<p class="hint">还没有讲道。</p>';const byId=new Map(items.map(item=>[item.id,item]));list.querySelectorAll('[data-sermon-edit]').forEach(btn=>btn.onclick=()=>{const item=byId.get(btn.dataset.sermonEdit);resetSermonForm();['id','sermon_date','speaker','title_zh','title_nl','scripture','summary_zh','summary_nl','youtube_url','audio_url','transcript_url','status'].forEach(name=>sermonForm.elements[name].value=item[name]??'');document.getElementById('sermonFormTitle').textContent='编辑讲道';document.getElementById('sermonSubmit').textContent='保存修改';sermonCancel.hidden=false;sermonForm.scrollIntoView({behavior:'smooth',block:'start'})});list.querySelectorAll('[data-sermon-hide]').forEach(btn=>btn.onclick=async()=>{if(!confirm('确定把这篇讲道从官网下架吗？'))return;btn.disabled=true;try{await post(`/api/admin/sermons/${encodeURIComponent(btn.dataset.sermonHide)}/hide`,{});await loadSermons()}catch(err){alert(err.message);btn.disabled=false}})}catch(err){list.innerHTML=`<p class="hint">${esc(err.message)}</p>`}}
       sermonForm.onsubmit=async e=>{e.preventDefault();const msg=document.getElementById('sermonMsg');msg.textContent='保存中…';try{await post('/api/ingest/sermon',data(sermonForm));msg.textContent='已保存';msg.className='msg ok';resetSermonForm();await loadSermons()}catch(err){msg.textContent=err.message;msg.className='msg'}};
+      async function loadAdminUsers(){const list=document.getElementById('adminUserList');try{const r=await fetch('/api/admin/users',{headers:{Authorization:`Bearer ${token.value.trim()}`,Accept:'application/json'}});const body=await r.json();if(!r.ok)throw new Error(body.error||`HTTP ${r.status}`);const users=body.users||[];list.innerHTML=users.length?users.map(user=>`<article class="announcement-item"><header><div><h3>${esc(user.name)}</h3><span class="status-pill ${user.status==='disabled'?'draft':''}">${roleName[user.role]||user.role} · ${user.status==='disabled'?'已停用':'正常'}</span></div><div class="photo-actions"><button class="btn secondary" type="button" data-user-rotate="${esc(user.id)}">更换密钥</button><button class="btn ${user.status==='active'?'danger':'secondary'}" type="button" data-user-toggle="${esc(user.id)}">${user.status==='active'?'停用':'启用'}</button></div></header><p>${esc(user.email||'未填写邮箱')}</p><p class="announcement-meta">创建：${esc(user.created_at||'')}${user.last_used_at?' · 最近使用：'+esc(user.last_used_at):''}</p></article>`).join(''):'<p class="hint">还没有创建其他管理员。</p>';const byId=new Map(users.map(user=>[user.id,user]));list.querySelectorAll('[data-user-toggle]').forEach(btn=>btn.onclick=async()=>{const user=byId.get(btn.dataset.userToggle);if(!confirm(`确定${user.status==='active'?'停用':'启用'} ${user.name} 吗？`))return;await post(`/api/admin/users/${encodeURIComponent(user.id)}/update`,{name:user.name,email:user.email,role:user.role,status:user.status==='active'?'disabled':'active'});loadAdminUsers()});list.querySelectorAll('[data-user-rotate]').forEach(btn=>btn.onclick=async()=>{if(!confirm('更换后，旧密钥会立即失效。继续吗？'))return;const body=await post(`/api/admin/users/${encodeURIComponent(btn.dataset.userRotate)}/rotate-key`,{});showAccessKey(body.access_key);loadAdminUsers()})}catch(err){list.innerHTML=`<p class="hint">${esc(err.message)}</p>`}}
+      function showAccessKey(key){const box=document.getElementById('newAccessKey');box.hidden=false;box.innerHTML=`<strong>请立即复制（只显示这一次）：</strong><br><code style="word-break:break-all;user-select:all">${esc(key)}</code><div class="actions"><button class="btn secondary" id="copyAccessKey" type="button">复制密钥</button></div>`;document.getElementById('copyAccessKey').onclick=async()=>{await navigator.clipboard.writeText(key);document.getElementById('copyAccessKey').textContent='已复制'}}
+      document.getElementById('adminUserForm').onsubmit=async e=>{e.preventDefault();const msg=document.getElementById('adminUserMsg');msg.textContent='创建中…';try{const body=await post('/api/admin/users',data(e.currentTarget));showAccessKey(body.access_key);msg.textContent='管理员已创建';msg.className='msg ok';e.currentTarget.reset();loadAdminUsers()}catch(err){msg.textContent=err.message;msg.className='msg'}};
       document.getElementById('syncNow').onclick=async()=>{const msg=document.getElementById('syncMsg');msg.textContent='同步中…';try{const body=await post('/api/sync/calendar',{});msg.textContent=body.skipped?`未执行：${body.reason}`:`完成：${body.synced||0} 个事件`;msg.className='msg ok'}catch(err){msg.textContent=err.message;msg.className='msg'}};
       fetch('/api/health').then(r=>r.json()).then(b=>{document.getElementById('health').textContent=`后端：${b.ok?'正常':'异常'} · 数据库：${b.db?'已连接':'待连接'} · 图片存储：${b.media?'已连接':'待连接'} · 日历：${b.calendar?'已连接':'待配置'}`;const notice=document.getElementById('calendarNotice');notice.textContent=b.calendar?'日历地址已配置，系统会自动同步。':'尚未配置 CHURCH_CALENDAR_ICS_URL；在 Cloudflare Worker 环境变量中添加日历 ICS 地址后，自动同步才会启用。'}).catch(()=>{document.getElementById('health').textContent='后端尚未部署。'});
+      loadProfile();
       loadActivities();
       loadAnnouncements();
       loadSermons();
