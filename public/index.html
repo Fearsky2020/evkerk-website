@@ -18,6 +18,7 @@
     </a>
     <nav class="desktop-nav" aria-label="Main navigation">
       <a href="#gatherings" data-i18n="nav.gatherings">聚会</a>
+      <a href="#activities" data-i18n="nav.activities">近期活动</a>
       <a href="#welcome" data-i18n="nav.welcome">第一次来</a>
       <a href="#sermons" data-i18n="nav.sermons">讲道</a>
       <a href="#ministries" data-i18n="nav.ministries">小组与事工</a>
@@ -45,6 +46,42 @@
         <img src="/assets/zoetermeer-exterior.webp" alt="Zoetermeer 福音教会外观" width="1800" height="1350" fetchpriority="high">
         <figcaption class="hero-photo-note"><strong data-i18n="hero.photo.title">Zoetermeer 福音教会</strong><span data-i18n="hero.photo">每周日 10:00–12:00</span></figcaption>
       </figure>
+    </section>
+
+    <section class="activity-gallery section shell" id="activities" aria-labelledby="activities-title">
+      <div class="section-heading row-heading">
+        <div>
+          <p class="eyebrow" data-i18n="activities.eyebrow">RECENT LIFE</p>
+          <h2 id="activities-title" data-i18n="activities.title">教会最近在发生什么？</h2>
+        </div>
+        <p data-i18n="activities.text">教会活动、团契活动和小组生活都会在这里更新。照片会自动轮播，点击左右箭头也能查看。</p>
+      </div>
+      <div class="activity-carousel" data-carousel aria-roledescription="carousel">
+        <div class="activity-track">
+          <article class="activity-slide is-active" data-slide>
+            <img src="/assets/zoetermeer-exterior.webp" alt="Zoetermeer 福音教会外观" width="1800" height="1350" loading="lazy">
+            <div class="activity-caption">
+              <span class="activity-type" data-i18n="activities.churchlife">教会生活</span>
+              <h3 data-i18n="activities.zoetermeer.title">Zoetermeer 福音教会</h3>
+              <p data-i18n="activities.zoetermeer.meta">Piet Heinplein 13 · Zoetermeer</p>
+            </div>
+          </article>
+          <article class="activity-slide" data-slide aria-hidden="true">
+            <img src="/assets/zoetermeer-sanctuary.webp" alt="Zoetermeer 福音教会礼堂" width="1800" height="1350" loading="lazy">
+            <div class="activity-caption">
+              <span class="activity-type" data-i18n="activities.gathering">主日聚会</span>
+              <h3 data-i18n="activities.sanctuary.title">一起敬拜、聆听与相遇</h3>
+              <p data-i18n="activities.sanctuary.meta">每周日 10:00–12:00 · Zoetermeer</p>
+            </div>
+          </article>
+        </div>
+        <button class="carousel-arrow previous" type="button" data-carousel-prev aria-label="上一张">←</button>
+        <button class="carousel-arrow next" type="button" data-carousel-next aria-label="下一张">→</button>
+        <div class="carousel-dots" role="tablist" aria-label="活动照片">
+          <button class="is-active" type="button" data-carousel-dot="0" aria-label="第 1 张" aria-selected="true"></button>
+          <button type="button" data-carousel-dot="1" aria-label="第 2 张" aria-selected="false"></button>
+        </div>
+      </div>
     </section>
 
     <section class="gatherings section shell" id="gatherings">
@@ -83,42 +120,6 @@
           <article><strong>01</strong><div><h3 data-i18n="welcome.1.title">有人欢迎你</h3><p data-i18n="welcome.1.text">接待同工会帮助你找到座位、儿童主日学或合适的语言聚会。</p></div></article>
           <article><strong>02</strong><div><h3 data-i18n="welcome.2.title">敬拜与信息</h3><p data-i18n="welcome.2.text">用诗歌、祷告和圣经信息，一起认识神的恩典。</p></div></article>
           <article><strong>03</strong><div><h3 data-i18n="welcome.3.title">留下来聊一会儿</h3><p data-i18n="welcome.3.text">聚会后通常有交通时间，可以认识弟兄姊妹，也可以请同工为你祷告。</p></div></article>
-        </div>
-      </div>
-    </section>
-
-    <section class="activity-gallery section shell" id="activities" aria-labelledby="activities-title">
-      <div class="section-heading row-heading">
-        <div>
-          <p class="eyebrow" data-i18n="activities.eyebrow">RECENT LIFE</p>
-          <h2 id="activities-title" data-i18n="activities.title">最近，我们一起经历的时光。</h2>
-        </div>
-        <p data-i18n="activities.text">这里记录教会、团契和小组的近期活动，也让第一次来的朋友先认识真实的我们。</p>
-      </div>
-      <div class="activity-carousel" data-carousel aria-roledescription="carousel">
-        <div class="activity-track">
-          <article class="activity-slide is-active" data-slide>
-            <img src="/assets/zoetermeer-exterior.webp" alt="Zoetermeer 福音教会外观" width="1800" height="1350" loading="lazy">
-            <div class="activity-caption">
-              <span class="activity-type" data-i18n="activities.churchlife">教会生活</span>
-              <h3 data-i18n="activities.zoetermeer.title">Zoetermeer 福音教会</h3>
-              <p data-i18n="activities.zoetermeer.meta">Piet Heinplein 13 · Zoetermeer</p>
-            </div>
-          </article>
-          <article class="activity-slide" data-slide aria-hidden="true">
-            <img src="/assets/zoetermeer-sanctuary.webp" alt="Zoetermeer 福音教会礼堂" width="1800" height="1350" loading="lazy">
-            <div class="activity-caption">
-              <span class="activity-type" data-i18n="activities.gathering">主日聚会</span>
-              <h3 data-i18n="activities.sanctuary.title">一起敬拜、聆听与相遇</h3>
-              <p data-i18n="activities.sanctuary.meta">每周日 10:00–12:00 · Zoetermeer</p>
-            </div>
-          </article>
-        </div>
-        <button class="carousel-arrow previous" type="button" data-carousel-prev aria-label="上一张">←</button>
-        <button class="carousel-arrow next" type="button" data-carousel-next aria-label="下一张">→</button>
-        <div class="carousel-dots" role="tablist" aria-label="活动照片">
-          <button class="is-active" type="button" data-carousel-dot="0" aria-label="第 1 张" aria-selected="true"></button>
-          <button type="button" data-carousel-dot="1" aria-label="第 2 张" aria-selected="false"></button>
         </div>
       </div>
     </section>
@@ -167,7 +168,7 @@
     <small>© 2026 Evangeliekerk</small>
   </footer>
 
-  <script src="/app.js?v=4"></script>
+  <script src="/app.js?v=5"></script>
   <script src="/activity-gallery.js?v=1"></script>
   <script src="/auto-content.js?v=1"></script>
 </body>
