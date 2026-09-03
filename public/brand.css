@@ -1825,3 +1825,14 @@ html[data-theme="dark"] .hero-location-strip a {
     padding: 13px 14px;
   }
 }
+
+
+/* Map pin correction for the actual embedded Greater The Hague viewport. */
+.pin-centre{left:57%;top:67%}
+.pin-laakkwartier{left:58%;top:72%}
+.pin-voorburg{left:61%;top:67%}
+.pin-ypenburg{left:65%;top:73%}
+.pin-wateringen{left:54%;top:78%}
+.pin-loosduinen{left:50%;top:72%}
+.pin-rijswijk{left:60%;top:77%}
+.pin-sassenheim{left:59%;top:43%}
