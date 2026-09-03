@@ -61,7 +61,6 @@
 
   const carousel = document.querySelector('[data-carousel]');
   if (carousel) {
-    const track = carousel.querySelector('.activity-track');
     const slides = [...carousel.querySelectorAll('[data-slide]')];
     const dots = [...carousel.querySelectorAll('[data-carousel-dot]')];
     const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -71,7 +70,6 @@
 
     function showSlide(index) {
       activeSlide = (index + slides.length) % slides.length;
-      track.style.transform = `translateX(-${activeSlide * 100}%)`;
       slides.forEach((slide, slideIndex) => {
         const active = slideIndex === activeSlide;
         slide.classList.toggle('is-active', active);
