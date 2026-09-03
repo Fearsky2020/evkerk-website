@@ -146,6 +146,33 @@
   }
 }
 
+/* Location-card readability: body copy should never look washed out. */
+.gathering-card .card-top span,
+.gathering-card > p:not(.address) {
+  color: #57493e;
+  font-weight: 620;
+}
+
+.gathering-card .weekly-program em {
+  color: #514940;
+  font-weight: 650;
+}
+
+.gathering-card .text-link {
+  color: #066f99;
+  font-weight: 900;
+}
+
+html[data-theme="dark"] .gathering-card .card-top span,
+html[data-theme="dark"] .gathering-card > p:not(.address),
+html[data-theme="dark"] .gathering-card .weekly-program em {
+  color: #c4d8e2;
+}
+
+html[data-theme="dark"] .gathering-card .text-link {
+  color: #72d4f5;
+}
+
 /* Ministry cards: gentle colour, depth and line-art instead of empty white boxes. */
 .ministry-grid article {
   position: relative;
