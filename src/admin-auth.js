@@ -48,6 +48,15 @@ async function updateUser(request,env,id){
   if(!Number(result.meta?.changes||0))return json({ok:false,error:'管理员不存在'},404);
   return json({ok:true,id});
 }
+async function deleteUser(request,env,id){
+  const auth=await authorize(request,env,'owner');if(auth.response)return auth.response;
+  const user=await env.DB.prepare("SELECT id,name,status FROM admin_users WHERE id=?").bind(id).first();
+  if(!user)return json({ok:false,error:'管理员不存在'},404);
+  if(user.status!=='disabled')return json({ok:false,error:'请先停用该管理员，再永久删除'},409);
+  await env.DB.prepare("DELETE FROM admin_users WHERE id=? AND status='disabled'").bind(id).run();
+  return json({ok:true,id});
+}
+
 async function rotateKey(request,env,id){
   const auth=await authorize(request,env,'owner');if(auth.response)return auth.response;
   const token=accessKey(),hash=await tokenHash(token);
@@ -62,5 +71,6 @@ export async function handleAdminAuthApi(request,env,url){
   if(request.method==='POST'&&url.pathname==='/api/admin/users')return createUser(request,env);
   let match=url.pathname.match(/^\/api\/admin\/users\/([^/]+)\/update$/);if(match&&request.method==='POST')return updateUser(request,env,decodeURIComponent(match[1]));
   match=url.pathname.match(/^\/api\/admin\/users\/([^/]+)\/rotate-key$/);if(match&&request.method==='POST')return rotateKey(request,env,decodeURIComponent(match[1]));
+  match=url.pathname.match(/^\/api\/admin\/users\/([^/]+)\/delete$/);if(match&&request.method==='POST')return deleteUser(request,env,decodeURIComponent(match[1]));
   return null;
 }
