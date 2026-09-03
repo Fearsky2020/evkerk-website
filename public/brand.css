@@ -2191,3 +2191,149 @@ html[data-theme="dark"] .group-map-legend span {
     width: calc(100% - 20px);
   }
 }
+
+
+/* Dark gathering cards: preserve readable contrast. */
+html[data-theme="dark"] .gathering-card .address {
+  border-color: #2a6b86;
+  background: #12384a;
+  color: #e9f9ff;
+}
+
+html[data-theme="dark"] .gathering-card .weekly-program > div {
+  border-color: #2a6077;
+  background: #123548;
+}
+
+html[data-theme="dark"] .gathering-card .weekly-program span,
+html[data-theme="dark"] .gathering-card .weekly-program strong {
+  color: #f4fbfe;
+}
+
+html[data-theme="dark"] .gathering-card .weekly-program em {
+  color: #bfe4f2;
+}
+
+html[data-theme="dark"] .gathering-card .text-link {
+  color: #58cdf2;
+}
+
+/* One simple contact form that sends inquiries by email. */
+.contact-card {
+  display: grid;
+  grid-template-columns: minmax(0, .9fr) minmax(380px, 1.1fr);
+  gap: clamp(34px, 5vw, 72px);
+  align-items: center;
+  padding: clamp(32px, 4vw, 54px);
+}
+
+.contact-copy {
+  align-self: center;
+}
+
+.contact-location-link {
+  color: #fff;
+}
+
+.contact-form {
+  display: grid;
+  gap: 14px;
+  padding: 24px;
+  border: 1px solid rgba(255,255,255,.42);
+  border-radius: 20px;
+  background: rgba(255,255,255,.94);
+  box-shadow: 0 18px 42px rgba(0,56,78,.18);
+  color: #33291f;
+}
+
+.contact-form label {
+  display: grid;
+  gap: 7px;
+}
+
+.contact-form label > span {
+  color: #075f82;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.contact-form input,
+.contact-form textarea {
+  width: 100%;
+  border: 1px solid #c7e8f4;
+  border-radius: 11px;
+  outline: none;
+  background: #fff;
+  color: #2e2924;
+  padding: 12px 13px;
+  font: inherit;
+}
+
+.contact-form textarea {
+  min-height: 118px;
+  resize: vertical;
+}
+
+.contact-form input:focus,
+.contact-form textarea:focus {
+  border-color: var(--brand-blue);
+  box-shadow: 0 0 0 3px rgba(18,175,230,.14);
+}
+
+.contact-form .btn {
+  width: fit-content;
+  min-width: 132px;
+  border: 0;
+  cursor: pointer;
+}
+
+.contact-form small {
+  color: #6a625b;
+  line-height: 1.5;
+}
+
+.contact-honey {
+  position: absolute !important;
+  left: -9999px !important;
+}
+
+html[data-theme="dark"] .contact-form {
+  border-color: #31596b;
+  background: #0d2230;
+  color: #f5fbfe;
+}
+
+html[data-theme="dark"] .contact-form label > span {
+  color: #75d5f4;
+}
+
+html[data-theme="dark"] .contact-form input,
+html[data-theme="dark"] .contact-form textarea {
+  border-color: #31596b;
+  background: #071924;
+  color: #f5fbfe;
+}
+
+html[data-theme="dark"] .contact-form small {
+  color: #b5cfda;
+}
+
+@media (max-width: 820px) {
+  .contact-card {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 540px) {
+  .contact-card {
+    padding: 26px 18px;
+  }
+
+  .contact-form {
+    padding: 18px;
+  }
+
+  .contact-form .btn {
+    width: 100%;
+  }
+}
