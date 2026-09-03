@@ -255,3 +255,22 @@ BLOCKER / WAIT CONDITION: Waiting for the user to deploy the merged main branch 
 REQUIRES USER APPROVAL: Yes — visual acceptance after preview deployment; evkerk.nl production remains untouched.
 ISSUE / PR / COMMIT / CI: Fearsky2020/evkerk-website PR #6; head 31e077615fe628365b82612420d8fba859c3051f; merge 0bfdeb43486c4b6171d70571a0bca31db4dfde48; CI run #205 success.
 ```
+
+
+## Session closeout — recent activity carousel
+
+```text
+PROJECT / TRACK: EVKERK Website / Recent activity presentation
+SESSION ROLE: Executor
+STATUS: PREVIEW VERIFIED
+USER DECISION: Present recent church, fellowship and small-group activities in one automatically rotating photo area; keep locations and categories accurate.
+WORK COMPLETED: Added a bilingual responsive photo carousel with automatic rotation, arrows, dots, touch gestures, interaction pause and reduced-motion support; seeded it only with verified Zoetermeer imagery; corrected transition rendering and cache versioning.
+EVIDENCE: PR #7, #8 and #9 merged; CI runs #208, #210 and #212 succeeded; Cloudflare preview version 5ccda53e-03a9-483e-b7e9-0abaab82ef65 loaded brand.css?v=3 and app.js?v=3; live browser verification confirmed active/inactive slide visibility and rendered controls.
+OPEN RISKS: Real event photos and metadata for church, fellowship and small-group activities have not yet been supplied; Rijswijk imagery remains intentionally absent.
+LAST VERIFIED: 2026-09-03T14:04:00Z
+EXACT NEXT ACTION: User supplies labelled activity photos; optimize and add them without changing carousel behavior.
+MACHINE / LOCATION REQUIREMENT: Photo upload can be done in chat; church computer is only required for the next preview deployment.
+BLOCKER / WAIT CONDITION: Waiting for labelled real activity photos.
+REQUIRES USER APPROVAL: Yes — approve the selected/cropped real activity photos before production attachment to evkerk.nl.
+ISSUE / PR / COMMIT / CI: PR #7 merge b0d9f25; PR #8 merge 49a8a11; PR #9 merge 0c4585e; CI #208/#210/#212 success.
+```
