@@ -630,3 +630,37 @@
     border-radius: 15px;
   }
 }
+
+
+/* Wide-screen composition: use the available canvas instead of a narrow centered strip. */
+@media (min-width: 1280px) {
+  .shell {
+    width: min(1500px, calc(100% - 72px));
+  }
+
+  .site-header {
+    padding-left: max(36px, calc((100vw - 1500px) / 2));
+    padding-right: max(36px, calc((100vw - 1500px) / 2));
+  }
+
+  .hero {
+    grid-template-columns: minmax(600px, .92fr) minmax(680px, 1.08fr);
+    gap: clamp(56px, 5vw, 96px);
+    min-height: 0;
+    padding-top: 38px;
+    padding-bottom: 36px;
+  }
+
+  .hero h1 {
+    max-width: 720px;
+    font-size: clamp(52px, 3.25vw, 64px);
+  }
+
+  .hero-visual {
+    height: clamp(500px, 34vw, 570px);
+  }
+
+  .activity-gallery {
+    padding-top: 50px;
+  }
+}
