@@ -304,6 +304,106 @@ html[data-theme="dark"] .service-alert {
   color: #d9f5ff;
 }
 
+/* About panel: use the empty half for a restrained brand emblem. */
+.about-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(260px, .55fr);
+  gap: clamp(36px, 6vw, 90px);
+  align-items: center;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 86% 50%, rgba(18, 175, 230, .12), transparent 260px),
+    var(--paper);
+}
+
+.about-copy {
+  position: relative;
+  z-index: 2;
+}
+
+.about-copy > p:last-child {
+  max-width: 760px;
+  color: var(--muted);
+  font-size: 17px;
+  line-height: 1.7;
+}
+
+.about-emblem {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  gap: 18px;
+}
+
+.about-emblem-ring {
+  display: grid;
+  place-items: center;
+  width: 210px;
+  height: 210px;
+  border: 1px solid rgba(18, 175, 230, .24);
+  border-radius: 50%;
+  background: rgba(234, 248, 253, .58);
+  box-shadow:
+    0 0 0 22px rgba(18, 175, 230, .05),
+    0 0 0 44px rgba(18, 175, 230, .025);
+}
+
+.about-emblem img {
+  width: 150px;
+  height: 150px;
+  filter: drop-shadow(0 14px 22px rgba(8, 127, 174, .18));
+}
+
+.about-emblem strong {
+  color: var(--brand-blue-deep);
+  font-size: 12px;
+  font-weight: 950;
+  letter-spacing: .16em;
+}
+
+html[data-theme="dark"] .about-card {
+  background:
+    radial-gradient(circle at 86% 50%, rgba(18, 175, 230, .2), transparent 270px),
+    #0d2230;
+}
+
+html[data-theme="dark"] .about-emblem-ring {
+  border-color: rgba(82, 193, 230, .35);
+  background: rgba(14, 56, 75, .76);
+}
+
+html[data-theme="dark"] .about-emblem strong {
+  color: #75d5f4;
+}
+
+@media (max-width: 760px) {
+  .about-card {
+    grid-template-columns: 1fr;
+  }
+
+  .about-emblem {
+    grid-template-columns: auto 1fr;
+    justify-items: start;
+  }
+
+  .about-emblem-ring {
+    width: 94px;
+    height: 94px;
+    box-shadow: 0 0 0 14px rgba(18, 175, 230, .04);
+  }
+
+  .about-emblem img {
+    width: 68px;
+    height: 68px;
+  }
+
+  .about-emblem strong {
+    align-self: center;
+  }
+}
+
 .hero-visual {
   margin: 0;
   background: #26333b;
