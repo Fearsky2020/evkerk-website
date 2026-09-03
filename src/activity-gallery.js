@@ -89,6 +89,26 @@ async function upload(request, env) {
   return json({ ok: true, activity: { id, image_url: `/api/activities/${encodeURIComponent(id)}/image` } }, 201);
 }
 
+async function update(request, env, id) {
+  const denied = requireAdmin(request, env);
+  if (denied) return denied;
+  const body = await request.json().catch(() => ({}));
+  const category = clean(body.category, 30);
+  const titleZh = clean(body.title_zh, 180);
+  if (!CATEGORIES.has(category)) return json({ ok: false, error: '请选择活动类别' }, 400);
+  if (!titleZh) return json({ ok: false, error: '请填写活动名称' }, 400);
+  const result = await env.DB.prepare(
+    `UPDATE activity_gallery
+        SET category=?, title_zh=?, title_nl=?, event_date=?, location=?, updated_at=datetime('now')
+      WHERE id=? AND status='published'`,
+  ).bind(
+    category, titleZh, clean(body.title_nl, 180), clean(body.event_date, 20) || null,
+    clean(body.location, 240), id,
+  ).run();
+  if (!Number(result.meta?.changes || 0)) return json({ ok: false, error: '照片不存在或已下架' }, 404);
+  return json({ ok: true, id });
+}
+
 async function unpublish(request, env, id) {
   const denied = requireAdmin(request, env);
   if (denied) return denied;
@@ -118,6 +138,8 @@ export async function handleActivityApi(request, env, url) {
   if (request.method === 'POST' && url.pathname === '/api/admin/activities') return upload(request, env);
   let match = url.pathname.match(/^\/api\/admin\/activities\/([^/]+)\/hide$/);
   if (match && request.method === 'POST') return unpublish(request, env, decodeURIComponent(match[1]));
+  match = url.pathname.match(/^\/api\/admin\/activities\/([^/]+)\/update$/);
+  if (match && request.method === 'POST') return update(request, env, decodeURIComponent(match[1]));
   match = url.pathname.match(/^\/api\/activities\/([^/]+)\/image$/);
   if (match && request.method === 'GET') return image(env, decodeURIComponent(match[1]));
   return null;
