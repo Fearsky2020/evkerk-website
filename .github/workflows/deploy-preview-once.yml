@@ -1,0 +1,28 @@
+name: deploy-preview-once
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/deploy-preview-once.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: evkerk-preview-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: [self-hosted, Windows, X64]
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - run: npm run check
+      - name: Deploy existing preview Worker
+        run: npx wrangler deploy
