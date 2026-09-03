@@ -196,3 +196,24 @@ Do not mark a feature complete merely because a README/roadmap says it exists. P
 4. roadmap/planned work.
 
 If only documentation or a plan exists, label it as such.
+
+
+---
+
+## Session closeout — homepage SVG identity and photo handoff
+
+```text
+PROJECT / TRACK: EVKERK Website / Homepage visual cleanup
+SESSION ROLE: Executor
+STATUS: WAITING
+USER DECISION: Continue the existing approved church homepage work; use the user's newer real church photos for the homepage and do not expand scope.
+WORK COMPLETED: Added an Evangeliekerk SVG mark (open doorway + cross) for header, footer and favicon; removed public construction/placeholder wording from the Chinese and Dutch homepage copy; opened a bounded preview PR without merging or deploying.
+EVIDENCE: PR #3 contains exactly four changed files; church-site-check run #196 completed successfully; PR #3 was verified mergeable; no production deployment was performed.
+OPEN RISKS: The hero still has an abstract background until the user supplies the newer real photos; visual/browser and real-device acceptance have not been completed; PR is not merged and evkerk.nl production state is unchanged.
+LAST VERIFIED: 2026-09-03T08:54:12Z
+EXACT NEXT ACTION: Receive the user's new original church photos, select and optimize the strongest horizontal image, add it to PR #3, then run visual/mobile acceptance before requesting merge or deployment approval.
+MACHINE / LOCATION REQUIREMENT: Current GitHub-connected environment is sufficient for source work; user must upload the original photo files into this conversation.
+BLOCKER / WAIT CONDITION: Waiting for the user's new church photos.
+REQUIRES USER APPROVAL: Yes — final visual acceptance, merge and production deployment.
+ISSUE / PR / COMMIT / CI: Fearsky2020/evkerk-website PR #3; head 3607bbf51ac1a34e230c894209a1e768415736e2; church-site-check run #196 success.
+```
