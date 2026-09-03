@@ -217,3 +217,22 @@ BLOCKER / WAIT CONDITION: Waiting for the user's new church photos.
 REQUIRES USER APPROVAL: Yes — final visual acceptance, merge and production deployment.
 ISSUE / PR / COMMIT / CI: Fearsky2020/evkerk-website PR #3; head 3607bbf51ac1a34e230c894209a1e768415736e2; church-site-check run #196 success.
 ```
+
+
+## Session closeout — official logo and Zoetermeer photography
+
+```text
+PROJECT / TRACK: EVKERK Website / Homepage visual cleanup
+SESSION ROLE: Executor
+STATUS: READY NEXT
+USER DECISION: Finish the homepage quickly using the official EVKERK logo and the supplied Zoetermeer photos; Rijswijk photos will be supplied and explicitly labelled later.
+WORK COMPLETED: Replaced the temporary SVG identity with the official EVKERK logo; optimized and added the supplied Zoetermeer exterior and sanctuary photographs; used the exterior as the homepage hero and the sanctuary image on the Zoetermeer gathering card; added a repeatable Vite preview entry without changing production Worker deployment.
+EVIDENCE: PR #3 head 6a2d1f1824c73106e24c2bdaf0ef9ec4325ddf02; church-site-check run #198 completed successfully; local source checks passed; supervised site preview started successfully.
+OPEN RISKS: Cloud browser access to the local preview was blocked by the current environment, so no browser screenshot or real-device acceptance is claimed; Rijswijk imagery is still absent and must not be confused with Zoetermeer.
+LAST VERIFIED: 2026-09-03
+EXACT NEXT ACTION: User reviews the preview/source result; after explicit approval, merge PR #3 and deploy. Add Rijswijk photography only after the user supplies and labels it.
+MACHINE / LOCATION REQUIREMENT: GitHub-connected environment for merge; Cloudflare credentials or configured deployment runner for deployment.
+BLOCKER / WAIT CONDITION: Awaiting user visual approval and, separately, labelled Rijswijk photos.
+REQUIRES USER APPROVAL: Yes — merge and production deployment.
+ISSUE / PR / COMMIT / CI: Fearsky2020/evkerk-website PR #3; commit 6a2d1f1824c73106e24c2bdaf0ef9ec4325ddf02; CI run #198 success.
+```
