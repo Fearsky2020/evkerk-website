@@ -26,6 +26,7 @@ function requireAdmin(request, env) {
 function publicItem(row) {
   return {
     id: row.id,
+    album_id: row.album_id || row.id,
     category: row.category,
     title_zh: row.title_zh,
     title_nl: row.title_nl || '',
@@ -38,7 +39,7 @@ function publicItem(row) {
 async function listPublic(env) {
   if (!env.DB) return json({ ok: true, activities: [] });
   const result = await env.DB.prepare(
-    `SELECT id, category, title_zh, title_nl, event_date, location, updated_at
+    `SELECT id, album_id, category, title_zh, title_nl, event_date, location, updated_at
        FROM activity_gallery WHERE status='published'
       ORDER BY sort_order DESC, event_date DESC, created_at DESC LIMIT 20`,
   ).all();
@@ -49,7 +50,7 @@ async function listAdmin(request, env) {
   const denied = requireAdmin(request, env);
   if (denied) return denied;
   const result = await env.DB.prepare(
-    `SELECT id, category, title_zh, title_nl, event_date, location, image_size, sort_order, status, created_at, updated_at
+    `SELECT id, album_id, category, title_zh, title_nl, event_date, location, image_size, sort_order, status, created_at, updated_at
        FROM activity_gallery ORDER BY created_at DESC LIMIT 50`,
   ).all();
   return json({ ok: true, activities: (result.results || []).map((row) => ({ ...row, image_url: `/api/activities/${encodeURIComponent(row.id)}/image?v=${encodeURIComponent(row.updated_at || row.created_at || '')}` })) });
@@ -70,23 +71,24 @@ async function upload(request, env) {
   if (!titleZh) return json({ ok: false, error: '请填写活动名称' }, 400);
 
   const id = `ACT-${crypto.randomUUID()}`;
+  const albumId = clean(form.get('album_id'), 100) || `ALB-${crypto.randomUUID()}`;
   const ext = image.type === 'image/jpeg' ? 'jpg' : image.type.split('/')[1];
   const key = `activity-gallery/${new Date().getUTCFullYear()}/${id}.${ext}`;
   await env.MEDIA.put(key, image.stream(), { httpMetadata: { contentType: image.type } });
   try {
     await env.DB.prepare(
       `INSERT INTO activity_gallery
-        (id, category, title_zh, title_nl, event_date, location, image_key, image_mime, image_size, sort_order, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'published')`,
+        (id, album_id, category, title_zh, title_nl, event_date, location, image_key, image_mime, image_size, sort_order, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'published')`,
     ).bind(
-      id, category, titleZh, clean(form.get('title_nl'), 180), clean(form.get('event_date'), 20) || null,
+      id, albumId, category, titleZh, clean(form.get('title_nl'), 180), clean(form.get('event_date'), 20) || null,
       clean(form.get('location'), 240), key, image.type, image.size, Number(form.get('sort_order') || 0),
     ).run();
   } catch (error) {
     await env.MEDIA.delete(key);
     throw error;
   }
-  return json({ ok: true, activity: { id, image_url: `/api/activities/${encodeURIComponent(id)}/image` } }, 201);
+  return json({ ok: true, activity: { id, album_id: albumId, image_url: `/api/activities/${encodeURIComponent(id)}/image` } }, 201);
 }
 
 async function update(request, env, id) {
@@ -100,13 +102,13 @@ async function update(request, env, id) {
   const result = await env.DB.prepare(
     `UPDATE activity_gallery
         SET category=?, title_zh=?, title_nl=?, event_date=?, location=?, updated_at=datetime('now')
-      WHERE id=? AND status='published'`,
+      WHERE (album_id=? OR (album_id IS NULL AND id=?)) AND status='published'`,
   ).bind(
     category, titleZh, clean(body.title_nl, 180), clean(body.event_date, 20) || null,
-    clean(body.location, 240), id,
+    clean(body.location, 240), id, id,
   ).run();
-  if (!Number(result.meta?.changes || 0)) return json({ ok: false, error: '照片不存在或已下架' }, 404);
-  return json({ ok: true, id });
+  if (!Number(result.meta?.changes || 0)) return json({ ok: false, error: '活动不存在或已下架' }, 404);
+  return json({ ok: true, album_id: id });
 }
 
 async function replaceImage(request, env, id) {
@@ -145,14 +147,27 @@ async function replaceImage(request, env, id) {
   return json({ ok: true, id, image_url: `/api/activities/${encodeURIComponent(id)}/image?v=${Date.now()}` });
 }
 
-async function unpublish(request, env, id) {
+async function unpublish(request, env, albumId) {
   const denied = requireAdmin(request, env);
   if (denied) return denied;
   const result = await env.DB.prepare(
-    `UPDATE activity_gallery SET status='hidden', updated_at=datetime('now') WHERE id=?`,
-  ).bind(id).run();
-  if (!Number(result.meta?.changes || 0)) return json({ ok: false, error: '照片不存在' }, 404);
-  return json({ ok: true, id, status: 'hidden' });
+    `UPDATE activity_gallery SET status='hidden', updated_at=datetime('now')
+      WHERE album_id=? OR (album_id IS NULL AND id=?)`,
+  ).bind(albumId, albumId).run();
+  if (!Number(result.meta?.changes || 0)) return json({ ok: false, error: '活动不存在' }, 404);
+  return json({ ok: true, album_id: albumId, status: 'hidden' });
+}
+
+async function deletePhoto(request, env, id) {
+  const denied = requireAdmin(request, env);
+  if (denied) return denied;
+  const current = await env.DB.prepare(
+    `SELECT image_key FROM activity_gallery WHERE id=? AND status='published'`,
+  ).bind(id).first();
+  if (!current) return json({ ok: false, error: '照片不存在或已删除' }, 404);
+  await env.DB.prepare(`DELETE FROM activity_gallery WHERE id=?`).bind(id).run();
+  await env.MEDIA.delete(current.image_key);
+  return json({ ok: true, id });
 }
 
 async function image(env, id) {
@@ -176,6 +191,8 @@ export async function handleActivityApi(request, env, url) {
   if (match && request.method === 'POST') return unpublish(request, env, decodeURIComponent(match[1]));
   match = url.pathname.match(/^\/api\/admin\/activities\/([^/]+)\/update$/);
   if (match && request.method === 'POST') return update(request, env, decodeURIComponent(match[1]));
+  match = url.pathname.match(/^\/api\/admin\/activities\/([^/]+)\/delete-photo$/);
+  if (match && request.method === 'POST') return deletePhoto(request, env, decodeURIComponent(match[1]));
   match = url.pathname.match(/^\/api\/admin\/activities\/([^/]+)\/image$/);
   if (match && request.method === 'POST') return replaceImage(request, env, decodeURIComponent(match[1]));
   match = url.pathname.match(/^\/api\/activities\/([^/]+)\/image$/);
