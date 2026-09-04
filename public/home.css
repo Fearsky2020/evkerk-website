@@ -127,8 +127,8 @@
 
 .sunday-bridge {
   display: grid;
-  grid-template-columns: minmax(280px,.72fr) minmax(560px,1.28fr);
-  gap: clamp(40px,5vw,84px);
+  grid-template-columns: minmax(470px,.9fr) minmax(0,1.1fr);
+  gap: clamp(34px,4vw,64px);
   align-items: center;
   padding-top: 34px;
   padding-bottom: 34px;
@@ -136,11 +136,12 @@
 }
 
 .sunday-bridge-intro h2 {
-  max-width: 470px;
+  max-width: none;
   margin: 8px 0 0;
-  font-size: clamp(31px,3vw,46px);
+  font-size: clamp(34px,2.35vw,42px);
   line-height: 1.12;
   letter-spacing: -.035em;
+  white-space: nowrap;
 }
 
 .sunday-bridge-places {
@@ -153,8 +154,8 @@
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 4px 20px;
-  min-height: 92px;
-  padding: 20px 28px;
+  min-height: 90px;
+  padding: 20px 54px 20px 26px;
   color: var(--ink);
   text-decoration: none;
 }
@@ -164,15 +165,16 @@
 .sunday-bridge-places a::after {
   content: "→";
   position: absolute;
-  right: 26px;
-  bottom: 18px;
+  top: 50%;
+  right: 24px;
+  transform: translateY(-50%);
   color: var(--brand-blue-deep);
   font-weight: 950;
   transition: transform .2s ease;
 }
 
 .sunday-bridge-places a:hover::after,
-.sunday-bridge-places a:focus-visible::after { transform: translateX(4px); }
+.sunday-bridge-places a:focus-visible::after { transform: translate(4px,-50%); }
 .sunday-bridge-places span { color: var(--brand-blue-deep); font-size: 16px; font-weight: 950; }
 .sunday-bridge-places strong { padding-right: 28px; font-size: 14px; }
 .sunday-bridge-places small { grid-column: 1/-1; color: var(--muted); font-size: 12px; }
@@ -193,6 +195,7 @@ html[data-theme="dark"] .sunday-bridge-places a::after { color: #72d4f5; }
       linear-gradient(180deg, transparent 40%, rgba(6,18,24,.72));
   }
   .sunday-bridge { grid-template-columns: 1fr; gap: 24px; }
+  .sunday-bridge-intro h2 { white-space: normal; }
 }
 
 @media (max-width: 640px) {
@@ -256,6 +259,7 @@ html[data-theme="dark"] .sunday-bridge-places a::after { color: #72d4f5; }
   grid-template-columns: minmax(280px,.68fr) minmax(600px,1.32fr);
   gap: clamp(34px,4vw,60px);
   align-items: center;
+  width: min(1260px, calc(100% - 48px));
 }
 
 .home-page .sermons::before {
@@ -273,8 +277,10 @@ html[data-theme="dark"] .sunday-bridge-places a::after { color: #72d4f5; }
 .home-page .sermons .sermon-heading-actions .text-link { display: inline-block; margin-top: 8px; }
 
 .home-page .sermon-placeholder {
-  min-height: 240px;
-  padding: 24px;
+  grid-template-columns: minmax(0,1fr) 290px;
+  height: 220px;
+  min-height: 0;
+  padding: 18px;
   border: 1px solid var(--home-line);
   border-radius: 28px;
   background: rgba(255,255,255,.62);
@@ -287,9 +293,25 @@ html[data-theme="dark"] .sunday-bridge-places a::after { color: #72d4f5; }
 }
 
 .home-page .sermon-summary-band {
+  height: 100%;
+  margin: 0;
+  padding: 18px 20px;
+  overflow: hidden;
   border-color: rgba(44,167,185,.2);
   background: linear-gradient(145deg,#eaf8f5,#dff1ee);
 }
+
+.home-page .sermon-summary-band p {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 6;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.home-page .latest-sermon-main { gap: 18px; }
+.home-page .latest-sermon-main h3 { font-size: clamp(21px,1.7vw,28px); }
 
 /* Church life: large human photograph with a simple story rail. */
 .home-page .activity-gallery {
@@ -425,9 +447,22 @@ html[data-theme="dark"] .sunday-bridge-places a::after { color: #72d4f5; }
 }
 
 .home-page .site-footer {
+  display: grid;
+  grid-template-columns: minmax(260px,1fr) auto;
+  grid-template-areas:
+    "brand links"
+    "copyright credit";
+  align-items: center;
+  column-gap: 44px;
+  row-gap: 24px;
   border-top: 1px solid var(--home-line);
   background: transparent;
 }
+.home-page .footer-brand { grid-area: brand; justify-self: start; }
+.home-page .footer-links { grid-area: links; justify-self: end; }
+.home-page .footer-meta { display: contents; }
+.home-page .footer-meta > small { grid-area: copyright; justify-self: start; }
+.home-page .site-credit { grid-area: credit; justify-self: end; }
 .home-page .footer-links a,
 .home-page .footer-brand strong { color: var(--home-ink); }
 
@@ -453,6 +488,9 @@ html[data-theme="dark"] .home-page .about-card { background: #292722; }
   .home-page .sermons { grid-template-columns: 1fr; gap: 32px; }
   .home-page .activity-carousel { min-height: 420px; }
   .home-page .welcome-faq { grid-template-columns: 1fr; gap: 25px; }
+  .home-page .sermons { width: min(100% - 30px,900px); }
+  .home-page .sermon-placeholder { height: auto; grid-template-columns: 1fr; }
+  .home-page .sermon-summary-band { min-height: 150px; }
 }
 
 @media (max-width: 760px) {
@@ -465,4 +503,12 @@ html[data-theme="dark"] .home-page .about-card { background: #292722; }
   .home-page .group-map { margin-right: 11px; margin-left: 11px; border-radius: 23px; }
   .home-page .about-card { border-radius: 24px; }
   .home-page .contact-card { border-radius: 24px; }
+  .home-page .site-footer {
+    grid-template-columns: 1fr;
+    grid-template-areas: "brand" "links" "copyright" "credit";
+    justify-items: start;
+    gap: 18px;
+  }
+  .home-page .footer-links,
+  .home-page .site-credit { justify-self: start; }
 }
