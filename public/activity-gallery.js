@@ -156,7 +156,9 @@
     fetch('/api/activities').then(response => response.ok ? response.json() : Promise.reject(new Error('activities unavailable'))),
     fetch('/api/events', {headers:{Accept:'application/json'}}).then(response => response.ok ? response.json() : {events:[]}).catch(() => ({events:[]}))
   ]).then(([activityBody,eventBody]) => {
-    upcomingEvents = eventBody.events || [];
+    // This panel is for one-off church activities entered by an administrator.
+    // Recurring Sunday services and other calendar-synced gatherings stay out.
+    upcomingEvents = (eventBody.events || []).filter(event => event.source === 'manual');
     if (activityBody.activities?.length) render(activityBody.activities); else renderFallback();
     renderUpcoming();
   }).catch(() => { renderFallback(); renderUpcoming(); });
