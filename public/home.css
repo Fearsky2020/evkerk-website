@@ -287,6 +287,12 @@ html[data-theme="dark"] .sunday-bridge-places a::after { color: #72d4f5; }
   box-shadow: 0 22px 58px rgba(78,58,43,.08);
 }
 
+.home-page .sermon-placeholder::before,
+.home-page .sermon-placeholder::after {
+  content: none;
+  display: none;
+}
+
 .home-page .latest-sermon-main .play {
   background: #18ace0;
   box-shadow: 0 12px 28px rgba(18,175,230,.24);
