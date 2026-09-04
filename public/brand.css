@@ -2584,3 +2584,19 @@ html[data-theme="dark"] .mobile-nav a{color:#f5fbfe}
 html[data-theme="dark"] .mobile-nav a:hover,html[data-theme="dark"] .mobile-nav a:focus-visible{background:#123548;color:#72d4f5}
 @media(max-width:980px){.site-header{position:sticky}.mobile-nav-toggle{display:inline-flex;align-items:center;justify-content:center}}
 @media(max-width:640px){.mobile-nav-toggle{padding:9px 11px;font-size:13px}.mobile-nav{grid-template-columns:1fr}.header-actions .visit-btn{display:none}}
+
+
+/* Compact first-visit FAQ */
+.welcome-faq{display:grid;grid-template-columns:minmax(210px,.58fr) minmax(0,1.42fr);gap:42px;padding-top:42px;padding-bottom:42px}
+.welcome-faq-heading h2{margin:8px 0 0;font-size:clamp(28px,3vw,42px);line-height:1.12}
+.faq-list{display:grid;gap:10px}
+.faq-list details{border:1px solid var(--brand-blue-line);border-radius:15px;background:rgba(255,255,255,.64);overflow:hidden}
+.faq-list summary{position:relative;cursor:pointer;list-style:none;padding:17px 48px 17px 18px;font-weight:850;color:#173746}
+.faq-list summary::-webkit-details-marker{display:none}
+.faq-list summary::after{content:"+";position:absolute;right:18px;top:50%;transform:translateY(-50%);color:var(--brand-blue-deep);font-size:24px;font-weight:500}
+.faq-list details[open] summary::after{content:"−"}
+.faq-list p{margin:0;padding:0 18px 18px;color:#52636b;line-height:1.7}
+html[data-theme="dark"] .faq-list details{border-color:#31596b;background:#0c202c}
+html[data-theme="dark"] .faq-list summary{color:#f5fbfe}
+html[data-theme="dark"] .faq-list p{color:#cbdce4}
+@media(max-width:760px){.welcome-faq{grid-template-columns:1fr;gap:18px;padding-block:32px}.faq-list summary{padding-block:15px}}
