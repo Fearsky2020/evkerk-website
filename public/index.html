@@ -9,7 +9,7 @@
   <link rel="icon" href="/assets/evkerk-logo.webp" type="image/webp">
   <link rel="stylesheet" href="/styles.css?v=1">
   <link rel="stylesheet" href="/brand.css?v=31">
-  <link rel="stylesheet" href="/home.css?v=5">
+  <link rel="stylesheet" href="/home.css?v=7">
 </head>
 <body class="home-page">
   <header class="site-header">
@@ -161,13 +161,24 @@
       <div class="shell split">
         <div class="section-heading compact">
           <p class="eyebrow" data-i18n="welcome.eyebrow">FIRST TIME HERE?</p>
-          <h2 data-i18n="welcome.title">第一次来，不需要准备什么。</h2>
+          <h2 data-i18n="welcome.title">第一次来，<br>不需要准备什么。</h2>
           <p data-i18n="welcome.text">你可以安静听信息、一起敬拜，也可以只是先认识这里。无需报名，也不会有人要求你一定做什么。</p>
         </div>
-        <div class="expect-list">
-          <article><strong>01</strong><div><h3 data-i18n="welcome.1.title">有人欢迎你</h3><p data-i18n="welcome.1.text">接待同工会帮助你找到座位、儿童主日学或合适的语言聚会。</p></div></article>
-          <article><strong>02</strong><div><h3 data-i18n="welcome.2.title">敬拜与信息</h3><p data-i18n="welcome.2.text">用诗歌、祷告和圣经信息，一起认识神的恩典。</p></div></article>
-          <article><strong>03</strong><div><h3 data-i18n="welcome.3.title">留下来聊一会儿</h3><p data-i18n="welcome.3.text">聚会后通常有交通时间，可以认识弟兄姊妹，也可以请同工为你祷告。</p></div></article>
+        <div class="welcome-support">
+          <div class="expect-list">
+            <article><strong>01</strong><div><h3 data-i18n="welcome.1.title">有人欢迎你</h3><p data-i18n="welcome.1.text">接待同工会帮助你找到座位、儿童主日学或合适的语言聚会。</p></div></article>
+            <article><strong>02</strong><div><h3 data-i18n="welcome.2.title">敬拜与信息</h3><p data-i18n="welcome.2.text">用诗歌、祷告和圣经信息，一起认识神的恩典。</p></div></article>
+            <article><strong>03</strong><div><h3 data-i18n="welcome.3.title">留下来聊一会儿</h3><p data-i18n="welcome.3.text">聚会后通常有交通时间，可以认识弟兄姊妹，也可以请同工为你祷告。</p></div></article>
+          </div>
+          <div class="welcome-faq-inline" aria-labelledby="welcome-faq-title">
+            <div class="welcome-faq-inline-heading"><p class="eyebrow" data-i18n="faq.eyebrow">GOOD TO KNOW</p><h3 id="welcome-faq-title" data-i18n="faq.title">第一次来，常见问题</h3></div>
+            <div class="faq-list">
+              <details><summary data-i18n="faq.signup.q">需要提前报名吗？</summary><p data-i18n="faq.signup.a">不需要。你可以直接来参加主日聚会。</p></details>
+              <details><summary data-i18n="faq.clothes.q">需要穿得很正式吗？</summary><p data-i18n="faq.clothes.a">不需要，穿平时舒服、合适的衣服就可以。</p></details>
+              <details><summary data-i18n="faq.children.q">可以带孩子来吗？</summary><p data-i18n="faq.children.a">可以。到达后请向接待同工询问适合孩子的安排。</p></details>
+              <details><summary data-i18n="faq.pressure.q">只是想先看看，可以吗？</summary><p data-i18n="faq.pressure.a">当然可以。你可以安静参加，不需要作任何承诺。</p></details>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -175,19 +186,6 @@
 
 
 
-
-    <section class="welcome-faq section shell" aria-labelledby="welcome-faq-title">
-      <div class="welcome-faq-heading">
-        <p class="eyebrow" data-i18n="faq.eyebrow">GOOD TO KNOW</p>
-        <h2 id="welcome-faq-title" data-i18n="faq.title">第一次来，常见问题</h2>
-      </div>
-      <div class="faq-list">
-        <details><summary data-i18n="faq.signup.q">需要提前报名吗？</summary><p data-i18n="faq.signup.a">不需要。你可以直接来参加主日聚会。</p></details>
-        <details><summary data-i18n="faq.clothes.q">需要穿得很正式吗？</summary><p data-i18n="faq.clothes.a">不需要，穿平时舒服、合适的衣服就可以。</p></details>
-        <details><summary data-i18n="faq.children.q">可以带孩子来吗？</summary><p data-i18n="faq.children.a">可以。到达后请向接待同工询问适合孩子的安排。</p></details>
-        <details><summary data-i18n="faq.pressure.q">只是想先看看，可以吗？</summary><p data-i18n="faq.pressure.a">当然可以。你可以安静参加，不需要作任何承诺。</p></details>
-      </div>
-    </section>
 
     <section class="group-map section shell" id="groups">
       <div class="group-map-copy">
@@ -244,7 +242,7 @@
     </div>
   </footer>
 
-  <script src="/app.js?v=22"></script>
+  <script src="/app.js?v=23"></script>
   <script src="/hero-carousel.js?v=2"></script>
   <script src="/activity-gallery.js?v=6"></script>
   <script src="/auto-content.js?v=10"></script>
