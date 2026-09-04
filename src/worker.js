@@ -124,6 +124,67 @@ async function listAnnouncements(env) {
   );
 }
 
+async function listAdminEvents(request, env) {
+  const denied = await requireToken(request, env);
+  if (denied) return denied;
+  if (!env.DB) return json({ ok: false, error: 'D1 database is not configured' }, 503);
+  const events = await queryAll(
+    env,
+    `SELECT id, source, title_zh, title_nl, description_zh, description_nl,
+            location, start_at, end_at, all_day, status, updated_at
+       FROM events
+      WHERE source = 'manual'
+      ORDER BY start_at ASC, updated_at DESC
+      LIMIT 100`,
+  );
+  return json({ ok: true, events });
+}
+
+async function upsertEvent(request, env) {
+  const denied = await requireToken(request, env);
+  if (denied) return denied;
+  if (!env.DB) return json({ ok: false, error: 'D1 database is not configured' }, 503);
+  const body = await request.json().catch(() => ({}));
+  const date = clean(body.date, 10);
+  const startTime = clean(body.start_time, 5);
+  const endTime = clean(body.end_time, 5);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return json({ ok: false, error: '请选择日期' }, 400);
+  if (startTime && !/^\d{2}:\d{2}$/.test(startTime)) return json({ ok: false, error: '开始时间格式不正确' }, 400);
+  if (endTime && !/^\d{2}:\d{2}$/.test(endTime)) return json({ ok: false, error: '结束时间格式不正确' }, 400);
+  const titleZh = clean(body.title_zh, 300);
+  if (!titleZh) return json({ ok: false, error: '请填写中文标题' }, 400);
+  const id = clean(body.id || `manual:${crypto.randomUUID()}`, 100);
+  const startAt = `${date}T${startTime || '00:00'}:00`;
+  const endAt = `${date}T${endTime || startTime || '23:59'}:00`;
+  await env.DB.prepare(
+    `INSERT INTO events
+      (id, source, external_id, title_zh, title_nl, description_zh, description_nl,
+       location, start_at, end_at, all_day, status, updated_at)
+     VALUES (?, 'manual', NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+     ON CONFLICT(id) DO UPDATE SET
+       source='manual', title_zh=excluded.title_zh, title_nl=excluded.title_nl,
+       description_zh=excluded.description_zh, description_nl=excluded.description_nl,
+       location=excluded.location, start_at=excluded.start_at, end_at=excluded.end_at,
+       all_day=excluded.all_day, status=excluded.status, updated_at=datetime('now')`,
+  ).bind(
+    id, titleZh, clean(body.title_nl, 300), clean(body.description_zh), clean(body.description_nl),
+    clean(body.location, 1000), startAt, endAt, startTime ? 0 : 1,
+    body.status === 'draft' ? 'draft' : 'published',
+  ).run();
+  return json({ ok: true, id }, 201);
+}
+
+async function unpublishEvent(request, env, id) {
+  const denied = await requireToken(request, env);
+  if (denied) return denied;
+  if (!env.DB) return json({ ok: false, error: 'D1 database is not configured' }, 503);
+  const result = await env.DB.prepare(
+    `UPDATE events SET status='draft', updated_at=datetime('now') WHERE id=? AND source='manual'`,
+  ).bind(id).run();
+  if (!Number(result.meta?.changes || 0)) return json({ ok: false, error: '安排不存在' }, 404);
+  return json({ ok: true, id, status: 'draft' });
+}
+
 async function listAdminSermons(request, env) {
   const denied = await requireToken(request, env);
   if (denied) return denied;
@@ -343,6 +404,10 @@ async function handleApi(request, env, url) {
   if (request.method === 'GET' && url.pathname === '/api/events') return json({ ok: true, events: await listEvents(env) });
   if (request.method === 'GET' && url.pathname === '/api/sermons') return json({ ok: true, sermons: await listSermons(env) });
   if (request.method === 'GET' && url.pathname === '/api/announcements') return json({ ok: true, announcements: await listAnnouncements(env) });
+  if (request.method === 'GET' && url.pathname === '/api/admin/events') return listAdminEvents(request, env);
+  const eventMatch = url.pathname.match(/^\/api\/admin\/events\/([^/]+)\/hide$/);
+  if (eventMatch && request.method === 'POST') return unpublishEvent(request, env, decodeURIComponent(eventMatch[1]));
+  if (request.method === 'POST' && url.pathname === '/api/ingest/event') return upsertEvent(request, env);
   if (request.method === 'GET' && url.pathname === '/api/admin/sermons') return listAdminSermons(request, env);
   const sermonMatch = url.pathname.match(/^\/api\/admin\/sermons\/([^/]+)\/hide$/);
   if (sermonMatch && request.method === 'POST') return unpublishSermon(request, env, decodeURIComponent(sermonMatch[1]));
