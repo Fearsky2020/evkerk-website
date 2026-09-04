@@ -275,7 +275,7 @@ html[data-theme="dark"] .sunday-bridge-places a::after { color: #72d4f5; }
 
 .home-page .sermon-placeholder {
   grid-template-columns: minmax(0,1fr) 240px;
-  height: 165px;
+  height: 180px;
   min-height: 0;
   padding: 14px;
   border: 1px solid var(--home-line);
@@ -316,9 +316,26 @@ html[data-theme="dark"] .sunday-bridge-places a::after { color: #72d4f5; }
   line-height: 1.5;
 }
 
-.home-page .latest-sermon-main { gap: 14px; }
-.home-page .latest-sermon-main h3 { font-size: clamp(19px,1.45vw,24px); line-height: 1.2; }
-.home-page .latest-sermon-main p { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.home-page .latest-sermon-main { height: 100%; gap: 14px; overflow: hidden; }
+.home-page .latest-sermon-main > div { min-width: 0; }
+.home-page .latest-sermon-main h3 {
+  display: -webkit-box;
+  margin: 5px 0;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  font-size: clamp(19px,1.45vw,24px);
+  line-height: 1.2;
+}
+.home-page .latest-sermon-main .auto-sermon-meta { line-height: 1.35; }
+.home-page .latest-sermon-main .auto-sermon-scripture {
+  display: -webkit-box;
+  margin: 7px 0 0;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  line-height: 1.4;
+}
 
 /* Church life: large human photograph with a simple story rail. */
 .home-page .activity-gallery {
