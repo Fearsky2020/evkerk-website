@@ -479,6 +479,22 @@ html[data-theme="dark"] .sunday-bridge-places a::after { color: #72d4f5; }
   background: rgba(255,255,255,.94);
   color: #302822;
 }
+.home-page .contact-form label > span {
+  color: #f5fbfd;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: .01em;
+}
+.home-page .contact-form small {
+  color: rgba(255,255,255,.84);
+  font-size: 13px;
+  font-weight: 650;
+}
+.home-page .contact-form input::placeholder,
+.home-page .contact-form textarea::placeholder {
+  color: #746f6a;
+  opacity: 1;
+}
 
 .home-page .site-footer {
   display: grid;
