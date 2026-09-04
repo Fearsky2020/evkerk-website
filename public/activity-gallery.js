@@ -44,7 +44,7 @@
   function renderSummaries() {
     if (!summaryBox) return;
     const lang = language();
-    summaryBox.innerHTML = albums.slice(0, 4).map(album => {
+    summaryBox.innerHTML = albums.slice(0, 2).map(album => {
       const text = caption(album.lead);
       const count = album.photos.length;
       const countLabel = lang === 'nl' ? `${count} foto's` : `${count} 张照片`;
