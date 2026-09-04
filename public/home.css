@@ -72,11 +72,12 @@
 }
 
 .home-cover-lead {
-  max-width: 620px;
+  max-width: 680px;
   margin: 22px 0 0;
   color: rgba(255,255,255,.88);
   font-size: 18px;
   line-height: 1.78;
+  text-wrap: balance;
   text-shadow: 0 2px 16px rgba(0,0,0,.3);
 }
 
