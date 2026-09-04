@@ -416,13 +416,13 @@ html[data-theme="dark"] .sunday-bridge-places a::after { color: #72d4f5; }
 
 .home-page .welcome-faq-inline {
   display: grid;
-  grid-template-columns: 180px minmax(0,1fr);
-  gap: 22px;
+  grid-template-columns: 1fr;
+  gap: 14px;
   align-items: start;
   padding-top: 22px;
   border-top: 1px solid rgba(63,106,103,.16);
 }
-.home-page .welcome-faq-inline-heading h3 { margin: 7px 0 0; font-size: 22px; line-height: 1.2; }
+.home-page .welcome-faq-inline-heading h3 { margin: 7px 0 0; font-size: 22px; line-height: 1.2; white-space: nowrap; }
 .home-page .welcome-faq-inline .faq-list { gap: 7px; }
 .home-page .faq-list details {
   border-color: var(--home-line);
