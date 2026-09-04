@@ -9,9 +9,9 @@
   <link rel="icon" href="/assets/evkerk-logo.webp" type="image/webp">
   <link rel="stylesheet" href="/styles.css?v=1">
   <link rel="stylesheet" href="/brand.css?v=31">
-  <link rel="stylesheet" href="/home-hero.css?v=1">
+  <link rel="stylesheet" href="/home.css?v=1">
 </head>
-<body>
+<body class="home-page">
   <header class="site-header">
     <a class="brand" href="#top" aria-label="Evangeliekerk home">
       <img class="brand-mark" src="/assets/evkerk-logo.webp" alt="" width="40" height="40">
@@ -42,23 +42,29 @@
   </header>
 
   <main id="top">
-    <section class="hero shell">
-      <div class="hero-copy">
-        <p class="eyebrow" data-i18n="hero.eyebrow">DEN HAAG · RIJSWIJK · ZOETERMEER</p>
-        <h1 data-i18n="hero.title">在恩典中认识耶稣<br>在真理中活出自由</h1>
-        <p class="hero-lead" data-i18n="hero.lead">无论你刚开始认识信仰，还是正在寻找一个属灵的家，都欢迎你来到福音教会。</p>
-        <div class="hero-actions">
+    <section class="home-cover" aria-labelledby="home-cover-title">
+      <img class="home-cover-photo" src="/assets/zoetermeer-sanctuary.webp" alt="Zoetermeer 福音教会礼堂" width="1800" height="1350" fetchpriority="high">
+      <div class="home-cover-shade" aria-hidden="true"></div>
+      <div class="home-cover-content shell">
+        <p class="home-cover-kicker" data-i18n="hero.eyebrow">DEN HAAG · RIJSWIJK · ZOETERMEER</p>
+        <h1 id="home-cover-title" data-i18n="hero.title">在恩典中认识耶稣<br>在真理中活出自由</h1>
+        <p class="home-cover-lead" data-i18n="hero.lead">无论你刚开始认识信仰，还是正在寻找一个属灵的家，都欢迎你来到福音教会。</p>
+        <div class="home-cover-actions">
           <a class="btn primary" href="#gatherings" data-i18n="hero.primary">查看本周聚会</a>
-          <a class="btn secondary" href="#welcome" data-i18n="hero.secondary">第一次来？</a>
+          <a class="home-cover-text-link" href="#welcome" data-i18n="hero.secondary">第一次来？</a>
         </div>
       </div>
-      <figure class="hero-visual">
-        <img src="/assets/zoetermeer-exterior.webp" alt="Zoetermeer 福音教会外观" width="1800" height="1350" fetchpriority="high">
-        <figcaption class="hero-photo-note"><strong data-i18n="hero.photo.title">Zoetermeer 福音教会</strong><span data-i18n="hero.photo">每周日 10:00–12:00</span></figcaption>
-      </figure>
-      <div class="hero-location-strip" aria-label="聚会地点">
-        <a href="#gatherings"><span>Rijswijk</span><strong>周日 12:30</strong></a>
-        <a href="#gatherings"><span>Zoetermeer</span><strong>周日 10:00</strong></a>
+      <p class="home-cover-caption shell"><span>Zoetermeer</span><span data-i18n="hero.photo">每周日 10:00–12:00</span></p>
+    </section>
+
+    <section class="sunday-bridge shell" aria-labelledby="sunday-bridge-title">
+      <div class="sunday-bridge-intro">
+        <p class="eyebrow" data-i18n="gatherings.eyebrow">SUNDAY GATHERINGS</p>
+        <h2 id="sunday-bridge-title" data-i18n="gatherings.title">这个星期天，欢迎回家。</h2>
+      </div>
+      <div class="sunday-bridge-places">
+        <a href="#gatherings"><span>Rijswijk</span><strong>周日 12:30</strong><small>Oranjelaan 62</small></a>
+        <a href="#gatherings"><span>Zoetermeer</span><strong>周日 10:00</strong><small>Piet Heinplein 13</small></a>
       </div>
     </section>
 

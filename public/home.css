@@ -1,0 +1,468 @@
+/* Homepage 2026 — rebuilt as a photographic invitation, independent of legacy hero rules. */
+.home-cover {
+  position: relative;
+  isolation: isolate;
+  min-height: min(700px, calc(100vh - 82px));
+  overflow: hidden;
+  background: #17272d;
+  color: #fff;
+}
+
+.home-cover-photo,
+.home-cover-shade {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.home-cover-photo {
+  z-index: -3;
+  object-fit: cover;
+  object-position: center 52%;
+  transform: scale(1.01);
+}
+
+.home-cover-shade {
+  z-index: -2;
+  background:
+    linear-gradient(90deg, rgba(8,22,29,.88) 0%, rgba(8,22,29,.68) 34%, rgba(8,22,29,.16) 68%, rgba(8,22,29,.08) 100%),
+    linear-gradient(180deg, rgba(6,18,24,.08) 48%, rgba(6,18,24,.72) 100%);
+}
+
+.home-cover-content {
+  display: flex;
+  min-height: inherit;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 72px;
+  padding-bottom: 112px;
+}
+
+.home-cover-kicker {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0 0 24px;
+  color: #8fe1fa;
+  font-size: 12px;
+  font-weight: 950;
+  letter-spacing: .18em;
+}
+
+.home-cover-kicker::before {
+  content: "";
+  width: 46px;
+  height: 3px;
+  border-radius: 99px;
+  background: #34c1ee;
+}
+
+.home-cover h1 {
+  max-width: 850px;
+  margin: 0;
+  color: #fff;
+  font-size: clamp(58px, 5.4vw, 92px);
+  font-weight: 900;
+  line-height: 1.04;
+  letter-spacing: -.055em;
+  text-wrap: balance;
+  text-shadow: 0 4px 28px rgba(0,0,0,.28);
+}
+
+.home-cover-lead {
+  max-width: 620px;
+  margin: 27px 0 0;
+  color: rgba(255,255,255,.88);
+  font-size: 18px;
+  line-height: 1.78;
+  text-shadow: 0 2px 16px rgba(0,0,0,.3);
+}
+
+.home-cover-actions {
+  display: flex;
+  align-items: center;
+  gap: 25px;
+  margin-top: 30px;
+}
+
+.home-cover .btn.primary {
+  background: #12afe6;
+  box-shadow: 0 14px 34px rgba(0,145,198,.3);
+}
+
+.home-cover-text-link {
+  padding: 10px 2px;
+  border-bottom: 1px solid rgba(255,255,255,.6);
+  color: #fff;
+  font-weight: 850;
+  text-decoration: none;
+}
+
+.home-cover-text-link:hover,
+.home-cover-text-link:focus-visible {
+  border-color: #77ddfa;
+  color: #9ee8fc;
+}
+
+.home-cover-caption {
+  position: absolute;
+  right: 0;
+  bottom: 28px;
+  left: 0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 14px;
+  margin: auto;
+  color: rgba(255,255,255,.88);
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.home-cover-caption span:first-child {
+  color: #fff;
+  font-weight: 950;
+}
+
+.sunday-bridge {
+  display: grid;
+  grid-template-columns: minmax(280px,.72fr) minmax(560px,1.28fr);
+  gap: clamp(40px,5vw,84px);
+  align-items: center;
+  padding-top: 48px;
+  padding-bottom: 48px;
+  border-bottom: 1px solid rgba(137,106,76,.18);
+}
+
+.sunday-bridge-intro h2 {
+  max-width: 470px;
+  margin: 8px 0 0;
+  font-size: clamp(31px,3vw,46px);
+  line-height: 1.12;
+  letter-spacing: -.035em;
+}
+
+.sunday-bridge-places {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.sunday-bridge-places a {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 20px;
+  min-height: 92px;
+  padding: 20px 28px;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.sunday-bridge-places a + a { border-left: 1px solid rgba(137,106,76,.2); }
+
+.sunday-bridge-places a::after {
+  content: "→";
+  position: absolute;
+  right: 26px;
+  bottom: 18px;
+  color: var(--brand-blue-deep);
+  font-weight: 950;
+  transition: transform .2s ease;
+}
+
+.sunday-bridge-places a:hover::after,
+.sunday-bridge-places a:focus-visible::after { transform: translateX(4px); }
+.sunday-bridge-places span { color: var(--brand-blue-deep); font-size: 16px; font-weight: 950; }
+.sunday-bridge-places strong { padding-right: 28px; font-size: 14px; }
+.sunday-bridge-places small { grid-column: 1/-1; color: var(--muted); font-size: 12px; }
+
+.sunday-bridge + .sermons { padding-top: clamp(62px,7vw,100px); }
+
+html[data-theme="dark"] .sunday-bridge { border-bottom-color: rgba(116,203,234,.2); }
+html[data-theme="dark"] .sunday-bridge-places a { color: #f5fbfe; }
+html[data-theme="dark"] .sunday-bridge-places a + a { border-left-color: rgba(116,203,234,.18); }
+html[data-theme="dark"] .sunday-bridge-places span,
+html[data-theme="dark"] .sunday-bridge-places a::after { color: #72d4f5; }
+
+@media (max-width: 900px) {
+  .home-cover { min-height: 650px; }
+  .home-cover-shade {
+    background:
+      linear-gradient(90deg, rgba(8,22,29,.84), rgba(8,22,29,.28)),
+      linear-gradient(180deg, transparent 40%, rgba(6,18,24,.72));
+  }
+  .sunday-bridge { grid-template-columns: 1fr; gap: 24px; }
+}
+
+@media (max-width: 640px) {
+  .home-cover { min-height: 620px; }
+  .home-cover-photo { object-position: 60% center; }
+  .home-cover-shade {
+    background: linear-gradient(180deg, rgba(7,20,27,.34), rgba(7,20,27,.9) 80%);
+  }
+  .home-cover-content { justify-content: flex-end; padding-top: 100px; padding-bottom: 96px; }
+  .home-cover-kicker { margin-bottom: 17px; font-size: 10px; }
+  .home-cover-kicker::before { width: 28px; }
+  .home-cover h1 { font-size: clamp(42px,12vw,58px); }
+  .home-cover-lead { margin-top: 20px; font-size: 16px; line-height: 1.7; }
+  .home-cover-actions { gap: 18px; margin-top: 23px; }
+  .home-cover-caption { bottom: 17px; justify-content: flex-start; }
+  .sunday-bridge { padding-top: 38px; padding-bottom: 38px; }
+  .sunday-bridge-places { grid-template-columns: 1fr; }
+  .sunday-bridge-places a { padding: 18px 4px; }
+  .sunday-bridge-places a + a { border-top: 1px solid rgba(137,106,76,.2); border-left: 0; }
+}
+
+/* One warm visual system from header to footer. */
+.home-page {
+  --home-ink: #302822;
+  --home-muted: #6f6258;
+  --home-cream: #fbf7ef;
+  --home-warm: #f2e8da;
+  --home-aqua: #e4f5f4;
+  --home-line: rgba(113,87,65,.16);
+  background: var(--home-cream);
+  color: var(--home-ink);
+}
+
+.home-page .site-header {
+  border-top: 3px solid #28b9e7;
+  border-bottom-color: rgba(113,87,65,.12);
+  background: rgba(251,247,239,.94);
+  box-shadow: 0 8px 28px rgba(73,55,42,.05);
+  backdrop-filter: blur(18px);
+}
+
+.home-page .desktop-nav {
+  border-color: rgba(18,175,230,.16);
+  background: rgba(255,255,255,.54);
+}
+
+.home-page .desktop-nav a,
+.home-page .brand-copy strong { color: var(--home-ink); }
+.home-page .brand-copy small { color: #8a7a6d; }
+
+.home-page .section { padding-top: clamp(72px,8vw,118px); padding-bottom: clamp(72px,8vw,118px); }
+.home-page .section-heading h2 { color: var(--home-ink); letter-spacing: -.035em; }
+.home-page .section-heading > p:not(.eyebrow),
+.home-page .row-heading p { color: var(--home-muted); line-height: 1.75; }
+.home-page .eyebrow { color: #0585b5; }
+
+/* Latest message: quiet editorial feature, not a dashboard widget. */
+.home-page .sermons {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(280px,.68fr) minmax(600px,1.32fr);
+  gap: clamp(42px,6vw,92px);
+  align-items: center;
+}
+
+.home-page .sermons::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 12% -6% 8% 42%;
+  border-radius: 50%;
+  background: rgba(71,189,199,.08);
+  filter: blur(2px);
+}
+
+.home-page .sermons .row-heading { display: block; }
+.home-page .sermons .sermon-heading-actions { max-width: 430px; margin-top: 25px; }
+.home-page .sermons .sermon-heading-actions .text-link { display: inline-block; margin-top: 8px; }
+
+.home-page .sermon-placeholder {
+  min-height: 280px;
+  padding: 28px;
+  border: 1px solid var(--home-line);
+  border-radius: 28px;
+  background: rgba(255,255,255,.62);
+  box-shadow: 0 22px 58px rgba(78,58,43,.08);
+}
+
+.home-page .latest-sermon-main .play {
+  background: #18ace0;
+  box-shadow: 0 12px 28px rgba(18,175,230,.24);
+}
+
+.home-page .sermon-summary-band {
+  border-color: rgba(44,167,185,.2);
+  background: linear-gradient(145deg,#eaf8f5,#dff1ee);
+}
+
+/* Church life: large human photograph with a simple story rail. */
+.home-page .activity-gallery {
+  width: 100%;
+  max-width: none;
+  padding-right: max(24px,calc((100vw - 1500px)/2));
+  padding-left: max(24px,calc((100vw - 1500px)/2));
+  background: var(--home-warm);
+}
+
+.home-page .activity-gallery .row-heading {
+  max-width: 1500px;
+  margin: 0 auto 42px;
+}
+
+.home-page .activity-layout {
+  max-width: 1500px;
+  margin: 0 auto;
+  gap: 24px;
+}
+
+.home-page .activity-carousel {
+  min-height: 500px;
+  border-radius: 30px;
+  box-shadow: 0 24px 58px rgba(70,51,38,.13);
+}
+
+.home-page .activity-side-rail { gap: 16px; }
+.home-page .activity-summary-list,
+.home-page .activity-upcoming {
+  border-color: rgba(113,87,65,.14);
+  background: rgba(255,251,244,.74);
+}
+
+/* Locations: two generous places, one shared rhythm. */
+.home-page .gatherings .section-heading { max-width: 760px; }
+.home-page .gathering-grid { gap: 28px; }
+.home-page .gathering-card {
+  overflow: hidden;
+  padding: 0 28px 30px;
+  border: 1px solid var(--home-line);
+  border-radius: 27px;
+  background: rgba(255,255,255,.58);
+  box-shadow: 0 18px 48px rgba(78,58,43,.07);
+}
+
+.home-page .gathering-photo {
+  width: calc(100% + 56px);
+  height: 280px;
+  margin: 0 -28px 25px;
+  border-radius: 0;
+}
+
+.home-page .gathering-card .card-top { margin-bottom: 14px; }
+.home-page .gathering-card h3 { color: var(--home-ink); }
+.home-page .weekly-program {
+  border-color: rgba(44,167,185,.18);
+  background: #edf8f6;
+}
+
+/* First visit: a soft pause in the story. */
+.home-page .welcome {
+  background: linear-gradient(135deg,#dff2f0 0%,#edf8f5 52%,#f8eee2 100%);
+}
+
+.home-page .welcome .split { gap: clamp(46px,7vw,108px); }
+.home-page .welcome .section-heading h2 { max-width: 620px; }
+.home-page .expect-list article {
+  padding: 22px 0;
+  border-bottom: 1px solid rgba(63,106,103,.16);
+}
+.home-page .expect-list article:first-child { padding-top: 0; }
+.home-page .expect-list strong { color: #078ab9; }
+
+.home-page .welcome-faq {
+  grid-template-columns: minmax(240px,.6fr) minmax(0,1.4fr);
+  gap: clamp(40px,6vw,90px);
+}
+.home-page .faq-list details {
+  border-color: var(--home-line);
+  background: rgba(255,255,255,.5);
+}
+.home-page .faq-list summary { color: var(--home-ink); }
+.home-page .faq-list p { color: var(--home-muted); }
+
+/* Groups: map and invitation feel like one place. */
+.home-page .group-map {
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--home-line);
+  border-radius: 30px;
+  background: #fffaf2;
+  box-shadow: 0 22px 58px rgba(78,58,43,.08);
+}
+.home-page .group-map-copy { padding: clamp(34px,5vw,70px); }
+.home-page .group-map-visual { border-radius: 0; }
+
+/* About: remove the generic card, make it a short statement. */
+.home-page .about { text-align: center; }
+.home-page .about-card {
+  display: flex;
+  max-width: 1040px;
+  margin: 0 auto;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+  padding: clamp(44px,6vw,76px);
+  border: 0;
+  border-radius: 42% 42% 26px 26px / 18% 18% 26px 26px;
+  background: #f1e6d8;
+  box-shadow: none;
+}
+.home-page .about-copy { max-width: 720px; }
+.home-page .about-copy p { color: var(--home-muted); }
+.home-page .about-emblem { order: -1; }
+
+/* Contact: a warm closing, with the form kept effortless. */
+.home-page .contact-card {
+  border-radius: 30px;
+  background: linear-gradient(135deg,#173c46,#205561 58%,#246775);
+  box-shadow: 0 25px 65px rgba(18,61,73,.18);
+}
+.home-page .contact-form {
+  border: 1px solid rgba(255,255,255,.16);
+  background: rgba(255,255,255,.1);
+  backdrop-filter: blur(10px);
+}
+.home-page .contact-form input,
+.home-page .contact-form textarea {
+  border-color: rgba(255,255,255,.22);
+  background: rgba(255,255,255,.94);
+  color: #302822;
+}
+
+.home-page .site-footer {
+  border-top: 1px solid var(--home-line);
+  background: transparent;
+}
+.home-page .footer-links a,
+.home-page .footer-brand strong { color: var(--home-ink); }
+
+html[data-theme="dark"] .home-page {
+  --home-ink: #f3eee7;
+  --home-muted: #c8bbb0;
+  --home-cream: #081923;
+  --home-warm: #102832;
+  --home-line: rgba(121,200,222,.17);
+  background: var(--home-cream);
+}
+html[data-theme="dark"] .home-page .site-header { background: rgba(7,23,33,.94); }
+html[data-theme="dark"] .home-page .activity-gallery { background: var(--home-warm); }
+html[data-theme="dark"] .home-page .sermon-placeholder,
+html[data-theme="dark"] .home-page .gathering-card,
+html[data-theme="dark"] .home-page .faq-list details { background: rgba(13,38,50,.72); }
+html[data-theme="dark"] .home-page .weekly-program { background: #102f3a; }
+html[data-theme="dark"] .home-page .welcome { background: linear-gradient(135deg,#102f39,#102a34 55%,#2f2925); }
+html[data-theme="dark"] .home-page .group-map { background: #0d2732; }
+html[data-theme="dark"] .home-page .about-card { background: #292722; }
+
+@media (max-width: 980px) {
+  .home-page .sermons { grid-template-columns: 1fr; gap: 32px; }
+  .home-page .activity-carousel { min-height: 420px; }
+  .home-page .welcome-faq { grid-template-columns: 1fr; gap: 25px; }
+}
+
+@media (max-width: 760px) {
+  .home-page .section { padding-top: 58px; padding-bottom: 58px; }
+  .home-page .sermon-placeholder { min-height: 0; padding: 20px; }
+  .home-page .activity-gallery { padding-right: 14px; padding-left: 14px; }
+  .home-page .activity-carousel { min-height: 350px; border-radius: 22px; }
+  .home-page .gathering-card { padding: 0 20px 24px; }
+  .home-page .gathering-photo { width: calc(100% + 40px); height: 230px; margin-right: -20px; margin-left: -20px; }
+  .home-page .group-map { margin-right: 11px; margin-left: 11px; border-radius: 23px; }
+  .home-page .about-card { border-radius: 24px; }
+  .home-page .contact-card { border-radius: 24px; }
+}
