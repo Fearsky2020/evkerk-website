@@ -2629,3 +2629,208 @@ html[data-theme="dark"] .activity-upcoming-head span{color:#72d4f5}
 .site-credit:hover,.site-credit:focus-visible{color:var(--ink);opacity:1}
 .site-credit:focus-visible{outline:2px solid var(--brand-blue);outline-offset:4px;border-radius:3px}
 @media(max-width:640px){.footer-meta{align-items:flex-start;flex-direction:column;gap:12px}.site-credit{font-size:12px}}
+
+
+/* Hero v3: an editorial welcome card overlapping one generous photograph. */
+@media (min-width: 821px) {
+  .hero {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    align-items: center;
+    width: min(1500px, calc(100% - 48px));
+    min-height: 590px;
+    padding: 38px 0 62px;
+    gap: 0;
+    overflow: visible;
+  }
+
+  .hero::before {
+    inset: 3% -5% 2% 34%;
+    border-radius: 48%;
+  }
+
+  .hero-copy {
+    grid-column: 1 / span 6;
+    grid-row: 1;
+    z-index: 4;
+    align-self: center;
+    margin-right: -34px;
+    padding: clamp(34px, 4vw, 58px);
+    border: 1px solid rgba(138, 104, 73, .13);
+    border-radius: 28px;
+    background: rgba(255, 251, 244, .94);
+    box-shadow: 0 28px 70px rgba(74, 55, 39, .14);
+    backdrop-filter: blur(14px);
+  }
+
+  .hero-copy::before {
+    width: 58px;
+    margin-bottom: 18px;
+  }
+
+  .hero h1 {
+    max-width: 630px;
+    margin-bottom: 18px;
+    font-size: clamp(48px, 3.55vw, 64px);
+    line-height: 1.08;
+  }
+
+  .hero-lead {
+    max-width: 550px;
+    font-size: 17px;
+  }
+
+  .hero-actions {
+    margin-top: 21px;
+  }
+
+  .hero-location-strip {
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    max-width: 550px;
+    margin-top: 24px;
+    overflow: hidden;
+    border: 1px solid rgba(18, 175, 230, .22);
+    border-radius: 15px;
+    background: rgba(255,255,255,.68);
+  }
+
+  .hero-location-strip a {
+    padding: 12px 15px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .hero-location-strip a + a {
+    border-left: 1px solid rgba(18, 175, 230, .2);
+  }
+
+  .hero-visual {
+    grid-column: 5 / -1;
+    grid-row: 1;
+    z-index: 2;
+    width: 100%;
+    height: clamp(510px, 36vw, 590px);
+    padding: 0;
+    border: 0;
+    border-radius: 34px;
+    background: none;
+    box-shadow: 0 34px 80px rgba(8, 92, 126, .2);
+  }
+
+  .hero-visual > img,
+  .hero-visual::before {
+    inset: 0;
+    border-radius: 34px;
+  }
+
+  .hero-photo-note {
+    left: auto;
+    right: 22px;
+    bottom: 22px;
+    width: min(390px, calc(100% - 44px));
+    grid-template-columns: 1fr;
+    gap: 3px;
+    padding: 15px 18px;
+    border-radius: 14px;
+  }
+
+  html[data-theme="dark"] .hero-copy {
+    border-color: rgba(104, 203, 237, .22);
+    background: rgba(7, 24, 36, .92);
+    box-shadow: 0 30px 75px rgba(0,0,0,.38);
+  }
+
+  html[data-theme="dark"] .hero-location-strip {
+    border-color: rgba(76,205,246,.25);
+    background: rgba(8,34,47,.72);
+  }
+
+  html[data-theme="dark"] .hero-location-strip a {
+    background: transparent;
+  }
+
+  html[data-theme="dark"] .hero-location-strip a + a {
+    border-left-color: rgba(76,205,246,.22);
+  }
+}
+
+@media (min-width: 821px) and (max-width: 1100px) {
+  .hero {
+    width: min(100% - 30px, 1050px);
+    padding: 32px 0 52px;
+  }
+
+  .hero-copy {
+    grid-column: 1 / span 7;
+    margin-right: -26px;
+    padding: 34px;
+  }
+
+  .hero h1 {
+    font-size: clamp(42px, 5vw, 54px);
+  }
+
+  .hero-visual {
+    grid-column: 6 / -1;
+    height: 500px;
+  }
+}
+
+@media (max-width: 820px) {
+  .hero {
+    gap: 0;
+    padding-top: 24px;
+  }
+
+  .hero-copy {
+    z-index: 3;
+    margin: 0 8px -24px;
+    padding: 26px 22px 28px;
+    border: 1px solid rgba(138, 104, 73, .13);
+    border-radius: 22px;
+    background: rgba(255, 251, 244, .96);
+    box-shadow: 0 20px 48px rgba(74,55,39,.13);
+  }
+
+  .hero-visual {
+    z-index: 2;
+    height: clamp(350px, 78vw, 470px);
+    border-radius: 24px;
+  }
+
+  .hero-visual > img,
+  .hero-visual::before {
+    border-radius: 24px;
+  }
+
+  html[data-theme="dark"] .hero-copy {
+    border-color: rgba(104,203,237,.2);
+    background: rgba(7,24,36,.96);
+    box-shadow: 0 22px 52px rgba(0,0,0,.36);
+  }
+}
+
+@media (max-width: 540px) {
+  .hero-copy {
+    margin-inline: 4px;
+    padding: 23px 18px 25px;
+  }
+
+  .hero h1 {
+    font-size: 37px;
+  }
+
+  .hero-location-strip {
+    grid-template-columns: 1fr 1fr;
+    gap: 7px;
+  }
+
+  .hero-location-strip a {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 3px;
+  }
+}
