@@ -2618,3 +2618,14 @@ html[data-theme="dark"] .activity-upcoming{border-color:#31596b;background:#0d2c
 html[data-theme="dark"] .activity-upcoming-head span{color:#72d4f5}
 @media(max-width:900px){.activity-side-rail{display:grid;grid-template-columns:1fr 1fr;align-items:start}}
 @media(max-width:640px){.activity-side-rail{grid-template-columns:1fr}.activity-upcoming{padding:17px}}
+
+
+/* Subtle maker credit: visible without competing with the church identity. */
+.footer-meta{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:18px}
+.footer-meta>small{font-size:11px}
+.site-credit{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:12px;line-height:1;text-decoration:none;opacity:.72;transition:opacity .2s,color .2s}
+.site-credit img{display:block;width:16px;height:19px}
+.site-credit strong{font-weight:700}
+.site-credit:hover,.site-credit:focus-visible{color:var(--ink);opacity:1}
+.site-credit:focus-visible{outline:2px solid var(--brand-blue);outline-offset:4px;border-radius:3px}
+@media(max-width:640px){.footer-meta{align-items:flex-start;flex-direction:column;gap:12px}.site-credit{font-size:12px}}
