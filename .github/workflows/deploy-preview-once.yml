@@ -1,3 +1,4 @@
+# One-shot trigger refreshed after the Goed Webwerk footer credit was merged.
 name: deploy-preview-once
 
 on:
