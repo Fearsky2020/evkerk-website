@@ -9,6 +9,7 @@
     nl: { church: 'Gemeenteactiviteit', fellowship: 'Fellowship', small_group: 'Kringactiviteit' },
   };
   let albums = [];
+  let upcomingEvents = [];
   let records = [];
   let slides = [];
   let dots = [];
@@ -56,6 +57,27 @@
       selectAlbum(button.dataset.albumId);
     }));
   }
+  function renderUpcoming() {
+    const host = document.querySelector('[data-activity-upcoming]');
+    if (!host) return;
+    const nowParts = Object.fromEntries(new Intl.DateTimeFormat('en-GB', {timeZone:'Europe/Amsterdam',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()).map(part => [part.type,part.value]));
+    const today = `${nowParts.year}-${nowParts.month}-${nowParts.day}`;
+    const items = upcomingEvents
+      .filter(event => String(event.date || event.start_at || '').slice(0,10) >= today)
+      .sort((a,b) => String(a.start_at || a.date || '').localeCompare(String(b.start_at || b.date || '')))
+      .slice(0,2);
+    if (!items.length) { host.hidden = true; host.innerHTML = ''; return; }
+    host.hidden = false;
+    host.innerHTML = `<div class="activity-upcoming-head"><span>${language() === 'nl' ? 'BINNENKORT' : '接下来'}</span><h3>${language() === 'nl' ? 'Wat staat er op de agenda?' : '接下来会发生什么？'}</h3></div>
+      <div class="activity-upcoming-list">${items.map(event => {
+        const rawDate = String(event.date || event.start_at || '').slice(0,10);
+        const date = rawDate ? new Intl.DateTimeFormat(language() === 'nl' ? 'nl-NL' : 'zh-CN',{timeZone:'Europe/Amsterdam',month:'short',day:'numeric',weekday:'short'}).format(new Date(`${rawDate}T12:00:00`)) : '';
+        const title = language() === 'nl' ? (event.title_nl || event.title_zh) : (event.title_zh || event.title_nl);
+        const time = [event.start_time,event.end_time].filter(Boolean).join('–');
+        return `<article><time>${escapeText(date)}</time><h4>${escapeText(title || (language() === 'nl' ? 'Samenkomst' : '聚会'))}</h4><p>${escapeText([time,event.location].filter(Boolean).join(' · '))}</p></article>`;
+      }).join('')}</div>`;
+  }
+
   function buildSlides(items) {
     records = items;
     track.innerHTML = items.map((record, index) => {
@@ -93,6 +115,7 @@
       slide.querySelector('p').textContent = text.meta;
     });
     renderSummaries();
+    renderUpcoming();
   }
   function showSlide(index) {
     if (!slides.length) return;
@@ -129,10 +152,14 @@
   });
   new MutationObserver(updateLanguage).observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
 
-  fetch('/api/activities')
-    .then(response => response.ok ? response.json() : Promise.reject(new Error('activities unavailable')))
-    .then(body => { if (body.activities?.length) render(body.activities); else renderFallback(); })
-    .catch(renderFallback);
+  Promise.all([
+    fetch('/api/activities').then(response => response.ok ? response.json() : Promise.reject(new Error('activities unavailable'))),
+    fetch('/api/events', {headers:{Accept:'application/json'}}).then(response => response.ok ? response.json() : {events:[]}).catch(() => ({events:[]}))
+  ]).then(([activityBody,eventBody]) => {
+    upcomingEvents = eventBody.events || [];
+    if (activityBody.activities?.length) render(activityBody.activities); else renderFallback();
+    renderUpcoming();
+  }).catch(() => { renderFallback(); renderUpcoming(); });
 
   function renderFallback() {
     slides = [...carousel.querySelectorAll('[data-slide]')];
