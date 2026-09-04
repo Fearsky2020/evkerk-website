@@ -30,7 +30,8 @@
       .auto-event{padding:17px;border:1px solid var(--line);border-radius:16px;background:var(--paper)}
       .auto-event time{font-size:12px;font-weight:850;color:var(--accent)}.auto-event h4{font-size:17px;margin:9px 0 7px}
       .auto-event p{margin:0;color:var(--muted);font-size:13px;line-height:1.55}.auto-event .auto-event-location{font-size:15px;font-weight:750;line-height:1.45;color:var(--ink)}.auto-event .auto-time{margin-top:10px;color:var(--ink);font-weight:750}.auto-event .auto-special-note{margin-top:8px;color:#9b5939;font-weight:800}.auto-joint-service{margin:0;padding:20px 22px;border:2px solid #12afe6;border-radius:18px;background:linear-gradient(135deg,#eaf8fd,#fff);box-shadow:0 12px 30px rgba(8,127,174,.12)}.auto-joint-service time{display:block;color:#087fae;font-size:15px;font-weight:950}.auto-joint-service h4{margin:7px 0;font-size:24px}.auto-joint-service p{margin:3px 0;color:var(--ink);font-size:15px;font-weight:750}.auto-joint-service .auto-special-note{color:#9b5939;font-weight:900}
-      .auto-sermon-meta{display:flex;gap:9px;flex-wrap:wrap;margin:8px 0 12px;color:var(--muted);font-size:13px}
+      .auto-sermon-meta{display:flex;gap:12px;flex-wrap:wrap;margin:10px 0 0;color:var(--muted);font-size:15px;line-height:1.5}
+      .auto-sermon-scripture{max-width:760px;margin:8px 0 0!important;color:#9b5939!important;font-size:17px!important;font-weight:750;line-height:1.65!important}
       .auto-sermon-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:15px}.auto-sermon-actions a{padding:9px 12px;border-radius:9px;border:1px solid var(--line);text-decoration:none;font-weight:800;font-size:13px}
       button.sermon-play-toggle{border:0;padding:0;flex:0 0 auto;cursor:pointer;font:inherit;display:grid;place-items:center}
       button.sermon-play-toggle:hover{transform:scale(1.04);box-shadow:0 14px 30px rgba(8,127,174,.28)}
@@ -93,12 +94,9 @@
           <div class="auto-sermon-meta">
             ${sermon.sermon_date ? `<b>${esc(dateLabel(sermon.sermon_date))}</b>` : ''}
             ${sermon.speaker ? `<span>${esc(sermon.speaker)}</span>` : ''}
-            ${sermon.scripture ? `<span>${esc(sermon.scripture)}</span>` : ''}
           </div>
-          <div class="auto-sermon-actions">
-            <a href="/sermon.html?id=${encodeURIComponent(sermon.id)}">${isNl() ? 'Bekijk preek' : '查看讲道'}</a>
-            ${sermon.youtube_url ? `<a href="${esc(sermon.youtube_url)}" target="_blank" rel="noopener">YouTube</a>` : ''}
-          </div>
+          ${sermon.scripture ? `<p class="auto-sermon-scripture">${esc(sermon.scripture)}</p>` : ''}
+          ${sermon.youtube_url ? `<div class="auto-sermon-actions"><a href="${esc(sermon.youtube_url)}" target="_blank" rel="noopener">YouTube</a></div>` : ''}
         </div>
       </div>
       <aside class="sermon-summary-band">
