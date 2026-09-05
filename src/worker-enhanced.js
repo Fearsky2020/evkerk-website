@@ -39,7 +39,7 @@ export default {
       return injectScripts(request, env, ['/admin-enhancements.js?v=3']);
     }
     if (url.pathname === '/team' || url.pathname === '/team/' || url.pathname === '/team/index.html') {
-      return injectScripts(request, env, ['/team/course-studio.js?v=1', '/team/course-studio-fixes.js?v=1', '/team/human-auth.js?v=2']);
+      return injectScripts(request, env, ['/team/course-studio.js?v=1', '/team/course-studio-fixes.js?v=1', '/team/human-auth.js?v=3']);
     }
     if (url.pathname === '/' || url.pathname === '/index.html') {
       return injectScripts(request, env, ['/schedule-settings.js?v=1', '/nl-copy-fixes.js?v=1']);
