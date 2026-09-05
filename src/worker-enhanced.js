@@ -1,5 +1,6 @@
 import baseWorker from './worker.js';
 import { handleSiteSettings } from './site-settings.js';
+import { handleSundaySchoolApi } from './sunday-school.js';
 
 async function injectScripts(request, env, sources) {
   const response = await env.ASSETS.fetch(request);
@@ -19,6 +20,10 @@ async function injectScripts(request, env, sources) {
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+    if (url.pathname.startsWith('/api/sunday-school/')) {
+      const sundaySchoolResponse = await handleSundaySchoolApi(request, env, url);
+      if (sundaySchoolResponse) return sundaySchoolResponse;
+    }
     const settingsResponse = await handleSiteSettings(request, env, url);
     if (settingsResponse) return settingsResponse;
     if (url.pathname === '/admin' || url.pathname === '/admin/' || url.pathname === '/admin/index.html') {
