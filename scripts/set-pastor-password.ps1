@@ -100,7 +100,7 @@ ON CONFLICT(id) DO UPDATE SET
 Write-Host 'Saving the pastor admin account (plaintext password is not uploaded)...' -ForegroundColor Cyan
 $sqlFile = Join-Path $env:TEMP ("evkerk-pastor-admin-" + [guid]::NewGuid().ToString('N') + '.sql')
 try {
-    $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+    $utf8NoBom = [System.Text.UTF8Encoding]::new($false)
     [System.IO.File]::WriteAllText($sqlFile, $sql, $utf8NoBom)
     npx wrangler d1 execute $Database --remote --file $sqlFile
     if ($LASTEXITCODE -ne 0) {
