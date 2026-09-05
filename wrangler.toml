@@ -28,3 +28,6 @@ database_id = "2817f829-f9d3-4426-b35c-f8eb21b6b934"
 [[r2_buckets]]
 binding = "MEDIA"
 bucket_name = "evkerk-website-media"
+
+[[send_email]]
+name = "PASSWORD_RESET_EMAIL"

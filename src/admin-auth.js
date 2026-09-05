@@ -1,3 +1,5 @@
+import { authenticateHumanSession } from './human-auth.js';
+
 const ROLE_LEVEL={uploader:1,editor:2,owner:3};
 
 function json(data,status=200){return new Response(JSON.stringify(data),{status,headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store'}})}
@@ -8,6 +10,7 @@ async function tokenHash(token){return hex(await crypto.subtle.digest('SHA-256',
 function accessKey(){const bytes=crypto.getRandomValues(new Uint8Array(32));return 'EVK-'+btoa(String.fromCharCode(...bytes)).replaceAll('+','-').replaceAll('/','_').replaceAll('=','')}
 
 export async function authenticate(request,env){
+  const session=await authenticateHumanSession(request,env);if(session)return session;
   const token=bearer(request);
   if(!token)return null;
   if(env.INGEST_TOKEN&&token===env.INGEST_TOKEN)return{id:'master',name:'主管理员',email:'',role:'owner',master:true};
@@ -22,7 +25,7 @@ export async function authenticate(request,env){
 export async function authorize(request,env,minimum='uploader'){
   if(!env.DB)return{response:json({ok:false,error:'D1 database is not configured'},503),user:null};
   const user=await authenticate(request,env);
-  if(!user)return{response:json({ok:false,error:'后台访问密钥不正确'},401),user:null};
+  if(!user)return{response:json({ok:false,error:'账号或登录状态无效'},401),user:null};
   if((ROLE_LEVEL[user.role]||0)<(ROLE_LEVEL[minimum]||99))return{response:json({ok:false,error:'你的账号没有执行此操作的权限'},403),user};
   return{response:null,user};
 }
@@ -79,7 +82,7 @@ async function rotateKey(request,env,id){
 
 export async function handleAdminAuthApi(request,env,url){
   if(request.method==='POST'&&url.pathname==='/api/admin/login')return loginUser(request,env);
-  if(request.method==='GET'&&url.pathname==='/api/admin/me'){const user=await authenticate(request,env);return user?json({ok:true,user}):json({ok:false,error:'后台访问密钥不正确'},401)}
+  if(request.method==='GET'&&url.pathname==='/api/admin/me'){const user=await authenticate(request,env);return user?json({ok:true,user}):json({ok:false,error:'登录状态无效'},401)}
   if(request.method==='GET'&&url.pathname==='/api/admin/users')return listUsers(request,env);
   if(request.method==='POST'&&url.pathname==='/api/admin/users')return createUser(request,env);
   let match=url.pathname.match(/^\/api\/admin\/users\/([^/]+)\/update$/);if(match&&request.method==='POST')return updateUser(request,env,decodeURIComponent(match[1]));
