@@ -98,9 +98,16 @@ ON CONFLICT(id) DO UPDATE SET
 "@
 
 Write-Host 'Saving the pastor admin account (plaintext password is not uploaded)...' -ForegroundColor Cyan
-npx wrangler d1 execute $Database --remote --command $sql
-if ($LASTEXITCODE -ne 0) {
-    throw 'D1_ADMIN_PASSWORD_UPDATE_FAILED'
+$sqlFile = Join-Path $env:TEMP ("evkerk-pastor-admin-" + [guid]::NewGuid().ToString('N') + '.sql')
+try {
+    $utf8NoBom = [System.Text.UTF8Encoding]::new($false)
+    [System.IO.File]::WriteAllText($sqlFile, $sql, $utf8NoBom)
+    npx wrangler d1 execute $Database --remote --file $sqlFile
+    if ($LASTEXITCODE -ne 0) {
+        throw 'D1_ADMIN_PASSWORD_UPDATE_FAILED'
+    }
+} finally {
+    Remove-Item $sqlFile -Force -ErrorAction SilentlyContinue
 }
 
 Write-Host ''
