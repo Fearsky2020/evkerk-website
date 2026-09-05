@@ -35,6 +35,7 @@ const ALLOWED_INTENTS = new Set([
   'calendar.update',
   'calendar.cancel',
   'media.publish',
+  'sunday_school.lesson.generate',
 ]);
 
 function classifyRisk(type, payload = {}) {
@@ -45,7 +46,7 @@ function classifyRisk(type, payload = {}) {
     return 'medium';
   }
   if (type === 'calendar.create' || type === 'media.publish') return 'medium';
-  if (type === 'sermon.publish') return 'low';
+  if (type === 'sermon.publish' || type === 'sunday_school.lesson.generate') return 'low';
   return 'high';
 }
 
@@ -144,6 +145,18 @@ async function unpublish(env, table, entityType, entityId) {
   return { entityType, entityId, before, after: await fetchRow(env, table, entityId) };
 }
 
+async function queueSundaySchoolGeneration(env, payload, actor) {
+  const scripture = clean(payload.scripture, 1000);
+  if (!scripture) throw new Error('scripture required');
+  const entityId = id('GEN');
+  const title = clean(payload.title || scripture, 300);
+  const audience = clean(payload.audience || '青少年 14–18岁', 300);
+  const duration = Math.max(15, Math.min(120, Number(payload.duration_minutes) || 45));
+  const contract = {version:1,task:'sunday_school.lesson.generate',language:'zh-CN',title,scripture,audience,duration_minutes:duration,focus:clean(payload.focus,3000),style_notes:clean(payload.style_notes,5000),rules:['只生成课程草稿，不允许发布','经文原文必须来自调用方提供或可靠经文源，不凭记忆伪造','模板样式由网站控制，模型只输出内容','核心重点最多3个','避免道德主义式结论，应用应回到福音与恩典','输出适合网页幻灯片的短页面','音乐只给主题/关键词建议；最终歌曲从已审核音乐库选择']};
+  await env.DB.prepare(`INSERT INTO sunday_school_generation_requests(id,title,scripture,audience,duration_minutes,focus,style_notes,status,executor,requested_by,payload_json,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,datetime('now'))`).bind(entityId,title,scripture,audience,duration,contract.focus,contract.style_notes,'pending_executor','xiaoguang',clean(actor,200),JSON.stringify(contract)).run();
+  return {entityType:'sunday_school_generation',entityId,before:null,after:await fetchRow(env,'sunday_school_generation_requests',entityId),reversible:true};
+}
+
 async function executeLocal(env, job) {
   const payload = JSON.parse(job.payload_json || '{}');
   let change;
@@ -151,6 +164,7 @@ async function executeLocal(env, job) {
   else if (job.intent_type === 'sermon.publish') change = await saveSermon(env, payload);
   else if (job.intent_type === 'announcement.unpublish') change = await unpublish(env, 'announcements', 'announcement', clean(payload.id, 100));
   else if (job.intent_type === 'sermon.unpublish') change = await unpublish(env, 'sermons', 'sermon', clean(payload.id, 100));
+  else if (job.intent_type === 'sunday_school.lesson.generate') change = await queueSundaySchoolGeneration(env, payload, job.actor);
   else throw new Error('intent requires external executor');
 
   const operationId = id('OP');
@@ -162,7 +176,7 @@ async function executeLocal(env, job) {
     entityId: change.entityId,
     before: change.before,
     after: change.after,
-    reversible: true,
+    reversible: change.reversible !== false,
   });
   const result = { ok: true, operation_id: operationId, entity_type: change.entityType, entity_id: change.entityId };
   await env.DB.prepare(
