@@ -2,6 +2,7 @@ import baseWorker from './worker.js';
 import { handleSiteSettings } from './site-settings.js';
 import { handleSundaySchoolApi } from './sunday-school.js';
 import { handleSundaySchoolContentApi } from './sunday-school-content.js';
+import { handleSundaySchoolPortalGuard } from './sunday-school-portal-guard.js';
 
 async function injectScripts(request, env, sources) {
   const response = await env.ASSETS.fetch(request);
@@ -21,6 +22,8 @@ async function injectScripts(request, env, sources) {
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+    const guardResponse = await handleSundaySchoolPortalGuard(request, env, url);
+    if (guardResponse) return guardResponse;
     const contentResponse = await handleSundaySchoolContentApi(request, env, url);
     if (contentResponse) return contentResponse;
     if (url.pathname.startsWith('/api/sunday-school/')) {
@@ -33,7 +36,7 @@ export default {
       return injectScripts(request, env, ['/admin-enhancements.js?v=3']);
     }
     if (url.pathname === '/team' || url.pathname === '/team/' || url.pathname === '/team/index.html') {
-      return injectScripts(request, env, ['/team/course-studio.js?v=1']);
+      return injectScripts(request, env, ['/team/course-studio.js?v=1', '/team/course-studio-fixes.js?v=1']);
     }
     if (url.pathname === '/' || url.pathname === '/index.html') {
       return injectScripts(request, env, ['/schedule-settings.js?v=1', '/nl-copy-fixes.js?v=1']);
