@@ -1,4 +1,5 @@
 import baseWorker from './worker.js';
+import { handleSiteSettings } from './site-settings.js';
 
 async function injectAdminEnhancements(request, env) {
   const response = await env.ASSETS.fetch(request);
@@ -11,7 +12,7 @@ async function injectAdminEnhancements(request, env) {
 
   const enhanced = html.replace(
     /<\/body>/i,
-    '<script src="/admin-enhancements.js?v=1"></script></body>',
+    '<script src="/admin-enhancements.js?v=2"></script></body>',
   );
   const headers = new Headers(response.headers);
   headers.delete('content-length');
@@ -22,6 +23,8 @@ async function injectAdminEnhancements(request, env) {
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+    const settingsResponse = await handleSiteSettings(request, env, url);
+    if (settingsResponse) return settingsResponse;
     if (url.pathname === '/admin' || url.pathname === '/admin/' || url.pathname === '/admin/index.html') {
       return injectAdminEnhancements(request, env);
     }
