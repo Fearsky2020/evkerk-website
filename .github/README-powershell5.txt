@@ -1,0 +1,1 @@
+This temporary compatibility note intentionally contains ASCII only. The pastor setup script is kept ASCII-only so Windows PowerShell 5.1 cannot misdecode UTF-8 source text. Remove this note after the compatibility fix is merged if desired.
