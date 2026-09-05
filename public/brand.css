@@ -2925,6 +2925,8 @@ html[data-theme="dark"] .activity-upcoming-head span{color:#72d4f5}
 /* Subtle maker credit: visible without competing with the church identity. */
 .footer-meta{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:18px}
 .footer-meta>small{font-size:11px}
+.footer-legal{display:flex;flex-direction:column;gap:4px;line-height:1.45}
+.footer-legal span:last-child{font-size:11px;color:var(--muted);opacity:.82}
 .site-credit{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:12px;line-height:1;text-decoration:none;opacity:.72;transition:opacity .2s,color .2s}
 .site-credit img{display:block;width:16px;height:19px}
 .site-credit strong{font-weight:700}

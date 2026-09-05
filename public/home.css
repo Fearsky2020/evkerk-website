@@ -530,6 +530,8 @@ html[data-theme="dark"] .sunday-bridge-places a::after { color: #72d4f5; }
 .home-page .footer-links { grid-area: links; justify-self: end; }
 .home-page .footer-meta { display: contents; }
 .home-page .footer-meta > small { grid-area: copyright; justify-self: start; }
+.home-page .footer-legal { display: flex; flex-direction: column; gap: 4px; max-width: 640px; line-height: 1.45; }
+.home-page .footer-legal span:last-child { font-size: 11px; color: var(--home-muted); opacity: .82; }
 .home-page .site-credit { grid-area: credit; justify-self: end; }
 .home-page .footer-links a,
 .home-page .footer-brand strong { color: var(--home-ink); }
