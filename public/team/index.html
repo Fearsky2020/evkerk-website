@@ -5,17 +5,17 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="robots" content="noindex,nofollow,noarchive">
   <title>EVKERK 主日学同工</title>
-  <link rel="stylesheet" href="/team/styles.css?v=1">
+  <link rel="stylesheet" href="/team/styles.css?v=2">
 </head>
 <body>
   <div class="login-wrap" id="loginView">
-    <form class="login-card" id="loginForm">
+    <form class="login-card" id="loginForm" autocomplete="off">
       <a class="brand" href="/"><img src="/assets/evkerk-logo.webp" alt="EVKERK"><span>EVKERK</span></a>
       <p class="eyebrow">主日学同工入口</p>
       <h1>欢迎回来</h1>
       <p class="muted">看课表、备课、记录到场，并把课堂情况留给整个老师团队。</p>
-      <label>姓名或邮箱<input id="identifier" autocomplete="username" required></label>
-      <label>个人访问密钥<input id="token" type="password" autocomplete="current-password" required></label>
+      <label>姓名或邮箱<input id="identifier" autocomplete="off" autocapitalize="none" spellcheck="false" required></label>
+      <label>个人访问密钥<input id="token" type="text" class="masked-secret" autocomplete="off" autocapitalize="none" spellcheck="false" required></label>
       <button class="primary wide" type="submit">进入主日学</button>
       <p class="message" id="loginMessage"></p>
       <a class="back" href="/">← 返回教会网站</a>

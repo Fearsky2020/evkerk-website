@@ -2,6 +2,7 @@
 const TOKEN_KEY='evkerk_teacher_token',ID_KEY='evkerk_teacher_identifier';
 const form=document.getElementById('loginForm'),identifier=document.getElementById('identifier'),secret=document.getElementById('token'),msg=document.getElementById('loginMessage');
 if(!form||!identifier||!secret)return;
+form.setAttribute('autocomplete','off');identifier.setAttribute('autocomplete','off');secret.setAttribute('autocomplete','off');secret.type='text';secret.classList.add('masked-secret');
 const savedId=localStorage.getItem(ID_KEY)||'';if(savedId&&!identifier.value)identifier.value=savedId;
 const label=secret.closest('label');if(label&&label.firstChild)label.firstChild.textContent='密码 / 老师访问密钥';
 const forgot=document.createElement('button');forgot.type='button';forgot.className='back';forgot.id='forgotPasswordBtn';forgot.textContent='忘记密码？用找回邮箱重置';msg.before(forgot);
