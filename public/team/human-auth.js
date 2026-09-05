@@ -1,9 +1,11 @@
 (()=>{
+const TOKEN_KEY='evkerk_teacher_token',ID_KEY='evkerk_teacher_identifier';
 const form=document.getElementById('loginForm'),identifier=document.getElementById('identifier'),secret=document.getElementById('token'),msg=document.getElementById('loginMessage');
 if(!form||!identifier||!secret)return;
+const savedId=localStorage.getItem(ID_KEY)||'';if(savedId&&!identifier.value)identifier.value=savedId;
 const label=secret.closest('label');if(label&&label.firstChild)label.firstChild.textContent='密码 / 老师访问密钥';
 const forgot=document.createElement('button');forgot.type='button';forgot.className='back';forgot.id='forgotPasswordBtn';forgot.textContent='忘记密码？用找回邮箱重置';msg.before(forgot);
-let bypass=false;
+const remember=document.createElement('p');remember.className='muted';remember.textContent='登录后此设备将保持登录 30 天，无需每次重新输入密码。';forgot.after(remember);
 function setMessage(text,type=''){msg.textContent=text||'';msg.className=`message ${type}`.trim()}
 async function call(path,body){const r=await fetch(path,{method:'POST',credentials:'same-origin',headers:{'content-type':'application/json'},body:JSON.stringify(body)});const d=await r.json().catch(()=>({ok:false,error:'服务器返回异常'}));if(!r.ok)throw new Error(d.error||'操作失败');return d}
 function fromB64(s){const raw=atob(s);return Uint8Array.from(raw,c=>c.charCodeAt(0))}
@@ -12,12 +14,11 @@ async function deriveVerifier(password,saltB64,iterations){const key=await crypt
 async function makeProof(verifierB64,nonce){const key=await crypto.subtle.importKey('raw',fromB64(verifierB64),{name:'HMAC',hash:'SHA-256'},false,['sign']);const sig=await crypto.subtle.sign('HMAC',key,new TextEncoder().encode(nonce));return toB64(new Uint8Array(sig))}
 async function humanLogin(id,password){const challenge=await call('/api/human-auth/challenge',{identifier:id});const verifier=await deriveVerifier(password,challenge.salt,challenge.iterations);const proof=await makeProof(verifier,challenge.nonce);return call('/api/human-auth/login',{identifier:id,nonce:challenge.nonce,proof})}
 form.addEventListener('submit',async e=>{
-  if(bypass){bypass=false;return}
   const id=identifier.value.trim(),password=secret.value;
   if(!id||!password)return;
   if(/^EVK-(?:T-)?/.test(password))return;
   e.preventDefault();e.stopImmediatePropagation();setMessage('正在登录…');
-  try{await humanLogin(id,password);bypass=true;secret.value='session';form.requestSubmit()}catch(err){setMessage(err.message,'error')}
+  try{const out=await humanLogin(id,password);const rememberedId=out.user?.email||id;localStorage.setItem(ID_KEY,rememberedId);localStorage.setItem(TOKEN_KEY,'session');secret.value='';location.reload()}catch(err){setMessage(err.message,'error')}
 },true);
 
 document.getElementById('logoutBtn')?.addEventListener('click',()=>{fetch('/api/human-auth/logout',{method:'POST',credentials:'same-origin',keepalive:true}).catch(()=>{})},true);
@@ -29,4 +30,6 @@ function ensureDialog(){let d=document.getElementById('passwordRecoveryDialog');
 }
 forgot.addEventListener('click',()=>{const d=ensureDialog();document.getElementById('recoveryRequest').hidden=false;document.getElementById('recoveryReset').hidden=true;d.showModal()});
 const resetToken=new URLSearchParams(location.search).get('reset');if(resetToken){const d=ensureDialog();document.getElementById('recoveryRequest').hidden=true;document.getElementById('recoveryReset').hidden=false;d.showModal()}
+async function restoreExistingSession(){if(resetToken)return;try{const r=await fetch('/api/admin/me',{credentials:'same-origin',cache:'no-store'});if(!r.ok)return;const data=await r.json();const rememberedId=data.user?.email||data.user?.name||localStorage.getItem(ID_KEY)||'';let changed=false;if(localStorage.getItem(TOKEN_KEY)!=='session'){localStorage.setItem(TOKEN_KEY,'session');changed=true}if(rememberedId&&localStorage.getItem(ID_KEY)!==rememberedId){localStorage.setItem(ID_KEY,rememberedId);changed=true}if(changed)location.reload()}catch{}}
+restoreExistingSession();
 })();
