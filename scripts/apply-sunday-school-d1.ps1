@@ -6,28 +6,30 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-function Invoke-WranglerJson {
+function ConvertFrom-WranglerJsonOutput {
     param(
         [Parameter(Mandatory = $true)]
-        [string[]]$Arguments
+        [string]$Text
     )
 
-    $stdout = Join-Path $env:TEMP ("wrangler-json-" + [guid]::NewGuid().ToString('N') + '.txt')
-    $stderr = Join-Path $env:TEMP ("wrangler-err-" + [guid]::NewGuid().ToString('N') + '.txt')
-    try {
-        $argList = @('wrangler') + $Arguments
-        $process = Start-Process -FilePath 'npx.cmd' -ArgumentList $argList -NoNewWindow -Wait -PassThru -RedirectStandardOutput $stdout -RedirectStandardError $stderr
-        $errorText = if (Test-Path $stderr) { [System.IO.File]::ReadAllText($stderr, [System.Text.Encoding]::UTF8) } else { '' }
-        if ($process.ExitCode -ne 0) {
-            if ($errorText) { Write-Host $errorText }
-            throw "WRANGLER_JSON_COMMAND_FAILED:$($process.ExitCode)"
-        }
-        $jsonText = [System.IO.File]::ReadAllText($stdout, [System.Text.Encoding]::UTF8).Trim()
-        if (-not $jsonText) { throw 'WRANGLER_JSON_EMPTY_OUTPUT' }
-        return ($jsonText | ConvertFrom-Json)
-    } finally {
-        Remove-Item $stdout,$stderr -Force -ErrorAction SilentlyContinue
+    # Windows PowerShell 5.1 can misdecode Wrangler's leading cloud emoji
+    # ("⛅️" becomes text such as "鉀咃笍"). Wrangler may also print a banner
+    # before the JSON payload. The D1 --json response itself is an array, so
+    # isolate that array instead of asking ConvertFrom-Json to parse the banner.
+    $escape = [string][char]27
+    $ansiPattern = [regex]::Escape($escape) + '\[[0-?]*[ -/]*[@-~]'
+    $clean = [regex]::Replace($Text, $ansiPattern, '')
+
+    $startMatch = [regex]::Match($clean, '(?m)^\s*\[')
+    $end = $clean.LastIndexOf(']')
+    if (-not $startMatch.Success -or $end -lt $startMatch.Index) {
+        Write-Host $clean
+        throw 'WRANGLER_JSON_PAYLOAD_NOT_FOUND'
     }
+
+    $start = $clean.IndexOf('[', $startMatch.Index)
+    $jsonText = $clean.Substring($start, $end - $start + 1)
+    return ($jsonText | ConvertFrom-Json)
 }
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
@@ -80,14 +82,24 @@ try {
     Write-Host "`n[4/4] Verifying production schema..." -ForegroundColor Cyan
 
     $tableSql = "SELECT COUNT(*) AS c FROM sqlite_schema WHERE type='table' AND name IN ('sunday_school_music','sunday_school_lesson_pages','sunday_school_schedule_pages','sunday_school_generation_requests');"
-    $tableResult = Invoke-WranglerJson -Arguments @('d1','execute',$Database,'--remote','--command',$tableSql,'--json')
+    $tableOutput = (& $npx.Source wrangler d1 execute $Database --remote --command $tableSql --json 2>&1 | Out-String)
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host $tableOutput
+        throw 'D1_TABLE_VERIFY_FAILED'
+    }
+    $tableResult = ConvertFrom-WranglerJsonOutput -Text $tableOutput
     $tableCount = [int]$tableResult[0].results[0].c
     if ($tableCount -ne 4) {
         throw "D1_TABLE_VERIFY_FAILED: expected 4 course-studio tables, found $tableCount"
     }
 
     $columnSql = "SELECT COUNT(*) AS c FROM pragma_table_info('sunday_school_lessons') WHERE name IN ('source','generation_id','approved_by','approved_at');"
-    $columnResult = Invoke-WranglerJson -Arguments @('d1','execute',$Database,'--remote','--command',$columnSql,'--json')
+    $columnOutput = (& $npx.Source wrangler d1 execute $Database --remote --command $columnSql --json 2>&1 | Out-String)
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host $columnOutput
+        throw 'D1_COLUMN_VERIFY_FAILED'
+    }
+    $columnResult = ConvertFrom-WranglerJsonOutput -Text $columnOutput
     $columnCount = [int]$columnResult[0].results[0].c
     if ($columnCount -ne 4) {
         throw "D1_COLUMN_VERIFY_FAILED: expected 4 lesson AI columns, found $columnCount"
