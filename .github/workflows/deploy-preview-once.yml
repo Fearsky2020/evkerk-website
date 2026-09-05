@@ -1,4 +1,4 @@
-# One-shot trigger refreshed for sitemap and robots production deployment.
+# One-shot trigger refreshed for Bingbing UX production deployment.
 name: deploy-preview-once
 
 on:
