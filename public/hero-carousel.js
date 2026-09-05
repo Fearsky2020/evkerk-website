@@ -1,4 +1,12 @@
 (() => {
+  if (!document.querySelector('link[data-bingbing-feedback-fixes]')) {
+    const feedbackStyles = document.createElement('link');
+    feedbackStyles.rel = 'stylesheet';
+    feedbackStyles.href = '/feedback-fixes.css?v=1';
+    feedbackStyles.dataset.bingbingFeedbackFixes = 'true';
+    document.head.appendChild(feedbackStyles);
+  }
+
   const cover = document.querySelector('.home-cover');
   const legacyFigure = document.querySelector('.hero-visual');
   const root = cover || legacyFigure;
