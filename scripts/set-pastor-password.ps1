@@ -52,7 +52,7 @@ try {
     $rng.Dispose()
 }
 
-$pbkdf = New-Object System.Security.Cryptography.Rfc2898DeriveBytes($password, $salt, $iterations, [System.Security.Cryptography.HashAlgorithmName]::SHA256)
+$pbkdf = [System.Security.Cryptography.Rfc2898DeriveBytes]::new($password, $salt, $iterations, [System.Security.Cryptography.HashAlgorithmName]::SHA256)
 try {
     $passwordHashBytes = $pbkdf.GetBytes(32)
 } finally {
