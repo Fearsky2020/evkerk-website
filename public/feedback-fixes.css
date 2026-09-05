@@ -1,0 +1,62 @@
+/* Bingbing real-use feedback pass — desktop-only readability and photo framing. */
+@media (min-width: 981px) {
+  /* Desktop headings were visually oversized, especially in Dutch. Keep mobile untouched. */
+  .home-page .home-cover h1 {
+    max-width: 780px;
+    font-size: clamp(48px, 4vw, 66px);
+    line-height: 1.07;
+  }
+
+  .home-page .section-heading h2,
+  .home-page .about-card h2,
+  .home-page .contact-card h2,
+  .home-page .group-map-copy h2 {
+    font-size: clamp(32px, 3vw, 46px);
+    line-height: 1.1;
+  }
+
+  html[lang="nl"] .home-page .home-cover h1 {
+    max-width: 850px;
+    font-size: clamp(44px, 3.65vw, 60px);
+    letter-spacing: -.035em;
+  }
+
+  html[lang="nl"] .home-page .section-heading h2,
+  html[lang="nl"] .home-page .about-card h2,
+  html[lang="nl"] .home-page .contact-card h2,
+  html[lang="nl"] .home-page .group-map-copy h2 {
+    font-size: clamp(30px, 2.65vw, 42px);
+    letter-spacing: -.025em;
+  }
+
+  .home-page .desktop-nav,
+  .home-page .desktop-nav a,
+  .home-page .visit-btn {
+    white-space: nowrap;
+  }
+
+  html[lang="nl"] .home-page .desktop-nav a {
+    padding-inline: 10px;
+    font-size: 12px;
+  }
+
+  html[lang="nl"] .home-page .visit-btn {
+    padding-inline: 14px;
+    font-size: 12px;
+  }
+
+  /* Activity photos: show more of the original frame instead of a shallow crop. */
+  .home-page .activity-carousel {
+    min-height: 520px;
+  }
+
+  .home-page .activity-slide img {
+    object-fit: contain;
+    object-position: center;
+    background: #ddd5c9;
+  }
+
+  html[data-theme="dark"] .home-page .activity-slide img {
+    background: #091923;
+  }
+}
