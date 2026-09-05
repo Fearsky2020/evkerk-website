@@ -11,9 +11,9 @@ function cookieValue(request,name){const raw=request.headers.get('cookie')||'';f
 function sessionCookie(token,maxAge=2592000){return `evkerk_admin_session=${encodeURIComponent(token)}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${maxAge}`}
 function fromB64(s){const raw=atob(s);return Uint8Array.from(raw,c=>c.charCodeAt(0))}
 function toB64(bytes){return btoa(String.fromCharCode(...bytes))}
-async function derivePassword(password,saltB64,iterations){const key=await crypto.subtle.importKey('raw',new TextEncoder().encode(password),'PBKDF2',false,['deriveBits']);const bits=await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt:fromB64(saltB64),iterations},key,256);return toB64(new Uint8Array(bits))}
 function constantTimeEqual(a,b){if(typeof a!=='string'||typeof b!=='string'||a.length!==b.length)return false;let x=0;for(let i=0;i<a.length;i++)x|=a.charCodeAt(i)^b.charCodeAt(i);return x===0}
 async function findUser(env,identifier){const id=clean(identifier,200).toLowerCase();if(!id)return null;return env.DB.prepare("SELECT id,name,email,role,status,password_hash,password_salt,password_iterations FROM admin_users WHERE status='active' AND (lower(name)=? OR lower(email)=?) LIMIT 1").bind(id,id).first()}
+async function hmacProof(verifierB64,nonce){const key=await crypto.subtle.importKey('raw',fromB64(verifierB64),{name:'HMAC',hash:'SHA-256'},false,['sign']);const sig=await crypto.subtle.sign('HMAC',key,new TextEncoder().encode(nonce));return toB64(new Uint8Array(sig))}
 
 export async function authenticateHumanSession(request,env){
   if(!env.DB)return null;
@@ -26,34 +26,35 @@ export async function authenticateHumanSession(request,env){
   return{id:row.id,name:row.name,email:row.email,role:row.role,status:row.status,human_session:true};
 }
 
+async function challenge(request,env){
+  if(!env.DB)return json({ok:false,error:'数据库未配置'},503);
+  const body=await request.json().catch(()=>({}));
+  const user=await findUser(env,body.identifier);
+  const fakeSalt=toB64(crypto.getRandomValues(new Uint8Array(16)));
+  return json({ok:true,salt:user?.password_salt||fakeSalt,iterations:Number(user?.password_iterations)||210000,nonce:randomToken(24)});
+}
+
 async function login(request,env){
   if(!env.DB)return json({ok:false,error:'数据库未配置'},503);
   const body=await request.json().catch(()=>({}));
   const user=await findUser(env,body.identifier);
   if(!user?.password_hash||!user?.password_salt)return json({ok:false,error:'账号或密码不正确'},401);
-  const password=String(body.password??'');
-  const iterations=Number(user.password_iterations)||210000;
-  const actual=await derivePassword(password,user.password_salt,iterations);
-  if(!constantTimeEqual(actual,user.password_hash))return json({ok:false,error:'账号或密码不正确'},401);
+  const nonce=clean(body.nonce,200),proof=clean(body.proof,300);
+  if(!nonce||!proof)return json({ok:false,error:'登录验证数据不完整'},400);
+  const expected=await hmacProof(user.password_hash,nonce);
+  if(!constantTimeEqual(expected,proof))return json({ok:false,error:'账号或密码不正确'},401);
 
   const token=randomToken();
   const hash=await sha256Hex(token);
   const sessionId=`SES-${crypto.randomUUID()}`;
   const expiresAt=new Date(Date.now()+30*24*60*60*1000).toISOString();
-
-  try{
-    await env.DB.prepare("DELETE FROM admin_sessions WHERE datetime(expires_at)<=datetime('now')").run();
-  }catch(error){
-    console.warn('ADMIN_SESSION_CLEANUP_FAILED',error?.message||error);
-  }
-
+  await env.DB.prepare("DELETE FROM admin_sessions WHERE datetime(expires_at)<=datetime('now')").run().catch(()=>{});
   try{
     await env.DB.prepare('INSERT INTO admin_sessions(id,user_id,token_hash,expires_at) VALUES(?,?,?,?)').bind(sessionId,user.id,hash,expiresAt).run();
   }catch(error){
     console.error('ADMIN_SESSION_INSERT_FAILED',error?.message||error);
     return json({ok:false,error:'登录会话创建失败，请稍后再试',code:'SESSION_CREATE_FAILED'},500);
   }
-
   return json({ok:true,user:{id:user.id,name:user.name,email:user.email,role:user.role}},200,{'set-cookie':sessionCookie(token)});
 }
 
@@ -71,9 +72,7 @@ async function forgot(request,env){
   if(!email)return json({ok:true,message:'如果该邮箱已绑定账号，你会收到重置邮件。'});
   const user=await env.DB.prepare("SELECT id,name,email FROM admin_users WHERE status='active' AND lower(email)=? AND password_hash IS NOT NULL LIMIT 1").bind(email).first();
   if(!user)return json({ok:true,message:'如果该邮箱已绑定账号，你会收到重置邮件。'});
-  const token=randomToken();
-  const hash=await sha256Hex(token);
-  const expiresAt=new Date(Date.now()+15*60*1000).toISOString();
+  const token=randomToken(),hash=await sha256Hex(token),expiresAt=new Date(Date.now()+15*60*1000).toISOString();
   await env.DB.prepare("UPDATE admin_password_resets SET used_at=datetime('now') WHERE user_id=? AND used_at IS NULL").bind(user.id).run();
   await env.DB.prepare('INSERT INTO admin_password_resets(id,user_id,token_hash,expires_at) VALUES(?,?,?,?)').bind(`RST-${crypto.randomUUID()}`,user.id,hash,expiresAt).run();
   const link=`https://evkerk.nl/team/?reset=${encodeURIComponent(token)}`;
@@ -90,15 +89,14 @@ async function forgot(request,env){
 async function resetPassword(request,env){
   if(!env.DB)return json({ok:false,error:'数据库未配置'},503);
   const body=await request.json().catch(()=>({}));
-  const token=clean(body.token,300),password=String(body.password??'');
-  if(password.length<10)return json({ok:false,error:'新密码至少10个字符，可以用一句自己记得住的话'},400);
+  const token=clean(body.token,300),passwordHash=clean(body.password_hash,500),passwordSalt=clean(body.password_salt,200),iterations=Number(body.password_iterations)||0;
+  if(!token||!passwordHash||!passwordSalt||iterations<100000||iterations>500000)return json({ok:false,error:'密码重置数据不完整'},400);
+  try{if(fromB64(passwordHash).length!==32||fromB64(passwordSalt).length<16)return json({ok:false,error:'密码重置数据格式不正确'},400)}catch{return json({ok:false,error:'密码重置数据格式不正确'},400)}
   const hash=await sha256Hex(token);
   const row=await env.DB.prepare(`SELECT r.id reset_id,r.user_id FROM admin_password_resets r JOIN admin_users u ON u.id=r.user_id WHERE r.token_hash=? AND r.used_at IS NULL AND datetime(r.expires_at)>datetime('now') AND u.status='active' LIMIT 1`).bind(hash).first();
   if(!row)return json({ok:false,error:'重置链接无效或已过期'},400);
-  const salt=crypto.getRandomValues(new Uint8Array(16));
-  const saltB64=toB64(salt),iterations=210000,passwordHash=await derivePassword(password,saltB64,iterations);
   try{
-    await env.DB.prepare("UPDATE admin_users SET password_hash=?,password_salt=?,password_iterations=?,updated_at=datetime('now') WHERE id=?").bind(passwordHash,saltB64,iterations,row.user_id).run();
+    await env.DB.prepare("UPDATE admin_users SET password_hash=?,password_salt=?,password_iterations=?,updated_at=datetime('now') WHERE id=?").bind(passwordHash,passwordSalt,iterations,row.user_id).run();
     await env.DB.prepare("UPDATE admin_password_resets SET used_at=datetime('now') WHERE id=?").bind(row.reset_id).run();
     await env.DB.prepare('DELETE FROM admin_sessions WHERE user_id=?').bind(row.user_id).run();
   }catch(error){
@@ -110,6 +108,7 @@ async function resetPassword(request,env){
 
 export async function handleHumanAuthApi(request,env,url){
   if(!url.pathname.startsWith('/api/human-auth/'))return null;
+  if(url.pathname==='/api/human-auth/challenge'&&request.method==='POST')return challenge(request,env);
   if(url.pathname==='/api/human-auth/login'&&request.method==='POST')return login(request,env);
   if(url.pathname==='/api/human-auth/logout'&&request.method==='POST')return logout(request,env);
   if(url.pathname==='/api/human-auth/forgot'&&request.method==='POST')return forgot(request,env);
