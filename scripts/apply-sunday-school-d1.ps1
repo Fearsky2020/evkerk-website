@@ -6,6 +6,30 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
+function Invoke-WranglerJson {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string[]]$Arguments
+    )
+
+    $stdout = Join-Path $env:TEMP ("wrangler-json-" + [guid]::NewGuid().ToString('N') + '.txt')
+    $stderr = Join-Path $env:TEMP ("wrangler-err-" + [guid]::NewGuid().ToString('N') + '.txt')
+    try {
+        $argList = @('wrangler') + $Arguments
+        $process = Start-Process -FilePath 'npx.cmd' -ArgumentList $argList -NoNewWindow -Wait -PassThru -RedirectStandardOutput $stdout -RedirectStandardError $stderr
+        $errorText = if (Test-Path $stderr) { [System.IO.File]::ReadAllText($stderr, [System.Text.Encoding]::UTF8) } else { '' }
+        if ($process.ExitCode -ne 0) {
+            if ($errorText) { Write-Host $errorText }
+            throw "WRANGLER_JSON_COMMAND_FAILED:$($process.ExitCode)"
+        }
+        $jsonText = [System.IO.File]::ReadAllText($stdout, [System.Text.Encoding]::UTF8).Trim()
+        if (-not $jsonText) { throw 'WRANGLER_JSON_EMPTY_OUTPUT' }
+        return ($jsonText | ConvertFrom-Json)
+    } finally {
+        Remove-Item $stdout,$stderr -Force -ErrorAction SilentlyContinue
+    }
+}
+
 $repoRoot = Split-Path -Parent $PSScriptRoot
 Push-Location $repoRoot
 try {
@@ -55,33 +79,15 @@ try {
 
     Write-Host "`n[4/4] Verifying production schema..." -ForegroundColor Cyan
 
-    $tableSql = @"
-SELECT COUNT(*) AS c
-FROM sqlite_schema
-WHERE type='table'
-  AND name IN (
-    'sunday_school_music',
-    'sunday_school_lesson_pages',
-    'sunday_school_schedule_pages',
-    'sunday_school_generation_requests'
-  );
-"@
-    $tableJson = (& $npx.Source wrangler d1 execute $Database --remote --command $tableSql --json | Out-String)
-    if ($LASTEXITCODE -ne 0) { throw 'D1_TABLE_VERIFY_FAILED' }
-    $tableResult = $tableJson | ConvertFrom-Json
+    $tableSql = "SELECT COUNT(*) AS c FROM sqlite_schema WHERE type='table' AND name IN ('sunday_school_music','sunday_school_lesson_pages','sunday_school_schedule_pages','sunday_school_generation_requests');"
+    $tableResult = Invoke-WranglerJson -Arguments @('d1','execute',$Database,'--remote','--command',$tableSql,'--json')
     $tableCount = [int]$tableResult[0].results[0].c
     if ($tableCount -ne 4) {
         throw "D1_TABLE_VERIFY_FAILED: expected 4 course-studio tables, found $tableCount"
     }
 
-    $columnSql = @"
-SELECT COUNT(*) AS c
-FROM pragma_table_info('sunday_school_lessons')
-WHERE name IN ('source','generation_id','approved_by','approved_at');
-"@
-    $columnJson = (& $npx.Source wrangler d1 execute $Database --remote --command $columnSql --json | Out-String)
-    if ($LASTEXITCODE -ne 0) { throw 'D1_COLUMN_VERIFY_FAILED' }
-    $columnResult = $columnJson | ConvertFrom-Json
+    $columnSql = "SELECT COUNT(*) AS c FROM pragma_table_info('sunday_school_lessons') WHERE name IN ('source','generation_id','approved_by','approved_at');"
+    $columnResult = Invoke-WranglerJson -Arguments @('d1','execute',$Database,'--remote','--command',$columnSql,'--json')
     $columnCount = [int]$columnResult[0].results[0].c
     if ($columnCount -ne 4) {
         throw "D1_COLUMN_VERIFY_FAILED: expected 4 lesson AI columns, found $columnCount"
