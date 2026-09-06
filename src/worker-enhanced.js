@@ -23,6 +23,11 @@ async function injectScripts(request, env, sources) {
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+    if (url.hostname === 'www.evkerk.nl' || url.protocol === 'http:') {
+      url.protocol = 'https:';
+      url.hostname = 'evkerk.nl';
+      return Response.redirect(url.toString(), 301);
+    }
     const humanAuthResponse = await handleHumanAuthApi(request, env, url);
     if (humanAuthResponse) return humanAuthResponse;
     const guardResponse = await handleSundaySchoolPortalGuard(request, env, url);
