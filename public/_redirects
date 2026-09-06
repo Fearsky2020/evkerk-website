@@ -1,0 +1,5 @@
+# Preserve useful legacy WordPress URLs after the 2026 site relaunch.
+/index.php/156.html / 301
+/index.php/157.html / 301
+/index.php/6.html / 301
+/index.php/archives/32/ / 301
