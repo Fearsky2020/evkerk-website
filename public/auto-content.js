@@ -91,7 +91,7 @@
           : `<div class="play" aria-hidden="true">▶</div>`}
         <div>
           <span>${isNl() ? 'LAATSTE PREEK' : '最新讲道'}</span>
-          <h3><a class="auto-sermon-title-link" href="/sermon.html?id=${encodeURIComponent(sermon.id)}">${esc(t(sermon.title_zh, sermon.title_nl) || (isNl() ? 'Preek' : '讲道'))}</a></h3>
+          <h3><a class="auto-sermon-title-link" href="/sermon?id=${encodeURIComponent(sermon.id)}">${esc(t(sermon.title_zh, sermon.title_nl) || (isNl() ? 'Preek' : '讲道'))}</a></h3>
           <div class="auto-sermon-meta">
             ${sermon.sermon_date ? `<b>${esc(dateLabel(sermon.sermon_date))}</b>` : ''}
             ${sermon.speaker ? `<span>${esc(sermon.speaker)}</span>` : ''}
