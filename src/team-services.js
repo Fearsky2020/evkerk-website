@@ -79,6 +79,7 @@ async function saveService(request,env,idFromPath=''){
 }
 
 function requiredServiceForPath(path){
+  if(path.startsWith('/api/welcome/')||path.startsWith('/team/welcome'))return'welcome';
   if(path.startsWith('/api/sunday-school/')||path.startsWith('/team/sunday-school'))return'sunday_school';
   if(path.startsWith('/api/admin/activities'))return'media';
   if(path==='/admin/media.html'||path.startsWith('/api/media/')||path.startsWith('/api/admin/sermon-audio')||path.startsWith('/api/ingest/sermon'))return'content';
