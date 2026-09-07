@@ -46,7 +46,10 @@ export default {
     const settingsResponse = await handleSiteSettings(request, env, url);
     if (settingsResponse) return settingsResponse;
     if (url.pathname === '/admin' || url.pathname === '/admin/' || url.pathname === '/admin/index.html') {
-      return injectScripts(request, env, ['/admin-enhancements.js?v=4']);
+      return injectScripts(request, env, ['/admin/session-bridge.js?v=1', '/admin-enhancements.js?v=5']);
+    }
+    if (url.pathname === '/admin/media.html') {
+      return injectScripts(request, env, ['/admin/session-bridge.js?v=1']);
     }
     if (url.pathname === '/' || url.pathname === '/index.html') {
       return injectScripts(request, env, ['/schedule-settings.js?v=1', '/nl-copy-fixes.js?v=1']);
