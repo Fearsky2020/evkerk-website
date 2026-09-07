@@ -4,6 +4,7 @@ import { handleSundaySchoolApi } from './sunday-school.js';
 import { handleSundaySchoolContentApi } from './sunday-school-content.js';
 import { handleSundaySchoolPortalGuard } from './sunday-school-portal-guard.js';
 import { handleHumanAuthApi } from './human-auth.js';
+import { handleTeamServicesApi, guardHumanServiceAccess } from './team-services.js';
 
 async function injectScripts(request, env, sources) {
   const response = await env.ASSETS.fetch(request);
@@ -30,6 +31,10 @@ export default {
     }
     const humanAuthResponse = await handleHumanAuthApi(request, env, url);
     if (humanAuthResponse) return humanAuthResponse;
+    const teamServicesResponse = await handleTeamServicesApi(request, env, url);
+    if (teamServicesResponse) return teamServicesResponse;
+    const serviceGuardResponse = await guardHumanServiceAccess(request, env, url);
+    if (serviceGuardResponse) return serviceGuardResponse;
     const guardResponse = await handleSundaySchoolPortalGuard(request, env, url);
     if (guardResponse) return guardResponse;
     const contentResponse = await handleSundaySchoolContentApi(request, env, url);
@@ -41,7 +46,7 @@ export default {
     const settingsResponse = await handleSiteSettings(request, env, url);
     if (settingsResponse) return settingsResponse;
     if (url.pathname === '/admin' || url.pathname === '/admin/' || url.pathname === '/admin/index.html') {
-      return injectScripts(request, env, ['/admin-enhancements.js?v=3']);
+      return injectScripts(request, env, ['/admin-enhancements.js?v=4']);
     }
     if (url.pathname === '/' || url.pathname === '/index.html') {
       return injectScripts(request, env, ['/schedule-settings.js?v=1', '/nl-copy-fixes.js?v=1']);
