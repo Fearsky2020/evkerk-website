@@ -25,7 +25,8 @@ async function injectScripts(request, env, sources) {
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
-    if (url.hostname === 'www.evkerk.nl' || url.protocol === 'http:') {
+    const isLocal = url.hostname === '127.0.0.1' || url.hostname === 'localhost';
+    if (!isLocal && (url.hostname === 'www.evkerk.nl' || url.protocol === 'http:')) {
       url.protocol = 'https:';
       url.hostname = 'evkerk.nl';
       return Response.redirect(url.toString(), 301);
