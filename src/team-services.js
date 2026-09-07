@@ -31,9 +31,8 @@ export async function authorizeService(request,env,requiredService){
 async function currentServices(request,env){
   const user=await authenticateHumanSession(request,env);
   if(!user)return json({ok:false,error:'请先登录同工账号'},401);
-  const assigned=await servicesForUser(env,user.id),all=await catalog(env);
-  const admin=assigned.includes('admin');
-  const services=all.filter(item=>admin||assigned.includes(item.id));
+  const assigned=await servicesForUser(env,user.id),all=await catalog(env),admin=assigned.includes('admin');
+  const services=all.filter(item=>assigned.includes(item.id)||(admin&&item.status==='active'));
   return json({ok:true,user,services,assigned_services:assigned,is_service_admin:admin});
 }
 
