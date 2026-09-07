@@ -44,30 +44,30 @@ async function loginUser(request,env){
 
 async function listUsers(request,env){
   const auth=await authorize(request,env,'owner');if(auth.response)return auth.response;
-  const result=await env.DB.prepare("SELECT id,name,email,role,status,last_used_at,created_at,updated_at FROM admin_users ORDER BY status ASC,created_at DESC LIMIT 100").all();
+  const result=await env.DB.prepare("SELECT id,name,email,role,status,last_used_at,created_at,updated_at,CASE WHEN password_hash IS NOT NULL THEN 1 ELSE 0 END password_ready FROM admin_users ORDER BY status ASC,created_at DESC LIMIT 100").all();
   return json({ok:true,users:result.results||[],current:auth.user});
 }
 async function createUser(request,env){
   const auth=await authorize(request,env,'owner');if(auth.response)return auth.response;
   const body=await request.json().catch(()=>({})),name=clean(body.name,120),email=clean(body.email,200).toLowerCase(),role=['owner','editor','uploader'].includes(body.role)?body.role:'uploader';
-  if(!name)return json({ok:false,error:'请填写管理员姓名'},400);
+  if(!name)return json({ok:false,error:'请填写同工姓名'},400);
   const token=accessKey(),id='ADM-'+crypto.randomUUID(),hash=await tokenHash(token);
   await env.DB.prepare("INSERT INTO admin_users(id,name,email,role,token_hash,status) VALUES(?,?,?,?,?,'active')").bind(id,name,email||null,role,hash).run();
-  return json({ok:true,user:{id,name,email,role,status:'active'},access_key:token},201);
+  return json({ok:true,user:{id,name,email,role,status:'active',password_ready:0},access_key:token},201);
 }
 async function updateUser(request,env,id){
   const auth=await authorize(request,env,'owner');if(auth.response)return auth.response;
   const body=await request.json().catch(()=>({})),name=clean(body.name,120),email=clean(body.email,200).toLowerCase(),role=['owner','editor','uploader'].includes(body.role)?body.role:'uploader',status=body.status==='disabled'?'disabled':'active';
-  if(!name)return json({ok:false,error:'请填写管理员姓名'},400);
+  if(!name)return json({ok:false,error:'请填写同工姓名'},400);
   const result=await env.DB.prepare("UPDATE admin_users SET name=?,email=?,role=?,status=?,updated_at=datetime('now') WHERE id=?").bind(name,email||null,role,status,id).run();
-  if(!Number(result.meta?.changes||0))return json({ok:false,error:'管理员不存在'},404);
+  if(!Number(result.meta?.changes||0))return json({ok:false,error:'同工账号不存在'},404);
   return json({ok:true,id});
 }
 async function deleteUser(request,env,id){
   const auth=await authorize(request,env,'owner');if(auth.response)return auth.response;
   const user=await env.DB.prepare("SELECT id,name,status FROM admin_users WHERE id=?").bind(id).first();
-  if(!user)return json({ok:false,error:'管理员不存在'},404);
-  if(user.status!=='disabled')return json({ok:false,error:'请先停用该管理员，再永久删除'},409);
+  if(!user)return json({ok:false,error:'同工账号不存在'},404);
+  if(user.status!=='disabled')return json({ok:false,error:'请先停用该同工账号，再永久删除'},409);
   await env.DB.prepare("DELETE FROM admin_users WHERE id=? AND status='disabled'").bind(id).run();
   return json({ok:true,id});
 }
@@ -76,7 +76,7 @@ async function rotateKey(request,env,id){
   const auth=await authorize(request,env,'owner');if(auth.response)return auth.response;
   const token=accessKey(),hash=await tokenHash(token);
   const result=await env.DB.prepare("UPDATE admin_users SET token_hash=?,status='active',updated_at=datetime('now') WHERE id=?").bind(hash,id).run();
-  if(!Number(result.meta?.changes||0))return json({ok:false,error:'管理员不存在'},404);
+  if(!Number(result.meta?.changes||0))return json({ok:false,error:'同工账号不存在'},404);
   return json({ok:true,id,access_key:token});
 }
 
