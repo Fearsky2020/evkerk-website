@@ -5,6 +5,7 @@ import { handleSundaySchoolContentApi } from './sunday-school-content.js';
 import { handleSundaySchoolPortalGuard } from './sunday-school-portal-guard.js';
 import { handleHumanAuthApi } from './human-auth.js';
 import { handleTeamServicesApi, guardHumanServiceAccess } from './team-services.js';
+import { handleWelcomeApi } from './welcome.js';
 
 async function injectScripts(request, env, sources) {
   const response = await env.ASSETS.fetch(request);
@@ -33,6 +34,8 @@ export default {
     if (humanAuthResponse) return humanAuthResponse;
     const teamServicesResponse = await handleTeamServicesApi(request, env, url);
     if (teamServicesResponse) return teamServicesResponse;
+    const welcomeResponse = await handleWelcomeApi(request, env, url);
+    if (welcomeResponse) return welcomeResponse;
     const serviceGuardResponse = await guardHumanServiceAccess(request, env, url);
     if (serviceGuardResponse) return serviceGuardResponse;
     const guardResponse = await handleSundaySchoolPortalGuard(request, env, url);
