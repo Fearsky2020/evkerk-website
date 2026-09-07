@@ -72,8 +72,8 @@ async function createCase(request,env){
   const auth=await authWelcome(request,env);if(auth.response)return auth.response;
   const body=await request.json().catch(()=>({}));let geo;try{geo=await geocodePostcode(body.postcode)}catch(e){return json({ok:false,error:e.message},400)}
   const caseId=id('case');
-  await env.DB.prepare('INSERT INTO welcome_cases(id,display_name,contact_note,postcode,latitude,longitude,age_band,family_status,children_note,occupation_stage,preferred_days,language_note,background_note,status,created_by) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)')
-    .bind(caseId,clean(body.display_name,100)||'新朋友',clean(body.contact_note,500),geo.postcode,geo.latitude,geo.longitude,clean(body.age_band,50),clean(body.family_status,50),clean(body.children_note,100),clean(body.occupation_stage,100),clean(body.preferred_days,100),clean(body.language_note,100),clean(body.background_note,500),'recommended',auth.user.id).run();
+  await env.DB.prepare('INSERT INTO welcome_cases(id,display_name,contact_note,postcode,latitude,longitude,age_band,family_status,children_note,occupation_stage,preferred_days,language_note,background_note,reception_site,invited_by,faith_status,status,created_by) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)')
+    .bind(caseId,clean(body.display_name,100)||'新朋友',clean(body.contact_note,500),geo.postcode,geo.latitude,geo.longitude,clean(body.age_band,50),clean(body.family_status,50),clean(body.children_note,100),clean(body.occupation_stage,100),clean(body.preferred_days,100),clean(body.language_note,100),clean(body.background_note,500),clean(body.reception_site,50),clean(body.invited_by,120),clean(body.faith_status,50),'recommended',auth.user.id).run();
   return json({ok:true,id:caseId,postcode:geo.postcode},201);
 }
 async function caseDetail(request,env,caseId){
