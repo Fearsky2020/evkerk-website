@@ -46,6 +46,20 @@
     document.head.appendChild(style);
   }
 
+  function ensureTeamLink() {
+    const host = document.querySelector('.footer-links');
+    if (!host) return;
+    let link = host.querySelector('[data-team-entry]');
+    if (!link) {
+      link = document.createElement('a');
+      link.href = '/team/';
+      link.dataset.teamEntry = '1';
+      host.appendChild(link);
+    }
+    link.textContent = isNl() ? 'Teamportaal' : '同工入口';
+    link.setAttribute('aria-label', isNl() ? 'Open het teamportaal' : '进入教会同工后台');
+  }
+
   function renderAnnouncements() {
     document.querySelector('.auto-announcements')?.remove();
     if (!state.announcements.length) return;
@@ -133,6 +147,7 @@
 
   function renderAll() {
     ensureStyles();
+    ensureTeamLink();
     renderAnnouncements();
     renderEvents();
     renderSermon();
