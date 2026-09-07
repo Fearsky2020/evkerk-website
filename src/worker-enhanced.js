@@ -25,7 +25,8 @@ async function injectScripts(request, env, sources) {
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
-    const isLocal = url.hostname === '127.0.0.1' || url.hostname === 'localhost';
+    const hostHeader = request.headers.get('host') || '';
+    const isLocal = url.hostname === '127.0.0.1' || url.hostname === 'localhost' || /^(?:127\.0\.0\.1|localhost)(?::\d+)?$/i.test(hostHeader);
     if (!isLocal && (url.hostname === 'www.evkerk.nl' || url.protocol === 'http:')) {
       url.protocol = 'https:';
       url.hostname = 'evkerk.nl';
