@@ -38,7 +38,7 @@ async function login(request,env){
   if(!env.DB)return json({ok:false,error:'数据库未配置'},503);
   const body=await request.json().catch(()=>({}));
   const user=await findUser(env,body.identifier);
-  if(!user?.password_hash||!user?.password_salt)return json({ok:false,error:'账号或密码不正确'},401);
+  if(!user?.password_hash||!user?.password_salt)return json({ok:false,error:'账号尚未设置密码，请先使用“忘记密码 / 设置密码”'},401);
   const nonce=clean(body.nonce,200),proof=clean(body.proof,300);
   if(!nonce||!proof)return json({ok:false,error:'登录验证数据不完整'},400);
   const expected=await hmacProof(user.password_hash,nonce);
@@ -69,21 +69,21 @@ async function forgot(request,env){
   if(!env.PASSWORD_RESET_EMAIL)return json({ok:false,error:'找回邮件服务尚未配置'},503);
   const body=await request.json().catch(()=>({}));
   const email=clean(body.email,300).toLowerCase();
-  if(!email)return json({ok:true,message:'如果该邮箱已绑定账号，你会收到重置邮件。'});
-  const user=await env.DB.prepare("SELECT id,name,email FROM admin_users WHERE status='active' AND lower(email)=? AND password_hash IS NOT NULL LIMIT 1").bind(email).first();
-  if(!user)return json({ok:true,message:'如果该邮箱已绑定账号，你会收到重置邮件。'});
+  if(!email)return json({ok:true,message:'如果该邮箱已绑定同工账号，你会收到密码设置邮件。'});
+  const user=await env.DB.prepare("SELECT id,name,email FROM admin_users WHERE status='active' AND lower(email)=? LIMIT 1").bind(email).first();
+  if(!user)return json({ok:true,message:'如果该邮箱已绑定同工账号，你会收到密码设置邮件。'});
   const token=randomToken(),hash=await sha256Hex(token),expiresAt=new Date(Date.now()+15*60*1000).toISOString();
   await env.DB.prepare("UPDATE admin_password_resets SET used_at=datetime('now') WHERE user_id=? AND used_at IS NULL").bind(user.id).run();
   await env.DB.prepare('INSERT INTO admin_password_resets(id,user_id,token_hash,expires_at) VALUES(?,?,?,?)').bind(`RST-${crypto.randomUUID()}`,user.id,hash,expiresAt).run();
   const link=`https://evkerk.nl/team/?reset=${encodeURIComponent(token)}`;
   try{
-    await env.PASSWORD_RESET_EMAIL.send({to:user.email,from:'noreply@evkerk.nl',subject:'EVKERK 同工账号密码重置',text:`${user.name||'您好'}：\n\n请在15分钟内打开下面的链接重置密码：\n${link}\n\n如果不是你本人操作，可以忽略这封邮件。`,html:`<p>${user.name||'您好'}：</p><p>请在15分钟内打开下面的链接重置密码：</p><p><a href="${link}">重置同工账号登录密码</a></p><p>如果不是你本人操作，可以忽略这封邮件。</p>`});
+    await env.PASSWORD_RESET_EMAIL.send({to:user.email,from:'noreply@evkerk.nl',subject:'EVKERK 同工账号密码设置',text:`${user.name||'您好'}：\n\n请在15分钟内打开下面的链接设置或重置密码：\n${link}\n\n如果不是你本人操作，可以忽略这封邮件。`,html:`<p>${user.name||'您好'}：</p><p>请在15分钟内打开下面的链接设置或重置密码：</p><p><a href="${link}">设置同工账号登录密码</a></p><p>如果不是你本人操作，可以忽略这封邮件。</p>`});
   }catch(e){
     console.error('PASSWORD_RESET_EMAIL_FAILED',e?.code||'',e?.message||e);
     await env.DB.prepare("UPDATE admin_password_resets SET used_at=datetime('now') WHERE token_hash=?").bind(hash).run().catch(()=>{});
-    return json({ok:false,error:'重置邮件发送失败，请稍后再试'},503);
+    return json({ok:false,error:'密码设置邮件发送失败，请稍后再试'},503);
   }
-  return json({ok:true,message:'如果该邮箱已绑定账号，你会收到重置邮件。'});
+  return json({ok:true,message:'如果该邮箱已绑定同工账号，你会收到密码设置邮件。'});
 }
 
 async function resetPassword(request,env){
