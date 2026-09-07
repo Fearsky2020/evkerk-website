@@ -38,6 +38,11 @@
           <label>邮编<input name="postcode" placeholder="例如 2511 BT" autocomplete="postal-code" required></label>
           <label>联系方式备注<input name="contact_note" placeholder="例如：微信已加 / 电话由接待组保存"></label>
           <div class="form-grid">
+            <label>接待地点<select name="reception_site"><option value="">未确认</option><option value="海牙教会">海牙教会（表格圈内“海”）</option><option value="主特美教会">主特美教会（表格圈内“主”）</option></select></label>
+            <label>跟谁来的 / 谁邀请的<input name="invited_by" placeholder="例如：张姐妹 / 自己来的"></label>
+            <label>是否基督徒<select name="faith_status"><option value="">未确认</option><option value="基督徒">是基督徒</option><option value="非基督徒">不是基督徒</option></select></label>
+          </div>
+          <div class="form-grid">
             <label>年龄阶段<select name="age_band"><option value="">未填写</option><option>20–29</option><option>30–39</option><option>40–49</option><option>50–59</option><option>60+</option></select></label>
             <label>家庭情况<select name="family_status"><option value="">未填写</option><option>单身</option><option>夫妻</option><option>家庭</option></select></label>
             <label>孩子情况<select name="children_note"><option value="">未填写</option><option>有孩子</option><option>没有孩子</option></select></label>
@@ -67,8 +72,8 @@
 
     <section class="tab-panel" id="tab-groups">
       <div class="panel">
-        <div class="panel-head"><div><p class="eyebrow">小组画像</p><h2>目前的小组资料</h2></div><span class="demo-badge">当前含测试数据</span></div>
-        <p class="muted">这里暂时放测试邮编和测试画像。真实资料到位后直接替换，不需要重做页面或推荐逻辑。</p>
+        <div class="panel-head"><div><p class="eyebrow">小组画像</p><h2>目前的小组资料</h2></div><span class="privacy-pill">33 个真实小组</span></div>
+        <p class="muted">小组名册已经按四个大组录入。邮编、聚会时间和小组画像会随着资料收集逐步补齐。</p>
         <div id="groupList" class="group-grid"></div>
       </div>
     </section>
