@@ -38,7 +38,7 @@ async function authWelcome(request,env){return authorizeService(request,env,'wel
 
 async function listGroups(request,env){
   const auth=await authWelcome(request,env);if(auth.response)return auth.response;
-  const rows=await env.DB.prepare('SELECT * FROM church_groups ORDER BY accepting_newcomers DESC,is_demo,name').all();
+  const rows=await env.DB.prepare('SELECT * FROM church_groups WHERE is_demo=0 ORDER BY cluster_name,COALESCE(group_number,999),name').all();
   return json({ok:true,groups:rows.results||[]});
 }
 async function saveGroup(request,env){
@@ -57,7 +57,7 @@ async function saveGroup(request,env){
 async function recommend(request,env){
   const auth=await authWelcome(request,env);if(auth.response)return auth.response;
   const body=await request.json().catch(()=>({}));let geo;try{geo=await geocodePostcode(body.postcode)}catch(e){return json({ok:false,error:e.message},400)}
-  const rows=await env.DB.prepare('SELECT * FROM church_groups ORDER BY name').all(),person={...body,postcode:geo.postcode,latitude:geo.latitude,longitude:geo.longitude};
+  const rows=await env.DB.prepare('SELECT * FROM church_groups WHERE is_demo=0 ORDER BY cluster_name,COALESCE(group_number,999),name').all(),person={...body,postcode:geo.postcode,latitude:geo.latitude,longitude:geo.longitude};
   const recommendations=(rows.results||[]).filter(g=>g.latitude!=null&&g.longitude!=null).map(group=>{const distance_km=kmBetween(person,group),fit=recommendationScore(person,group,distance_km);return{group,distance_km:Math.round(distance_km*10)/10,...fit}}).sort((a,b)=>b.score-a.score||a.distance_km-b.distance_km);
   const nearest=[...recommendations].sort((a,b)=>a.distance_km-b.distance_km)[0]?.group?.id||null;
   return json({ok:true,postcode:geo.postcode,location:geo.display,recommendations:recommendations.slice(0,5),nearest_group_id:nearest});
