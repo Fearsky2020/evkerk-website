@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>新人接待与牧养 · EVKERK</title>
+  <link rel="stylesheet" href="/team/styles.css?v=2">
+  <link rel="stylesheet" href="/team/welcome/welcome.css?v=1">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/team/"><img src="/assets/evkerk-logo.webp" alt="EVKERK"><span>新人接待与牧养</span></a>
+    <a class="back-link" href="/team/">← 同工入口</a>
+  </header>
+
+  <main class="welcome-shell">
+    <section class="welcome-hero">
+      <div>
+        <p class="eyebrow">WELCOME & PASTORAL CARE</p>
+        <h1>让每一个新人都有人接住</h1>
+        <p>先看距离，再看小组画像，最后由同工决定。分配之后继续记录谁在牧养、联系到哪一步、结果怎么样。</p>
+      </div>
+      <div class="stats-grid" id="statsGrid"></div>
+    </section>
+
+    <nav class="welcome-tabs" aria-label="新人接待功能">
+      <button class="active" data-tab="intake">新人推荐</button>
+      <button data-tab="cases">跟进名单</button>
+      <button data-tab="groups">小组资料</button>
+    </nav>
+
+    <section class="tab-panel active" id="tab-intake">
+      <div class="two-col">
+        <form class="panel" id="intakeForm">
+          <div class="panel-head"><div><p class="eyebrow">第一步</p><h2>输入新人情况</h2></div><span class="privacy-pill">只需邮编</span></div>
+          <label>姓名 / 称呼<input name="display_name" placeholder="例如：张弟兄（可稍后补）"></label>
+          <label>邮编<input name="postcode" placeholder="例如 2511 BT" autocomplete="postal-code" required></label>
+          <label>联系方式备注<input name="contact_note" placeholder="例如：微信已加 / 电话由接待组保存"></label>
+          <div class="form-grid">
+            <label>年龄阶段<select name="age_band"><option value="">未填写</option><option>20–29</option><option>30–39</option><option>40–49</option><option>50–59</option><option>60+</option></select></label>
+            <label>家庭情况<select name="family_status"><option value="">未填写</option><option>单身</option><option>夫妻</option><option>家庭</option></select></label>
+            <label>孩子情况<select name="children_note"><option value="">未填写</option><option>有孩子</option><option>没有孩子</option></select></label>
+            <label>生活 / 职业阶段<select name="occupation_stage"><option value="">未填写</option><option>学生</option><option>职场</option><option>家庭</option><option>退休</option></select></label>
+            <label>方便聚会时间<select name="preferred_days"><option value="">都可以</option><option>周一</option><option>周二</option><option>周三</option><option>周四</option><option>周五</option><option>周六</option><option>周日</option></select></label>
+            <label>语言<select name="language_note"><option value="">未填写</option><option>中文</option><option>中英双语</option><option>荷兰语</option></select></label>
+          </div>
+          <label>背景 / 特别情况<textarea name="background_note" rows="3" placeholder="只写分组和牧养真正需要知道的内容"></textarea></label>
+          <button class="primary wide" type="submit">推荐合适的小组</button>
+          <p class="message" id="intakeMessage"></p>
+        </form>
+
+        <div class="panel results-panel">
+          <div class="panel-head"><div><p class="eyebrow">第二步</p><h2>推荐结果</h2></div></div>
+          <div id="recommendationEmpty" class="empty-state">输入新人邮编后，这里会显示综合推荐的小组。</div>
+          <div id="recommendationList" class="recommendation-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="tab-panel" id="tab-cases">
+      <div class="panel">
+        <div class="panel-head"><div><p class="eyebrow">持续跟进</p><h2>新人牧养名单</h2></div><button class="secondary" id="refreshCases" type="button">刷新</button></div>
+        <div id="caseList" class="case-list"></div>
+      </div>
+    </section>
+
+    <section class="tab-panel" id="tab-groups">
+      <div class="panel">
+        <div class="panel-head"><div><p class="eyebrow">小组画像</p><h2>目前的小组资料</h2></div><span class="demo-badge">当前含测试数据</span></div>
+        <p class="muted">这里暂时放测试邮编和测试画像。真实资料到位后直接替换，不需要重做页面或推荐逻辑。</p>
+        <div id="groupList" class="group-grid"></div>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="caseDialog"><div class="dialog-card welcome-dialog"><button class="close" data-close>×</button><div id="caseDialogBody"></div></div></dialog>
+  <script src="/team/welcome/app.js?v=1"></script>
+</body>
+</html>
