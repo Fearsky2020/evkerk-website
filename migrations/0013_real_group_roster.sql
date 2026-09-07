@@ -5,7 +5,11 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_church_groups_group_number
   ON church_groups(group_number)
   WHERE group_number IS NOT NULL;
 
-DELETE FROM church_groups WHERE is_demo=1;
+UPDATE church_groups
+SET accepting_newcomers=0,
+    notes='旧测试数据，仅保留历史引用，正式接待页面不显示。',
+    updated_at=datetime('now')
+WHERE is_demo=1;
 
 INSERT INTO church_groups
 (id,name,cluster_name,cluster_leader_name,leader_name,group_number,postcode,latitude,longitude,meeting_day,meeting_time,dinner,age_profile,occupation_profile,family_profile,children_profile,language_profile,background_profile,capacity_note,accepting_newcomers,notes,is_demo)
