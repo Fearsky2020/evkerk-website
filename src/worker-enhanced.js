@@ -5,6 +5,7 @@ import { handleSundaySchoolContentApi } from './sunday-school-content.js';
 import { handleSundaySchoolPortalGuard } from './sunday-school-portal-guard.js';
 import { handleHumanAuthApi } from './human-auth.js';
 import { handleTeamServicesApi, guardHumanServiceAccess } from './team-services.js';
+import { handleWelcomeApi } from './welcome.js';
 
 async function injectScripts(request, env, sources) {
   const response = await env.ASSETS.fetch(request);
@@ -24,7 +25,9 @@ async function injectScripts(request, env, sources) {
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
-    if (url.hostname === 'www.evkerk.nl' || url.protocol === 'http:') {
+    const hostHeader = request.headers.get('host') || '';
+    const isLocal = url.hostname === '127.0.0.1' || url.hostname === 'localhost' || /^(?:127\.0\.0\.1|localhost)(?::\d+)?$/i.test(hostHeader);
+    if (!isLocal && (url.hostname === 'www.evkerk.nl' || url.protocol === 'http:')) {
       url.protocol = 'https:';
       url.hostname = 'evkerk.nl';
       return Response.redirect(url.toString(), 301);
@@ -33,6 +36,8 @@ export default {
     if (humanAuthResponse) return humanAuthResponse;
     const teamServicesResponse = await handleTeamServicesApi(request, env, url);
     if (teamServicesResponse) return teamServicesResponse;
+    const welcomeResponse = await handleWelcomeApi(request, env, url);
+    if (welcomeResponse) return welcomeResponse;
     const serviceGuardResponse = await guardHumanServiceAccess(request, env, url);
     if (serviceGuardResponse) return serviceGuardResponse;
     const guardResponse = await handleSundaySchoolPortalGuard(request, env, url);
