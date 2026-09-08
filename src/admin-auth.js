@@ -7,7 +7,9 @@ function clean(value,max=300){return String(value??'').trim().slice(0,max)}
 function bearer(request){return request.headers.get('authorization')?.replace(/^Bearer\s+/i,'')||''}
 function hex(bytes){return [...new Uint8Array(bytes)].map(value=>value.toString(16).padStart(2,'0')).join('')}
 async function tokenHash(token){return hex(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(token)))}
-function accessKey(){const bytes=crypto.getRandomValues(new Uint8Array(32));return 'EVK-'+btoa(String.fromCharCode(...bytes)).replaceAll('+','-').replaceAll('/','_').replaceAll('=','')}
+function toB64(bytes){return btoa(String.fromCharCode(...bytes))}
+function loginPassword(){const alphabet='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789',bytes=crypto.getRandomValues(new Uint8Array(16));return [...bytes].map(v=>alphabet[v%alphabet.length]).join('')}
+async function passwordRecord(password){const salt=crypto.getRandomValues(new Uint8Array(16)),iterations=210000,key=await crypto.subtle.importKey('raw',new TextEncoder().encode(password),'PBKDF2',false,['deriveBits']),bits=await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt,iterations},key,256);return{hash:toB64(new Uint8Array(bits)),salt:toB64(salt),iterations}}
 
 export async function authenticate(request,env){
   const session=await authenticateHumanSession(request,env);if(session)return session;
@@ -51,9 +53,16 @@ async function createUser(request,env){
   const auth=await authorize(request,env,'owner');if(auth.response)return auth.response;
   const body=await request.json().catch(()=>({})),name=clean(body.name,120),email=clean(body.email,200).toLowerCase(),role=['owner','editor','uploader'].includes(body.role)?body.role:'uploader';
   if(!name)return json({ok:false,error:'请填写同工姓名'},400);
-  const token=accessKey(),id='ADM-'+crypto.randomUUID(),hash=await tokenHash(token);
-  await env.DB.prepare("INSERT INTO admin_users(id,name,email,role,token_hash,status) VALUES(?,?,?,?,?,'active')").bind(id,name,email||null,role,hash).run();
-  return json({ok:true,user:{id,name,email,role,status:'active',password_ready:0},access_key:token},201);
+  const existing=await env.DB.prepare("SELECT id,name,email,role,status FROM admin_users WHERE lower(name)=? OR (?<>'' AND lower(email)=?) LIMIT 1").bind(name.toLowerCase(),email,email).first();
+  if(existing){
+    const token=accessKey(),hash=await tokenHash(token),pw=await passwordRecord(token);
+    await env.DB.prepare("UPDATE admin_users SET email=COALESCE(NULLIF(?,''),email),token_hash=?,password_hash=?,password_salt=?,password_iterations=?,status='active',updated_at=datetime('now') WHERE id=?").bind(email,hash,pw.hash,pw.salt,pw.iterations,existing.id).run();
+    await env.DB.prepare('DELETE FROM admin_sessions WHERE user_id=?').bind(existing.id).run().catch(()=>{});
+    return json({ok:true,user:{...existing,status:'active',password_ready:1},access_key:token,login_code:token,reset_existing:true},200);
+  }
+  const token=accessKey(),id='ADM-'+crypto.randomUUID(),hash=await tokenHash(token),pw=await passwordRecord(token);
+  try{await env.DB.prepare("INSERT INTO admin_users(id,name,email,role,token_hash,password_hash,password_salt,password_iterations,status) VALUES(?,?,?,?,?,?,?,?,'active')").bind(id,name,email||null,role,hash,pw.hash,pw.salt,pw.iterations).run()}catch(error){console.error('ADMIN_USER_CREATE_FAILED',error?.message||error);return json({ok:false,error:'创建同工账号失败，请稍后再试',code:'USER_CREATE_FAILED'},500)}
+  return json({ok:true,user:{id,name,email,role,status:'active',password_ready:1},access_key:token,login_code:token},201);
 }
 async function updateUser(request,env,id){
   const auth=await authorize(request,env,'owner');if(auth.response)return auth.response;
@@ -74,10 +83,11 @@ async function deleteUser(request,env,id){
 
 async function rotateKey(request,env,id){
   const auth=await authorize(request,env,'owner');if(auth.response)return auth.response;
-  const token=accessKey(),hash=await tokenHash(token);
-  const result=await env.DB.prepare("UPDATE admin_users SET token_hash=?,status='active',updated_at=datetime('now') WHERE id=?").bind(hash,id).run();
+  const token=accessKey(),hash=await tokenHash(token),pw=await passwordRecord(token);
+  const result=await env.DB.prepare("UPDATE admin_users SET token_hash=?,password_hash=?,password_salt=?,password_iterations=?,status='active',updated_at=datetime('now') WHERE id=?").bind(hash,pw.hash,pw.salt,pw.iterations,id).run();
   if(!Number(result.meta?.changes||0))return json({ok:false,error:'同工账号不存在'},404);
-  return json({ok:true,id,access_key:token});
+  await env.DB.prepare('DELETE FROM admin_sessions WHERE user_id=?').bind(id).run().catch(()=>{});
+  return json({ok:true,id,access_key:token,login_code:token});
 }
 
 export async function handleAdminAuthApi(request,env,url){

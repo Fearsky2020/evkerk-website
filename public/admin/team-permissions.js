@@ -59,12 +59,12 @@
       const title = $('h2', form);
       if (title) title.textContent = '新建同工账号';
       const note = $('.upload-note', form);
-      if (note) note.textContent = '填写同工姓名和邮箱。创建后，同工在官网“同工入口”用邮箱设置自己的密码；旧访问密钥仅保留作迁移/应急。';
+      if (note) note.textContent = '填写同工姓名即可创建账号。系统会生成一个后台密码，请直接交给同工本人；忘记后由负责人在这里重置。邮箱只作资料留存，不再用于验证。';
       const email = form.elements.email;
       if (email) {
-        email.required = true;
+        email.required = false;
         const label = email.closest('label');
-        if (label?.firstChild) label.firstChild.textContent = '邮箱';
+        if (label?.firstChild) label.firstChild.textContent = '邮箱（选填）';
       }
       const role = form.elements.role;
       if (role) {
@@ -77,7 +77,8 @@
     }
 
     const listTitle = $('#adminUserList')?.closest('.card')?.querySelector('h2');
-    if (listTitle) listTitle.textContent = '同工账号（兼容管理）';
+    if (listTitle) listTitle.textContent = '同工账号';
+    document.querySelectorAll('[data-user-rotate]').forEach((button) => { button.textContent = '重新生成登录码'; });
   }
 
   function ensureHost() {
@@ -117,7 +118,7 @@
         <div class="team-person-head">
           <div>
             <h3>${esc(user.name)}</h3>
-            <p>${esc(user.email || '未填写邮箱')} · ${user.password_ready ? '密码已设置' : '尚未设置密码'} · ${user.status === 'active' ? '正常' : '已停用'}</p>
+            <p>${esc(user.email || '未填写邮箱')} · 登录码可用 · ${user.status === 'active' ? '正常' : '已停用'}</p>
           </div>
           <button class="ux-btn primary" type="button" data-save-services>保存服事</button>
         </div>
@@ -231,8 +232,12 @@
   }
 
   boot();
-  new MutationObserver(() => {
-    prepareExistingForm();
-    if ($('#users')?.classList.contains('active') && !$('#teamPermissionManager')) render();
-  }).observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['class'] });
+
+  const usersTab = $('[data-tab="users"]');
+  if (usersTab) {
+    usersTab.addEventListener('click', () => {
+      prepareExistingForm();
+      if (!$('#teamPermissionManager')) render();
+    });
+  }
 })();
