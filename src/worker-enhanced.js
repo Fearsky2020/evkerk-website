@@ -22,11 +22,20 @@ async function injectScripts(request, env, sources) {
   return new Response(html, { status: response.status, statusText: response.statusText, headers });
 }
 
-export default {
-  async fetch(request, env, ctx) {
+function secure(response) {
+  const headers = new Headers(response.headers);
+  headers.set('strict-transport-security', 'max-age=31536000; includeSubDomains');
+  headers.set('x-content-type-options', 'nosniff');
+  headers.set('x-frame-options', 'DENY');
+  headers.set('referrer-policy', 'strict-origin-when-cross-origin');
+  headers.set('permissions-policy', 'camera=(), microphone=(), geolocation=()');
+  return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+}
+
+async function route(request, env, ctx) {
     const url = new URL(request.url);
     const hostHeader = request.headers.get('host') || '';
-    const isLocal = url.hostname === '127.0.0.1' || url.hostname === 'localhost' || /^(?:127\.0\.0\.1|localhost)(?::\d+)?$/i.test(hostHeader);
+    const isLocal = Boolean(env.LOCAL_DEV) || url.hostname === '127.0.0.1' || url.hostname === 'localhost' || /^(?:127\.0\.0\.1|localhost)(?::\d+)?$/i.test(hostHeader);
     if (!isLocal && (url.hostname === 'www.evkerk.nl' || url.protocol === 'http:')) {
       url.protocol = 'https:';
       url.hostname = 'evkerk.nl';
@@ -60,6 +69,11 @@ export default {
       return injectScripts(request, env, ['/schedule-settings.js?v=1', '/nl-copy-fixes.js?v=1']);
     }
     return baseWorker.fetch(request, env, ctx);
+}
+
+export default {
+  async fetch(request, env, ctx) {
+    return secure(await route(request, env, ctx));
   },
 
   async scheduled(controller, env, ctx) {
