@@ -51,7 +51,6 @@
     document.head.appendChild(style);
   }
 
-  function relabelLegacyResetButtons(){document.querySelectorAll('[data-user-rotate]').forEach((button)=>{if(button.textContent!=='重新生成登录码')button.textContent='重新生成登录码'})}
 
   function prepareExistingForm() {
     const panel = $('#users');
@@ -82,9 +81,8 @@
       if (submit) submit.textContent = '创建同工账号';
     }
 
-    const listTitle = $('#adminUserList')?.closest('.card')?.querySelector('h2');
-    if (listTitle) listTitle.textContent = '同工账号';
-    relabelLegacyResetButtons();
+    const legacyCard = $('#adminUserList')?.closest('.card');
+    if (legacyCard) legacyCard.hidden = true;
   }
 
   function ensureHost() {
@@ -96,8 +94,8 @@
       host.id = 'teamPermissionManager';
       host.className = 'card team-perm-card';
       host.innerHTML = `
-        <h2>同工服事权限</h2>
-        <p class="upload-note">这里决定每个同工登录后能看到、能进入哪些服事。登录码也可以在这里直接重新生成。</p>
+        <h2>同工账号与服事权限</h2>
+        <p class="upload-note">这里统一管理同工账号、登录码和服事权限。旧的重复账号列表已经隐藏，避免两个“改密码”入口互相打架。</p>
         <div id="teamPermissionList" class="team-perm-list"><p class="hint">正在读取…</p></div>
       `;
       panel.appendChild(host);
@@ -283,7 +281,6 @@
   }
 
   boot();
-  const legacyList=$('#adminUserList');if(legacyList)new MutationObserver(()=>relabelLegacyResetButtons()).observe(legacyList,{childList:true,subtree:true});
 
   const usersTab = $('[data-tab="users"]');
   if (usersTab) {
