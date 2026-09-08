@@ -13,7 +13,7 @@
   <main class="shell">
     <div class="top"><div class="admin-brand"><img src="/assets/evkerk-logo.webp" alt="福音教会 Logo"><div><h1>EVKERK 内容后台</h1><div class="hint">照片、公告与讲道管理</div></div></div><a class="btn secondary" id="returnHome" href="/">← 返回官网</a></div>
     <form class="card" id="loginForm">
-      <h2>管理员登录</h2>
+      <h2>同工后台登录</h2>
       <div class="grid">
         <label>账号（姓名或邮箱）<input id="adminAccount" autocomplete="username" placeholder="输入管理员姓名或邮箱" required></label>
         <label>登录码<input id="token" type="password" autocomplete="current-password" placeholder="输入负责人给你的登录码" required></label>
@@ -29,7 +29,7 @@
       <button data-tab="events" data-editor-only>特别活动</button>
       <button data-tab="announcement" data-editor-only>发布公告</button>
       <button data-tab="sermon" data-editor-only>补充讲道</button>
-      <button data-tab="sync" data-owner-only>日历同步</button><button data-tab="users" data-owner-only>管理员</button>
+      <button data-tab="sync" data-owner-only>日历同步</button><button data-tab="users" data-owner-only>同工账号</button>
     </div>
 
     <section class="panel active" id="activities">
@@ -139,7 +139,7 @@
 
     <section class="panel" id="users" data-owner-only>
       <form class="card" id="adminUserForm">
-        <h2>新建管理员</h2>
+        <h2>新建同工账号</h2>
         <p class="upload-note">创建后只显示一次登录码，请立即交给对应同工本人。</p>
         <div class="grid">
           <label>姓名<input name="name" required maxlength="120" placeholder="例如：张弟兄"></label>
