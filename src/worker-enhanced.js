@@ -60,7 +60,7 @@ async function route(request, env, ctx) {
     const settingsResponse = await handleSiteSettings(request, env, url);
     if (settingsResponse) return settingsResponse;
     if (url.pathname === '/admin' || url.pathname === '/admin/' || url.pathname === '/admin/index.html') {
-      return injectScripts(request, env, ['/admin/session-bridge.js?v=2', '/admin-enhancements.js?v=5', '/admin/team-permissions.js?v=4']);
+      return injectScripts(request, env, ['/admin/session-bridge.js?v=2', '/admin-enhancements.js?v=5', '/admin/team-permissions.js?v=5']);
     }
     if (url.pathname === '/admin/media.html') {
       return injectScripts(request, env, ['/admin/session-bridge.js?v=2']);
@@ -80,3 +80,4 @@ export default {
     return baseWorker.scheduled(controller, env, ctx);
   },
 };
+

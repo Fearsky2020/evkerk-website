@@ -83,11 +83,24 @@ async function rotateKey(request,env,id){
   return json({ok:true,id,access_key:token,login_code:token});
 }
 
+
+async function resetOtherLoginCodes(request,env){
+  const auth=await authorize(request,env,'owner');if(auth.response)return auth.response;
+  const excluded=new Set(['ADM-PASTOR',auth.user?.id].filter(Boolean));
+  const rows=await env.DB.prepare("SELECT id,name,email,status FROM admin_users ORDER BY created_at").all();
+  const targets=(rows.results||[]).filter(user=>!excluded.has(user.id));
+  const codes=[],statements=[];
+  for(const user of targets){const code=accessKey(),hash=await tokenHash(code);codes.push({id:user.id,name:user.name,email:user.email||'',status:user.status,login_code:code});statements.push(env.DB.prepare("UPDATE admin_users SET token_hash=?,password_hash=NULL,password_salt=NULL,password_iterations=NULL,updated_at=datetime('now') WHERE id=?").bind(hash,user.id));statements.push(env.DB.prepare('DELETE FROM admin_sessions WHERE user_id=?').bind(user.id));statements.push(env.DB.prepare('DELETE FROM admin_password_resets WHERE user_id=?').bind(user.id));}
+  if(statements.length)await env.DB.batch(statements);
+  return json({ok:true,reset_count:codes.length,users:codes});
+}
+
 export async function handleAdminAuthApi(request,env,url){
   if(request.method==='POST'&&url.pathname==='/api/admin/login')return loginUser(request,env);
   if(request.method==='GET'&&url.pathname==='/api/admin/me'){const user=await authenticate(request,env);return user?json({ok:true,user}):json({ok:false,error:'登录状态无效'},401)}
   if(request.method==='GET'&&url.pathname==='/api/admin/users')return listUsers(request,env);
   if(request.method==='POST'&&url.pathname==='/api/admin/users')return createUser(request,env);
+  if(request.method==='POST'&&url.pathname==='/api/admin/users/reset-others')return resetOtherLoginCodes(request,env);
   let match=url.pathname.match(/^\/api\/admin\/users\/([^/]+)\/update$/);if(match&&request.method==='POST')return updateUser(request,env,decodeURIComponent(match[1]));
   match=url.pathname.match(/^\/api\/admin\/users\/([^/]+)\/rotate-key$/);if(match&&request.method==='POST')return rotateKey(request,env,decodeURIComponent(match[1]));
   match=url.pathname.match(/^\/api\/admin\/users\/([^/]+)\/delete$/);if(match&&request.method==='POST')return deleteUser(request,env,decodeURIComponent(match[1]));

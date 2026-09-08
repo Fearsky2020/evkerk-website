@@ -96,6 +96,8 @@
       host.innerHTML = `
         <h2>同工账号与服事权限</h2>
         <p class="upload-note">这里统一管理同工账号、登录码和服事权限。旧的重复账号列表已经隐藏，避免两个“改密码”入口互相打架。</p>
+        <div class="actions"><button class="btn danger" id="resetOtherLoginCodes" type="button">重置其他全部登录码</button></div>
+        <div class="login-code-box" id="bulkLoginCodes" hidden></div>
         <div id="teamPermissionList" class="team-perm-list"><p class="hint">正在读取…</p></div>
       `;
       panel.appendChild(host);
@@ -136,6 +138,14 @@
       </article>
     `;
   }
+
+  function showBulkLoginCodes(users) {
+    const box=$('#bulkLoginCodes');if(!box)return;box.hidden=false;
+    box.innerHTML=`<strong>已重置 ${users.length} 个账号（你的账号没有动）</strong>${users.map(u=>`<div style="margin-top:9px"><b>${esc(u.name)}</b><code>${esc(u.login_code)}</code></div>`).join('')}<div class="actions"><button class="btn secondary" id="copyBulkCodes" type="button">复制全部登录码</button></div>`;
+    $('#copyBulkCodes').onclick=async()=>{const text=users.map(u=>`${u.name}：${u.login_code}`).join('\n');try{await navigator.clipboard.writeText(text);$('#copyBulkCodes').textContent='已复制'}catch{$('#copyBulkCodes').textContent='请长按逐个复制'}};
+  }
+
+  function bindBulkReset(){const button=$('#resetOtherLoginCodes');if(!button||button.dataset.bound==='1')return;button.dataset.bound='1';button.onclick=async()=>{if(!confirm('确定重置除你之外的全部同工登录码吗？他们旧的登录码和登录状态会立即失效。'))return;button.disabled=true;button.textContent='正在重置…';try{const out=await post('/api/admin/users/reset-others',{});showBulkLoginCodes(out.users||[]);await render()}catch(error){alert(error.message)}finally{button.disabled=false;button.textContent='重置其他全部登录码'}}}
 
   function showLoginCode(card, code) {
     const box = $('[data-login-code-box]', card);
@@ -264,6 +274,7 @@
       });
 
       renderCatalog(host, catalog);
+      bindBulkReset();
     } catch (error) {
       const list = $('#teamPermissionList');
       if (list) list.innerHTML = `<p class="hint">${esc(error.message)}</p>`;
