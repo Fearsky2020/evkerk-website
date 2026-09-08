@@ -34,6 +34,7 @@
       .team-perm-card{margin-top:16px}.team-perm-list{display:grid;gap:12px}
       .team-person{padding:15px;border:1px solid var(--line);border-radius:14px;background:#fff}
       .team-person-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}
+      .team-person-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
       .team-person h3{margin:0 0 5px}.team-person p{margin:0;color:var(--muted);font-size:12px}
       .service-checks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px}
       .service-check{display:flex;align-items:center;gap:8px;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:#fbfdfd;font-size:13px}
@@ -41,8 +42,11 @@
       .service-tag{font-size:11px;color:var(--muted)}.catalog-list{display:flex;gap:7px;flex-wrap:wrap}
       .catalog-chip{padding:6px 9px;border:1px solid var(--line);border-radius:999px;background:#fff;font-size:12px}
       .catalog-chip.planned{border-style:dashed;color:var(--muted)}
+      .login-code-box{margin-top:12px;padding:12px;border:1px solid var(--blue-line);border-radius:12px;background:var(--blue-soft);color:#17617e}
+      .login-code-box strong{display:block;margin-bottom:7px;font-size:12px}.login-code-box code{display:block;padding:9px;border-radius:8px;background:#fff;color:#163746;word-break:break-all;user-select:all}
+      .login-code-box .actions{margin-top:8px}
       @media(max-width:720px){.service-checks{grid-template-columns:1fr 1fr}}
-      @media(max-width:480px){.service-checks{grid-template-columns:1fr}.team-person-head{display:block}}
+      @media(max-width:480px){.service-checks{grid-template-columns:1fr}.team-person-head{display:block}.team-person-actions{justify-content:flex-start;margin-top:10px}}
     `;
     document.head.appendChild(style);
   }
@@ -59,7 +63,7 @@
       const title = $('h2', form);
       if (title) title.textContent = '新建同工账号';
       const note = $('.upload-note', form);
-      if (note) note.textContent = '填写同工姓名即可创建账号。系统会生成一个后台密码，请直接交给同工本人；忘记后由负责人在这里重置。邮箱只作资料留存，不再用于验证。';
+      if (note) note.textContent = '填写同工姓名即可创建账号。系统会生成一个登录码，请直接交给同工本人；忘记后由负责人在这里重新生成。邮箱只作资料留存，不再用于验证。';
       const email = form.elements.email;
       if (email) {
         email.required = false;
@@ -78,7 +82,9 @@
 
     const listTitle = $('#adminUserList')?.closest('.card')?.querySelector('h2');
     if (listTitle) listTitle.textContent = '同工账号';
-    document.querySelectorAll('[data-user-rotate]').forEach((button) => { button.textContent = '重新生成登录码'; });
+    document.querySelectorAll('[data-user-rotate]').forEach((button) => {
+      if (button.textContent !== '重新生成登录码') button.textContent = '重新生成登录码';
+    });
   }
 
   function ensureHost() {
@@ -91,7 +97,7 @@
       host.className = 'card team-perm-card';
       host.innerHTML = `
         <h2>同工服事权限</h2>
-        <p class="upload-note">这里决定每个同工登录后能看到、能进入哪些服事。技术角色由系统自动兼容，不需要手动理解。</p>
+        <p class="upload-note">这里决定每个同工登录后能看到、能进入哪些服事。登录码也可以在这里直接重新生成。</p>
         <div id="teamPermissionList" class="team-perm-list"><p class="hint">正在读取…</p></div>
       `;
       panel.appendChild(host);
@@ -113,19 +119,42 @@
     const selected = new Set(permissions[user.id] || []);
     const checks = catalog.filter((service) => service.status !== 'hidden')
       .map((service) => serviceCheckbox(service, selected)).join('');
+    const loginState = user.password_ready ? '登录码已设置' : '需要重新生成登录码';
     return `
       <article class="team-person" data-team-user="${esc(user.id)}">
         <div class="team-person-head">
           <div>
             <h3>${esc(user.name)}</h3>
-            <p>${esc(user.email || '未填写邮箱')} · 登录码可用 · ${user.status === 'active' ? '正常' : '已停用'}</p>
+            <p>${esc(user.email || '未填写邮箱')} · ${loginState} · ${user.status === 'active' ? '正常' : '已停用'}</p>
           </div>
-          <button class="ux-btn primary" type="button" data-save-services>保存服事</button>
+          <div class="team-person-actions">
+            <button class="ux-btn" type="button" data-reset-login-code>重新生成登录码</button>
+            <button class="ux-btn primary" type="button" data-save-services>保存服事</button>
+          </div>
         </div>
         <div class="service-checks">${checks}</div>
+        <div class="login-code-box" data-login-code-box hidden></div>
         <p class="msg" data-service-msg></p>
       </article>
     `;
+  }
+
+  function showLoginCode(card, code) {
+    const box = $('[data-login-code-box]', card);
+    box.hidden = false;
+    box.innerHTML = `
+      <strong>新的登录码（只显示这一次，请交给本人）</strong>
+      <code>${esc(code)}</code>
+      <div class="actions"><button class="btn secondary" type="button" data-copy-login-code>复制登录码</button></div>
+    `;
+    $('[data-copy-login-code]', box).onclick = async () => {
+      try {
+        await navigator.clipboard.writeText(code);
+        $('[data-copy-login-code]', box).textContent = '已复制';
+      } catch {
+        $('[data-copy-login-code]', box).textContent = '请长按上面的登录码复制';
+      }
+    };
   }
 
   function renderCatalog(host, catalog) {
@@ -193,6 +222,29 @@
         ? users.map((user) => userCard(user, catalog, permissions)).join('')
         : '<p class="hint">还没有同工账号。</p>';
 
+      list.querySelectorAll('[data-reset-login-code]').forEach((button) => {
+        button.onclick = async () => {
+          const card = button.closest('[data-team-user]');
+          const msg = card.querySelector('[data-service-msg]');
+          if (!confirm('重新生成后，旧登录码会立即失效。继续吗？')) return;
+          button.disabled = true;
+          msg.textContent = '正在生成新的登录码…';
+          try {
+            const result = await post(`/api/admin/users/${encodeURIComponent(card.dataset.teamUser)}/rotate-key`, {});
+            const code = result.login_code || result.access_key || '';
+            if (!code) throw new Error('服务器没有返回新的登录码');
+            showLoginCode(card, code);
+            msg.textContent = '新登录码已经生成';
+            msg.className = 'msg ok';
+          } catch (error) {
+            msg.textContent = error.message;
+            msg.className = 'msg';
+          } finally {
+            button.disabled = false;
+          }
+        };
+      });
+
       list.querySelectorAll('[data-save-services]').forEach((button) => {
         button.onclick = async () => {
           const card = button.closest('[data-team-user]');
@@ -204,7 +256,6 @@
             await post(`/api/admin/users/${encodeURIComponent(card.dataset.teamUser)}/services`, { services });
             msg.textContent = '已保存';
             msg.className = 'msg ok';
-            setTimeout(() => render(), 200);
           } catch (error) {
             msg.textContent = error.message;
             msg.className = 'msg';
