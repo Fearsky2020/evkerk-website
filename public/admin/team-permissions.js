@@ -48,10 +48,11 @@
   }
 
   function prepareExistingForm() {
+    const panel = $('#users');
+    if (!panel || panel.dataset.teamPermissionsPrepared === '1') return;
+    panel.dataset.teamPermissionsPrepared = '1';
     const tab = $('[data-tab="users"]');
     if (tab) tab.textContent = '同工账号';
-    const panel = $('#users');
-    if (!panel) return;
 
     const form = $('#adminUserForm');
     if (form) {
