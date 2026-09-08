@@ -11,7 +11,7 @@
 </head>
 <body>
   <main class="shell">
-    <div class="top"><div class="admin-brand"><img src="/assets/evkerk-logo.webp" alt="福音教会 Logo"><div><h1>EVKERK 内容后台</h1><div class="hint">照片、公告与讲道管理</div></div></div><a href="/">返回官网</a></div>
+    <div class="top"><div class="admin-brand"><img src="/assets/evkerk-logo.webp" alt="福音教会 Logo"><div><h1>EVKERK 内容后台</h1><div class="hint">照片、公告与讲道管理</div></div></div><a class="btn secondary" id="returnHome" href="/">← 返回官网</a></div>
     <form class="card" id="loginForm">
       <h2>管理员登录</h2>
       <div class="grid">
@@ -180,10 +180,13 @@
       document.getElementById('logoutAdmin').onclick=()=>{localStorage.removeItem('evkerk-admin-token');localStorage.removeItem('evkerk-admin-account');token.value='';account.value='';location.reload()};
       const adminTabs=[...document.querySelectorAll('[data-tab]')];
       function activateAdminTab(name){const target=document.getElementById(name),button=adminTabs.find(btn=>btn.dataset.tab===name&&!btn.hidden);if(!target||!button){if(name!=='activities')history.replaceState(null,'',`${location.pathname}${location.search}#activities`);name='activities'}adminTabs.forEach(btn=>btn.classList.toggle('active',btn.dataset.tab===name));document.querySelectorAll('.panel').forEach(panel=>panel.classList.toggle('active',panel.id===name));window.scrollTo({top:0,behavior:'instant'})}
-      adminTabs.forEach(btn=>btn.onclick=()=>{if(location.hash.slice(1)===btn.dataset.tab)activateAdminTab(btn.dataset.tab);else location.hash=btn.dataset.tab});
-      window.addEventListener('hashchange',()=>activateAdminTab(location.hash.slice(1)||'activities'));
-      if(!location.hash)history.replaceState(null,'',`${location.pathname}${location.search}#activities`);
-      activateAdminTab(location.hash.slice(1)||'activities');
+      const initialAdminTab=location.hash.slice(1)||'activities';
+      history.replaceState({adminExit:true},'',`${location.pathname}${location.search}`);
+      history.pushState({adminTab:initialAdminTab},'',`${location.pathname}${location.search}#${initialAdminTab}`);
+      adminTabs.forEach(btn=>btn.onclick=()=>{if(location.hash.slice(1)===btn.dataset.tab)activateAdminTab(btn.dataset.tab);else{history.pushState({adminTab:btn.dataset.tab},'',`#${btn.dataset.tab}`);activateAdminTab(btn.dataset.tab)}});
+      window.addEventListener('popstate',event=>{if(event.state?.adminExit){location.replace('/');return}activateAdminTab(location.hash.slice(1)||'activities')});
+      document.getElementById('returnHome').onclick=event=>{event.preventDefault();location.assign('/')};
+      activateAdminTab(initialAdminTab);
       let currentUser=null;
       const roleName={owner:'管理员',editor:'编辑',uploader:'上传者'};
       async function loadProfile(){if(!token.value.trim())return;try{const r=await fetch('/api/admin/me',{headers:{Authorization:`Bearer ${token.value.trim()}`,Accept:'application/json'}});const body=await r.json();if(!r.ok)throw new Error(body.error||`HTTP ${r.status}`);currentUser=body.user;const identity=document.getElementById('adminIdentity');identity.hidden=false;identity.textContent=`当前账号：${currentUser.name} · ${roleName[currentUser.role]||currentUser.role}`;document.querySelectorAll('[data-editor-only]').forEach(el=>el.hidden=!['owner','editor'].includes(currentUser.role));document.querySelectorAll('[data-owner-only]').forEach(el=>el.hidden=currentUser.role!=='owner');activateAdminTab(location.hash.slice(1)||'activities');if(currentUser.role==='owner')loadAdminUsers()}catch(err){currentUser=null;const identity=document.getElementById('adminIdentity');identity.hidden=false;identity.textContent=err.message}}
