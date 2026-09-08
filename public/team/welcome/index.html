@@ -6,7 +6,7 @@
   <meta name="robots" content="noindex,nofollow,noarchive">
   <title>新人接待与牧养 · EVKERK</title>
   <link rel="stylesheet" href="/team/styles.css?v=2">
-  <link rel="stylesheet" href="/team/welcome/welcome.css?v=1">
+  <link rel="stylesheet" href="/team/welcome/welcome.css?v=2">
 </head>
 <body>
   <header class="topbar">
@@ -74,12 +74,32 @@
       <div class="panel">
         <div class="panel-head"><div><p class="eyebrow">小组画像</p><h2>目前的小组资料</h2></div><span class="privacy-pill">33 个真实小组</span></div>
         <p class="muted">小组名册已经按四个大组录入。邮编、聚会时间和小组画像会随着资料收集逐步补齐。</p>
+        <details class="group-editor">
+          <summary>补充或修改小组资料</summary>
+          <form id="groupForm">
+            <input type="hidden" name="id">
+            <div class="form-grid">
+              <label>小组编号<input name="group_number" type="number" min="1" max="999" required></label>
+              <label>小组名称<input name="name" required></label>
+              <label>所属大组<select name="cluster_name" required><option>第一大组</option><option>第二大组</option><option>第三大组</option><option>第四大组</option></select></label>
+              <label>大组长<input name="cluster_leader_name"></label>
+              <label>小组长<input name="leader_name" required></label>
+              <label>聚会邮编<input name="postcode" placeholder="例如 2511 BT" required></label>
+              <label>聚会星期<select name="meeting_day"><option value="">待补</option><option>周一</option><option>周二</option><option>周三</option><option>周四</option><option>周五</option><option>周六</option><option>周日</option></select></label>
+              <label>聚会时间<input name="meeting_time" type="time"></label>
+              <label>晚餐<select name="dinner"><option value="unknown">待补</option><option value="always">每次有晚餐</option><option value="often">经常有晚餐</option><option value="sometimes">偶尔有晚餐</option><option value="no">没有晚餐</option></select></label>
+              <label>接收新人<select name="accepting_newcomers"><option value="1">可以接收</option><option value="0">暂停接收</option></select></label>
+            </div>
+            <div class="actions"><button class="primary" type="submit">保存小组资料</button><button class="secondary" id="cancelGroupEdit" type="button">清空</button></div>
+            <p class="message" id="groupMessage"></p>
+          </form>
+        </details>
         <div id="groupList" class="group-grid"></div>
       </div>
     </section>
   </main>
 
   <dialog id="caseDialog"><div class="dialog-card welcome-dialog"><button class="close" data-close>×</button><div id="caseDialogBody"></div></div></dialog>
-  <script src="/team/welcome/app.js?v=1"></script>
+  <script src="/team/welcome/app.js?v=2"></script>
 </body>
 </html>
