@@ -51,6 +51,8 @@
     document.head.appendChild(style);
   }
 
+  function relabelLegacyResetButtons(){document.querySelectorAll('[data-user-rotate]').forEach((button)=>{if(button.textContent!=='重新生成登录码')button.textContent='重新生成登录码'})}
+
   function prepareExistingForm() {
     const panel = $('#users');
     if (!panel || panel.dataset.teamPermissionsPrepared === '1') return;
@@ -82,9 +84,7 @@
 
     const listTitle = $('#adminUserList')?.closest('.card')?.querySelector('h2');
     if (listTitle) listTitle.textContent = '同工账号';
-    document.querySelectorAll('[data-user-rotate]').forEach((button) => {
-      if (button.textContent !== '重新生成登录码') button.textContent = '重新生成登录码';
-    });
+    relabelLegacyResetButtons();
   }
 
   function ensureHost() {
@@ -119,7 +119,7 @@
     const selected = new Set(permissions[user.id] || []);
     const checks = catalog.filter((service) => service.status !== 'hidden')
       .map((service) => serviceCheckbox(service, selected)).join('');
-    const loginState = user.password_ready ? '登录码已设置' : '需要重新生成登录码';
+    const loginState = '登录码可用';
     return `
       <article class="team-person" data-team-user="${esc(user.id)}">
         <div class="team-person-head">
@@ -283,6 +283,7 @@
   }
 
   boot();
+  const legacyList=$('#adminUserList');if(legacyList)new MutationObserver(()=>relabelLegacyResetButtons()).observe(legacyList,{childList:true,subtree:true});
 
   const usersTab = $('[data-tab="users"]');
   if (usersTab) {

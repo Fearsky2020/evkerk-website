@@ -37,24 +37,15 @@ async function challenge(request,env){
 async function login(request,env){
   if(!env.DB)return json({ok:false,error:'数据库未配置'},503);
   const body=await request.json().catch(()=>({}));
-  const user=await findUser(env,body.identifier);
-  if(!user?.password_hash||!user?.password_salt)return json({ok:false,error:'这个账号还没有新版登录码，请联系教会负责人重新生成'},401);
-  const nonce=clean(body.nonce,200),proof=clean(body.proof,300);
-  if(!nonce||!proof)return json({ok:false,error:'登录验证数据不完整'},400);
-  const expected=await hmacProof(user.password_hash,nonce);
-  if(!constantTimeEqual(expected,proof))return json({ok:false,error:'账号或登录码不正确'},401);
-
-  const token=randomToken();
-  const hash=await sha256Hex(token);
-  const sessionId=`SES-${crypto.randomUUID()}`;
-  const expiresAt=new Date(Date.now()+30*24*60*60*1000).toISOString();
+  const identifier=clean(body.identifier,200).toLowerCase(),loginCode=clean(body.login_code,120);
+  if(!identifier||!loginCode)return json({ok:false,error:'请输入账号和登录码'},400);
+  const codeHash=await sha256Hex(loginCode);
+  const user=await env.DB.prepare("SELECT id,name,email,role,status FROM admin_users WHERE status='active' AND token_hash=? AND (lower(name)=? OR lower(email)=?) LIMIT 1").bind(codeHash,identifier,identifier).first();
+  if(!user)return json({ok:false,error:'账号或登录码不正确'},401);
+  const token=randomToken(),hash=await sha256Hex(token),sessionId=`SES-${crypto.randomUUID()}`,expiresAt=new Date(Date.now()+30*24*60*60*1000).toISOString();
   await env.DB.prepare("DELETE FROM admin_sessions WHERE datetime(expires_at)<=datetime('now')").run().catch(()=>{});
-  try{
-    await env.DB.prepare('INSERT INTO admin_sessions(id,user_id,token_hash,expires_at) VALUES(?,?,?,?)').bind(sessionId,user.id,hash,expiresAt).run();
-  }catch(error){
-    console.error('ADMIN_SESSION_INSERT_FAILED',error?.message||error);
-    return json({ok:false,error:'登录会话创建失败，请稍后再试',code:'SESSION_CREATE_FAILED'},500);
-  }
+  try{await env.DB.prepare('INSERT INTO admin_sessions(id,user_id,token_hash,expires_at) VALUES(?,?,?,?)').bind(sessionId,user.id,hash,expiresAt).run()}
+  catch(error){console.error('ADMIN_SESSION_INSERT_FAILED',error?.message||error);return json({ok:false,error:'登录会话创建失败，请稍后再试',code:'SESSION_CREATE_FAILED'},500)}
   return json({ok:true,user:{id:user.id,name:user.name,email:user.email,role:user.role}},200,{'set-cookie':sessionCookie(token)});
 }
 
