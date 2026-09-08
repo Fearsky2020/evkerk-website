@@ -38,11 +38,11 @@ async function login(request,env){
   if(!env.DB)return json({ok:false,error:'数据库未配置'},503);
   const body=await request.json().catch(()=>({}));
   const user=await findUser(env,body.identifier);
-  if(!user?.password_hash||!user?.password_salt)return json({ok:false,error:'账号尚未设置密码，请先使用“忘记密码 / 设置密码”'},401);
+  if(!user?.password_hash||!user?.password_salt)return json({ok:false,error:'这个账号还没有新版登录码，请联系教会负责人重新生成'},401);
   const nonce=clean(body.nonce,200),proof=clean(body.proof,300);
   if(!nonce||!proof)return json({ok:false,error:'登录验证数据不完整'},400);
   const expected=await hmacProof(user.password_hash,nonce);
-  if(!constantTimeEqual(expected,proof))return json({ok:false,error:'账号或密码不正确'},401);
+  if(!constantTimeEqual(expected,proof))return json({ok:false,error:'账号或登录码不正确'},401);
 
   const token=randomToken();
   const hash=await sha256Hex(token);
@@ -64,54 +64,11 @@ async function logout(request,env){
   return json({ok:true},200,{'set-cookie':sessionCookie('',0)});
 }
 
-async function forgot(request,env){
-  if(!env.DB)return json({ok:false,error:'数据库未配置'},503);
-  if(!env.PASSWORD_RESET_EMAIL)return json({ok:false,error:'找回邮件服务尚未配置'},503);
-  const body=await request.json().catch(()=>({}));
-  const email=clean(body.email,300).toLowerCase();
-  if(!email)return json({ok:true,message:'如果该邮箱已绑定同工账号，你会收到密码设置邮件。'});
-  const user=await env.DB.prepare("SELECT id,name,email FROM admin_users WHERE status='active' AND lower(email)=? LIMIT 1").bind(email).first();
-  if(!user)return json({ok:true,message:'如果该邮箱已绑定同工账号，你会收到密码设置邮件。'});
-  const token=randomToken(),hash=await sha256Hex(token),expiresAt=new Date(Date.now()+15*60*1000).toISOString();
-  await env.DB.prepare("UPDATE admin_password_resets SET used_at=datetime('now') WHERE user_id=? AND used_at IS NULL").bind(user.id).run();
-  await env.DB.prepare('INSERT INTO admin_password_resets(id,user_id,token_hash,expires_at) VALUES(?,?,?,?)').bind(`RST-${crypto.randomUUID()}`,user.id,hash,expiresAt).run();
-  const link=`https://evkerk.nl/team/?reset=${encodeURIComponent(token)}`;
-  try{
-    await env.PASSWORD_RESET_EMAIL.send({to:user.email,from:'noreply@evkerk.nl',subject:'EVKERK 同工账号密码设置',text:`${user.name||'您好'}：\n\n请在15分钟内打开下面的链接设置或重置密码：\n${link}\n\n如果不是你本人操作，可以忽略这封邮件。`,html:`<p>${user.name||'您好'}：</p><p>请在15分钟内打开下面的链接设置或重置密码：</p><p><a href="${link}">设置同工账号登录密码</a></p><p>如果不是你本人操作，可以忽略这封邮件。</p>`});
-  }catch(e){
-    console.error('PASSWORD_RESET_EMAIL_FAILED',e?.code||'',e?.message||e);
-    await env.DB.prepare("UPDATE admin_password_resets SET used_at=datetime('now') WHERE token_hash=?").bind(hash).run().catch(()=>{});
-    return json({ok:false,error:'密码设置邮件发送失败，请稍后再试'},503);
-  }
-  return json({ok:true,message:'如果该邮箱已绑定同工账号，你会收到密码设置邮件。'});
-}
-
-async function resetPassword(request,env){
-  if(!env.DB)return json({ok:false,error:'数据库未配置'},503);
-  const body=await request.json().catch(()=>({}));
-  const token=clean(body.token,300),passwordHash=clean(body.password_hash,500),passwordSalt=clean(body.password_salt,200),iterations=Number(body.password_iterations)||0;
-  if(!token||!passwordHash||!passwordSalt||iterations<100000||iterations>500000)return json({ok:false,error:'密码重置数据不完整'},400);
-  try{if(fromB64(passwordHash).length!==32||fromB64(passwordSalt).length<16)return json({ok:false,error:'密码重置数据格式不正确'},400)}catch{return json({ok:false,error:'密码重置数据格式不正确'},400)}
-  const hash=await sha256Hex(token);
-  const row=await env.DB.prepare(`SELECT r.id reset_id,r.user_id FROM admin_password_resets r JOIN admin_users u ON u.id=r.user_id WHERE r.token_hash=? AND r.used_at IS NULL AND datetime(r.expires_at)>datetime('now') AND u.status='active' LIMIT 1`).bind(hash).first();
-  if(!row)return json({ok:false,error:'重置链接无效或已过期'},400);
-  try{
-    await env.DB.prepare("UPDATE admin_users SET password_hash=?,password_salt=?,password_iterations=?,updated_at=datetime('now') WHERE id=?").bind(passwordHash,passwordSalt,iterations,row.user_id).run();
-    await env.DB.prepare("UPDATE admin_password_resets SET used_at=datetime('now') WHERE id=?").bind(row.reset_id).run();
-    await env.DB.prepare('DELETE FROM admin_sessions WHERE user_id=?').bind(row.user_id).run();
-  }catch(error){
-    console.error('PASSWORD_RESET_COMMIT_FAILED',error?.message||error);
-    return json({ok:false,error:'密码重置保存失败，请稍后再试',code:'PASSWORD_RESET_SAVE_FAILED'},500);
-  }
-  return json({ok:true});
-}
-
 export async function handleHumanAuthApi(request,env,url){
   if(!url.pathname.startsWith('/api/human-auth/'))return null;
   if(url.pathname==='/api/human-auth/challenge'&&request.method==='POST')return challenge(request,env);
   if(url.pathname==='/api/human-auth/login'&&request.method==='POST')return login(request,env);
   if(url.pathname==='/api/human-auth/logout'&&request.method==='POST')return logout(request,env);
-  if(url.pathname==='/api/human-auth/forgot'&&request.method==='POST')return forgot(request,env);
-  if(url.pathname==='/api/human-auth/reset'&&request.method==='POST')return resetPassword(request,env);
+  if((url.pathname==='/api/human-auth/forgot'||url.pathname==='/api/human-auth/reset')&&request.method==='POST')return json({ok:false,error:'邮箱找回已关闭，请联系教会负责人重新生成登录码'},410);
   return json({ok:false,error:'not found'},404);
 }
