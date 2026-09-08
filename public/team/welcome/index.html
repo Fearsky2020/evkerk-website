@@ -6,7 +6,7 @@
   <meta name="robots" content="noindex,nofollow,noarchive">
   <title>新人接待与牧养 · EVKERK</title>
   <link rel="stylesheet" href="/team/styles.css?v=2">
-  <link rel="stylesheet" href="/team/welcome/welcome.css?v=2">
+  <link rel="stylesheet" href="/team/welcome/welcome.css?v=3">
 </head>
 <body>
   <header class="topbar">
@@ -84,11 +84,26 @@
               <label>所属大组<select name="cluster_name" required><option>第一大组</option><option>第二大组</option><option>第三大组</option><option>第四大组</option></select></label>
               <label>大组长<input name="cluster_leader_name"></label>
               <label>小组长<input name="leader_name" required></label>
+              <label>副组长<input name="deputy_leader_name"></label>
               <label>聚会邮编<input name="postcode" placeholder="例如 2511 BT" required></label>
               <label>聚会星期<select name="meeting_day"><option value="">待补</option><option>周一</option><option>周二</option><option>周三</option><option>周四</option><option>周五</option><option>周六</option><option>周日</option></select></label>
               <label>聚会时间<input name="meeting_time" type="time"></label>
+              <label>聚会频率<input name="meeting_frequency" placeholder="例如：每周 / 第一、三周"></label>
               <label>晚餐<select name="dinner"><option value="unknown">待补</option><option value="always">每次有晚餐</option><option value="often">经常有晚餐</option><option value="sometimes">偶尔有晚餐</option><option value="no">没有晚餐</option></select></label>
+              <label>当前人数<input name="current_size" type="number" min="0"></label>
+              <label>建议人数上限<input name="capacity_max" type="number" min="1"></label>
               <label>接收新人<select name="accepting_newcomers"><option value="1">可以接收</option><option value="0">暂停接收</option></select></label>
+              <label>地址可见范围<select name="address_visibility"><option value="assigned">分配确认后提供</option><option value="internal">仅内部同工可见</option><option value="public">允许公开</option></select></label>
+            </div>
+            <div class="form-grid">
+              <label>常用语言<input name="language_profile" placeholder="例如：普通话为主，可英语"></label>
+              <label>适合人群<input name="audience_profile" placeholder="例如：家庭、青年、初信者"></label>
+              <label>儿童情况<input name="children_profile" placeholder="例如：欢迎带孩子，有儿童活动"></label>
+              <label>无障碍 / 交通<input name="accessibility_note" placeholder="例如：有电梯、停车方便"></label>
+              <label>容量说明<input name="capacity_note" placeholder="例如：目前可接收一家人"></label>
+              <label>联系规则<input name="contact_mode" placeholder="例如：先联系组长确认"></label>
+              <label>微信资料备注<input name="wechat_note" placeholder="例如：名片已收，由接待同工转发"></label>
+              <label>节假日 / 临时安排<input name="schedule_note" placeholder="例如：学校假期暂停"></label>
             </div>
             <div class="actions"><button class="primary" type="submit">保存小组资料</button><button class="secondary" id="cancelGroupEdit" type="button">清空</button></div>
             <p class="message" id="groupMessage"></p>
@@ -100,6 +115,6 @@
   </main>
 
   <dialog id="caseDialog"><div class="dialog-card welcome-dialog"><button class="close" data-close>×</button><div id="caseDialogBody"></div></div></dialog>
-  <script src="/team/welcome/app.js?v=2"></script>
+  <script src="/team/welcome/app.js?v=3"></script>
 </body>
 </html>

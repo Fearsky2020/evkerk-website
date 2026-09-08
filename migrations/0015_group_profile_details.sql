@@ -1,0 +1,10 @@
+ALTER TABLE church_groups ADD COLUMN deputy_leader_name TEXT NOT NULL DEFAULT '';
+ALTER TABLE church_groups ADD COLUMN meeting_frequency TEXT NOT NULL DEFAULT '';
+ALTER TABLE church_groups ADD COLUMN audience_profile TEXT NOT NULL DEFAULT '';
+ALTER TABLE church_groups ADD COLUMN accessibility_note TEXT NOT NULL DEFAULT '';
+ALTER TABLE church_groups ADD COLUMN current_size INTEGER;
+ALTER TABLE church_groups ADD COLUMN capacity_max INTEGER;
+ALTER TABLE church_groups ADD COLUMN contact_mode TEXT NOT NULL DEFAULT '';
+ALTER TABLE church_groups ADD COLUMN wechat_note TEXT NOT NULL DEFAULT '';
+ALTER TABLE church_groups ADD COLUMN address_visibility TEXT NOT NULL DEFAULT 'assigned';
+ALTER TABLE church_groups ADD COLUMN schedule_note TEXT NOT NULL DEFAULT '';

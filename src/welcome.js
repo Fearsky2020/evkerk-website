@@ -31,6 +31,8 @@ function recommendationScore(person,group,distanceKm){
   if(person.children_note&&has(group.children_profile,person.children_note)){score+=8;reasons.push('孩子情况较匹配');}
   if(person.occupation_stage&&has(group.occupation_profile,person.occupation_stage)){score+=7;reasons.push('生活/职业阶段较接近');}
   if(person.language_note&&has(group.language_profile,person.language_note.replace('双语',''))){score+=5;reasons.push('语言情况较合适');}
+  if(person.family_status&&has(group.audience_profile,person.family_status)){score+=6;reasons.push('适合人群较匹配');}
+  if(group.capacity_max!=null&&group.current_size!=null&&group.current_size>=group.capacity_max){score-=100;reasons.push('小组人数已满');}
   if(!group.accepting_newcomers){score-=100;reasons.push('目前暂停接收新人');}
   return{score:Math.round(score*10)/10,reasons};
 }
@@ -51,9 +53,15 @@ async function saveGroup(request,env){
   const groupId=clean(body.id,100)||id('grp'),accept=body.accepting_newcomers===false||body.accepting_newcomers===0||body.accepting_newcomers==='0'?0:1;
   const existing=await env.DB.prepare('SELECT id FROM church_groups WHERE id=?').bind(groupId).first();
   if(groupNumber!==null){const duplicate=await env.DB.prepare('SELECT id FROM church_groups WHERE group_number=? AND id<>?').bind(groupNumber,groupId).first();if(duplicate)return json({ok:false,error:`第 ${groupNumber} 组已经存在`},409)}
-  const vals=[name,clean(body.cluster_name,100),clean(body.cluster_leader_name,100),clean(body.leader_name,100),groupNumber,geo.postcode,geo.latitude,geo.longitude,clean(body.meeting_day,30),clean(body.meeting_time,30),['always','often','sometimes','no','unknown'].includes(body.dinner)?body.dinner:'unknown',clean(body.age_profile),clean(body.occupation_profile),clean(body.family_profile),clean(body.children_profile),clean(body.language_profile),clean(body.background_profile),clean(body.capacity_note),accept,clean(body.notes),0];
-  if(existing){await env.DB.prepare("UPDATE church_groups SET name=?,cluster_name=?,cluster_leader_name=?,leader_name=?,group_number=?,postcode=?,latitude=?,longitude=?,meeting_day=?,meeting_time=?,dinner=?,age_profile=?,occupation_profile=?,family_profile=?,children_profile=?,language_profile=?,background_profile=?,capacity_note=?,accepting_newcomers=?,notes=?,is_demo=?,updated_at=datetime('now') WHERE id=?").bind(...vals,groupId).run();}
-  else{await env.DB.prepare('INSERT INTO church_groups(id,name,cluster_name,cluster_leader_name,leader_name,group_number,postcode,latitude,longitude,meeting_day,meeting_time,dinner,age_profile,occupation_profile,family_profile,children_profile,language_profile,background_profile,capacity_note,accepting_newcomers,notes,is_demo) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)').bind(groupId,...vals).run();}
+  const integerOrNull=value=>value===''||value==null?null:Number(value);
+  const currentSize=integerOrNull(body.current_size),capacityMax=integerOrNull(body.capacity_max);
+  if(currentSize!==null&&(!Number.isInteger(currentSize)||currentSize<0))return json({ok:false,error:'当前人数必须是非负整数'},400);
+  if(capacityMax!==null&&(!Number.isInteger(capacityMax)||capacityMax<1))return json({ok:false,error:'人数上限必须是正整数'},400);
+  if(currentSize!==null&&capacityMax!==null&&currentSize>capacityMax)return json({ok:false,error:'当前人数不能大于人数上限'},400);
+  const visibility=['internal','assigned','public'].includes(body.address_visibility)?body.address_visibility:'assigned';
+  const vals=[name,clean(body.cluster_name,100),clean(body.cluster_leader_name,100),clean(body.leader_name,100),clean(body.deputy_leader_name,100),groupNumber,geo.postcode,geo.latitude,geo.longitude,clean(body.meeting_day,30),clean(body.meeting_time,30),clean(body.meeting_frequency,80),['always','often','sometimes','no','unknown'].includes(body.dinner)?body.dinner:'unknown',clean(body.age_profile),clean(body.occupation_profile),clean(body.family_profile),clean(body.children_profile),clean(body.language_profile),clean(body.audience_profile),clean(body.background_profile),clean(body.accessibility_note),currentSize,capacityMax,clean(body.capacity_note),clean(body.contact_mode),clean(body.wechat_note),visibility,clean(body.schedule_note),accept,clean(body.notes),0];
+  if(existing){await env.DB.prepare("UPDATE church_groups SET name=?,cluster_name=?,cluster_leader_name=?,leader_name=?,deputy_leader_name=?,group_number=?,postcode=?,latitude=?,longitude=?,meeting_day=?,meeting_time=?,meeting_frequency=?,dinner=?,age_profile=?,occupation_profile=?,family_profile=?,children_profile=?,language_profile=?,audience_profile=?,background_profile=?,accessibility_note=?,current_size=?,capacity_max=?,capacity_note=?,contact_mode=?,wechat_note=?,address_visibility=?,schedule_note=?,accepting_newcomers=?,notes=?,is_demo=?,updated_at=datetime('now') WHERE id=?").bind(...vals,groupId).run();}
+  else{await env.DB.prepare('INSERT INTO church_groups(id,name,cluster_name,cluster_leader_name,leader_name,deputy_leader_name,group_number,postcode,latitude,longitude,meeting_day,meeting_time,meeting_frequency,dinner,age_profile,occupation_profile,family_profile,children_profile,language_profile,audience_profile,background_profile,accessibility_note,current_size,capacity_max,capacity_note,contact_mode,wechat_note,address_visibility,schedule_note,accepting_newcomers,notes,is_demo) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)').bind(groupId,...vals).run();}
   return json({ok:true,id:groupId,postcode:geo.postcode},existing?200:201);
 }
 
