@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f6f2ea">
+  <title>在线读经 | 基督教福音教会 Evangeliekerk</title>
+  <meta name="description" content="基督教福音教会在线读经：和合本圣经、书卷章节切换、字号调整、经文选择与读经打卡。">
+  <link rel="canonical" href="https://evkerk.nl/bible">
+  <link rel="icon" href="/assets/evkerk-logo.webp" type="image/webp">
+  <link rel="stylesheet" href="/styles.css?v=1">
+  <link rel="stylesheet" href="/brand.css?v=32">
+  <link rel="stylesheet" href="/bible.css?v=1">
+</head>
+<body class="bible-page">
+  <header class="site-header bible-site-header">
+    <a class="brand" href="/"><img class="brand-mark" src="/assets/evkerk-logo.webp" alt="" width="40" height="40"><span class="brand-copy"><strong>基督教福音教会</strong><small>EVANGELIEKERK</small></span></a>
+    <div class="bible-header-actions"><button class="round-btn" id="themeToggle" type="button" aria-label="切换明暗模式">☾</button><a class="bible-home-link" href="/">返回首页</a></div>
+  </header>
+  <main class="bible-shell">
+    <section class="bible-hero">
+      <p class="eyebrow">READ THE BIBLE</p>
+      <h1>慢一点，读一段神的话。</h1>
+      <p>网页端沿用教会 App 的读经逻辑：选书卷、切章节、调字号、选经文，也可以记录今天已经读过。</p>
+    </section>
+    <section class="bible-toolbar" aria-label="读经工具">
+      <button id="passageButton" class="passage-button" type="button"><span id="passageLabel">罗马书 8</span><small>切换书卷与章节</small></button>
+      <div class="reading-mode-switch"><button class="active" type="button" data-mode="paper">纸质</button><button type="button" data-mode="verse">分节</button></div>
+      <button id="fontButton" class="font-button" type="button">Aa</button><span class="version-chip">和合本</span>
+    </section>
+    <article class="paper-bible" id="paperBible">
+      <header class="paper-heading"><button id="prevChapter" type="button" aria-label="上一章">‹</button><div><small>和合本</small><h2 id="chapterTitle">罗马书 第8章</h2></div><button id="nextChapter" type="button" aria-label="下一章">›</button></header>
+      <div id="verseFlow" class="verse-flow"><p class="loading-copy">正在打开圣经…</p></div>
+      <p id="offlineNote" class="offline-note" hidden>当前显示的是最近缓存的经文。</p>
+    </article>
+    <section class="reading-checkin">
+      <button id="readingCheckin" type="button">✓ 今日读完打卡</button>
+      <small id="readingStreak">今天还没有打卡</small>
+    </section>
+    <section class="related-card">
+      <div class="related-heading"><div><p class="eyebrow">RELATED MESSAGES</p><h2>相关讲道</h2></div><span id="relatedCount">0</span></div>
+      <p>如果网站里有标注这章经文的讲道，会自动出现在这里。</p>
+      <div id="relatedList" class="related-list"></div>
+    </section>
+  </main>
+  <div id="selectionBar" class="selection-bar" hidden><div><strong id="selectionRef">已选经文</strong><small id="selectionCount">0 节</small></div><div><button id="copySelection" type="button">复制</button><button id="clearSelection" type="button">取消</button></div></div>
+  <dialog id="passageDialog" class="bible-dialog passage-dialog"><form method="dialog"><header><strong>选择经文</strong><button value="cancel">×</button></header><input id="bookSearch" type="search" placeholder="搜索书卷，例如：约翰"><div class="picker-label">书卷</div><div id="bookPicker" class="book-picker"></div><div class="picker-label">章节</div><div id="chapterPicker" class="chapter-picker"></div></form></dialog>
+  <dialog id="fontDialog" class="bible-dialog"><form method="dialog"><header><strong>经文字号</strong><button value="cancel">×</button></header><p>只调整圣经正文。</p><div class="font-options"><button type="button" data-font="small">小</button><button type="button" data-font="normal">标准</button><button type="button" data-font="large">大</button><button type="button" data-font="xlarge">特大</button></div></form></dialog>
+  <div id="toast" class="bible-toast" role="status" aria-live="polite"></div>
+  <footer class="site-footer shell bible-footer"><div class="footer-brand"><img src="/assets/evkerk-logo.webp" alt="" width="34" height="34"><span><strong>基督教福音教会</strong><small>EVANGELIEKERK</small></span></div><div class="footer-links"><a href="/">首页</a><a href="/sermons">讲道</a><a href="/bible">读经</a></div></footer>
+  <script src="/bible.js?v=1"></script>
+</body>
+</html>

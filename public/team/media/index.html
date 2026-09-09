@@ -6,7 +6,7 @@
   <meta name="robots" content="noindex,nofollow,noarchive">
   <title>内部媒体库 · EVKERK</title>
   <link rel="stylesheet" href="/team/styles.css?v=2">
-  <link rel="stylesheet" href="/team/media/media.css?v=2">
+  <link rel="stylesheet" href="/team/media/media.css?v=3">
 </head>
 <body>
   <header class="topbar">
@@ -16,20 +16,30 @@
   <main class="media-shell">
     <section class="media-head">
       <p class="eyebrow">INTERNAL MEDIA</p>
-      <h1>同工内部媒体库</h1>
-      <p>这里的素材只给已开通媒体权限的同工使用，不会出现在公开网站或会众端 App。</p>
+      <h1>诗歌与 2026 年讲道，都在这里。</h1>
+      <p>仅供已开通媒体权限的同工使用。这里包含内部诗歌视频和 2026 年讲道录音；更早的讲道仍保存在服务器归档中，但不在这里展示。</p>
+    </section>
+    <section class="media-tabs" aria-label="媒体分类">
+      <button class="active" type="button" data-filter="all">全部 <span id="allCount">0</span></button>
+      <button type="button" data-filter="sermon">讲道 <span id="sermonCount">0</span></button>
+      <button type="button" data-filter="hymn">诗歌 <span id="hymnCount">0</span></button>
     </section>
     <section class="media-tools">
-      <label>搜索内部素材<input id="mediaSearch" type="search" placeholder="输入中文或荷兰文标题" autocomplete="off"></label>
+      <label>搜索素材<input id="mediaSearch" type="search" placeholder="搜标题、年份或日期" autocomplete="off"></label>
       <span id="mediaCount">0 项</span>
     </section>
     <p class="media-status" id="mediaStatus">正在读取内部媒体…</p>
     <section class="media-grid" id="mediaGrid"></section>
     <section class="media-player-card" id="playerCard" hidden>
-      <div class="player-copy"><small>正在播放</small><h2 id="playerTitle">—</h2></div>
-      <video id="mediaPlayer" controls playsinline preload="metadata"></video>
+      <div class="player-copy">
+        <small id="playerKind">正在播放</small>
+        <h2 id="playerTitle">—</h2>
+        <p id="playerMeta"></p>
+      </div>
+      <video id="videoPlayer" controls playsinline preload="metadata" hidden></video>
+      <audio id="audioPlayer" controls preload="metadata" hidden></audio>
     </section>
   </main>
-  <script src="/team/media/app.js?v=2"></script>
+  <script src="/team/media/app.js?v=3"></script>
 </body>
 </html>

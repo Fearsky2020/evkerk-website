@@ -77,14 +77,14 @@ test('HEAD returns headers without media bytes', async () => {
   assert.equal(await response.text(), '');
 });
 
-const catalogEndpoint = 'https://evkerk.nl/api/internal-media/hymns';
+const catalogEndpoint = 'https://evkerk.nl/api/internal-media/items';
 
-test('anonymous callers cannot list internal hymn catalog', async () => {
+test('anonymous callers cannot list internal media catalog', async () => {
   const response = await handleInternalMediaApi(new Request(catalogEndpoint), makeEnv(), new URL(catalogEndpoint));
   assert.equal(response.status, 401);
 });
 
-test('media coworkers can list internal hymns without storage keys leaking', async () => {
+test('media coworkers can list internal media without storage keys leaking', async () => {
   const request = new Request(catalogEndpoint, { headers: { cookie: 'evkerk_admin_session=test' } });
   const response = await handleInternalMediaApi(request, makeEnv(), new URL(catalogEndpoint));
   assert.equal(response.status, 200);
@@ -92,7 +92,7 @@ test('media coworkers can list internal hymns without storage keys leaking', asy
   const body = await response.json();
   assert.equal(body.items[0].id, '001-he-er-wei-yi');
   assert.equal(body.items[0].title_zh, '合而为一');
-  assert.equal(body.items[0].href, '/api/internal-media/hymns/001-he-er-wei-yi');
+  assert.equal(body.items[0].href, '/api/internal-media/items/001-he-er-wei-yi');
   assert.equal(JSON.stringify(body).includes('internal-hymns/reference'), false);
 });
 

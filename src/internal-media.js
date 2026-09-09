@@ -11,10 +11,11 @@ function unavailable() {
 async function catalogItems(env) {
   if (!env.DB) return null;
   const rows = await env.DB.prepare(
-    `SELECT id, category, title_zh, title_nl, mime_type
+    `SELECT id, category, title_zh, title_nl, mime_type, media_date, size_bytes
        FROM internal_media
       WHERE status='active'
-      ORDER BY sort_order ASC, title_zh ASC`,
+        AND (category!='sermon' OR media_date LIKE '2026-%')
+      ORDER BY CASE WHEN category='hymn' THEN 0 ELSE 1 END ASC, media_date DESC, sort_order ASC, title_zh ASC`,
   ).all();
   return (rows.results || []).map((item) => ({
     id: item.id,
@@ -22,7 +23,9 @@ async function catalogItems(env) {
     title_zh: item.title_zh,
     title_nl: item.title_nl,
     type: item.mime_type,
-    href: `/api/internal-media/hymns/${encodeURIComponent(item.id)}`,
+    date: item.media_date || '',
+    size_bytes: Number(item.size_bytes || 0),
+    href: `/api/internal-media/items/${encodeURIComponent(item.id)}`,
   }));
 }
 
@@ -48,14 +51,14 @@ export async function guardInternalMediaPage(request, env, url) {
 }
 
 export async function handleInternalMediaApi(request, env, url) {
-  if (request.method === 'GET' && url.pathname === '/api/internal-media/hymns') {
+  if (request.method === 'GET' && (url.pathname === '/api/internal-media/items' || url.pathname === '/api/internal-media/hymns')) {
     const auth = await authorizeService(request, env, 'media');
     if (auth.response) return auth.response;
     const items = await catalogItems(env);
     if (!items) return unavailable();
     return Response.json({ ok: true, items }, { headers: { 'cache-control': 'private, no-store' } });
   }
-  const match = url.pathname.match(/^\/api\/internal-media\/hymns\/([^/]+)$/);
+  const match = url.pathname.match(/^\/api\/internal-media\/(?:items|hymns)\/([^/]+)$/);
   if (!match || !['GET', 'HEAD'].includes(request.method)) return null;
   const auth = await authorizeService(request, env, 'media');
   if (auth.response) return auth.response;
