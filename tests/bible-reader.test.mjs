@@ -59,16 +59,12 @@ test('Bible toolbar uses a clear search icon and compact passage selector',()=>{
 });
 
 
-test('Bible page stays reading-first with a compact daily verse strip',()=>{
-  assert.doesNotMatch(html,/class="bible-hero"/);
-  assert.match(html,/class="daily-verse-strip"/);
-  assert.match(css,/Clean Bible reading layout/);
-});
 
-test('Bible offers free browser-based audio reading',()=>{
-  assert.match(html,/id="audioButton"/);
-  assert.match(js,/speechSynthesis/);
-  assert.match(js,/SpeechSynthesisUtterance/);
-  assert.match(js,/function toggleAudio/);
-});
 
+test('Bible reader uses a wider reading column with visible prev and next controls',()=>{
+  assert.match(css,/\.bible-shell\{width:min\(1180px/);
+  assert.match(html,/id="prevChapter"/);
+  assert.match(html,/id="nextChapter"/);
+  assert.doesNotMatch(html,/dailyVerseCard/);
+  assert.doesNotMatch(html,/audioButton/);
+});
