@@ -1,33 +1,75 @@
 import { authorizeService } from './team-services.js';
 
-const INTERNAL_MEDIA = new Map([
-  ['001-he-er-wei-yi', {
-    key: 'internal-hymns/reference/001-he-er-wei-yi.mp4',
-    type: 'video/mp4',
-    filename: '001-he-er-wei-yi.mp4',
-  }],
-]);
-
 function notFound() {
   return new Response('not found', { status: 404 });
 }
 
+function unavailable() {
+  return new Response('storage unavailable', { status: 503 });
+}
+
+async function catalogItems(env) {
+  if (!env.DB) return null;
+  const rows = await env.DB.prepare(
+    `SELECT id, category, title_zh, title_nl, mime_type
+       FROM internal_media
+      WHERE status='active'
+      ORDER BY sort_order ASC, title_zh ASC`,
+  ).all();
+  return (rows.results || []).map((item) => ({
+    id: item.id,
+    category: item.category,
+    title_zh: item.title_zh,
+    title_nl: item.title_nl,
+    type: item.mime_type,
+    href: `/api/internal-media/hymns/${encodeURIComponent(item.id)}`,
+  }));
+}
+
+async function findItem(env, id) {
+  if (!env.DB) return null;
+  return env.DB.prepare(
+    `SELECT id, r2_key, mime_type, filename
+       FROM internal_media
+      WHERE id=? AND status='active'
+      LIMIT 1`,
+  ).bind(id).first();
+}
+export async function guardInternalMediaPage(request, env, url) {
+  const protectedPage = request.method === 'GET' && (
+    url.pathname === '/team/media' ||
+    url.pathname === '/team/media/' ||
+    url.pathname === '/team/media/index.html'
+  );
+  if (!protectedPage) return null;
+  const auth = await authorizeService(request, env, 'media');
+  if (!auth.response) return null;
+  return Response.redirect(new URL('/team/', url).toString(), 302);
+}
+
 export async function handleInternalMediaApi(request, env, url) {
+  if (request.method === 'GET' && url.pathname === '/api/internal-media/hymns') {
+    const auth = await authorizeService(request, env, 'media');
+    if (auth.response) return auth.response;
+    const items = await catalogItems(env);
+    if (!items) return unavailable();
+    return Response.json({ ok: true, items }, { headers: { 'cache-control': 'private, no-store' } });
+  }
   const match = url.pathname.match(/^\/api\/internal-media\/hymns\/([^/]+)$/);
   if (!match || !['GET', 'HEAD'].includes(request.method)) return null;
   const auth = await authorizeService(request, env, 'media');
   if (auth.response) return auth.response;
-  if (!env.MEDIA) return new Response('storage unavailable', { status: 503 });
-  const item = INTERNAL_MEDIA.get(decodeURIComponent(match[1]));
+  if (!env.DB || !env.MEDIA) return unavailable();
+  const item = await findItem(env, decodeURIComponent(match[1]));
   if (!item) return notFound();
-  const object = await env.MEDIA.get(item.key, { range: request.headers });
+  const object = await env.MEDIA.get(item.r2_key, { range: request.headers });
   if (!object) return notFound();
   const headers = new Headers();
   object.writeHttpMetadata(headers);
-  headers.set('content-type', item.type);
+  headers.set('content-type', item.mime_type || 'application/octet-stream');
   headers.set('cache-control', 'private, no-store');
   headers.set('accept-ranges', 'bytes');
-  headers.set('content-disposition', `inline; filename="${item.filename}"`);
+  headers.set('content-disposition', `inline; filename="${item.filename || item.id}"`);
   headers.set('etag', object.httpEtag);
   if (request.method === 'HEAD') return new Response(null, { headers });
   if (object.range) {

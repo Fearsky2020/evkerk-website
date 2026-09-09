@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>内部媒体库 · EVKERK</title>
+  <link rel="stylesheet" href="/team/styles.css?v=2">
+  <link rel="stylesheet" href="/team/media/media.css?v=2">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/team/"><img src="/assets/evkerk-logo.webp" alt="EVKERK"><span>内部媒体库</span></a>
+    <a class="media-back" href="/team/">返回同工入口</a>
+  </header>
+  <main class="media-shell">
+    <section class="media-head">
+      <p class="eyebrow">INTERNAL MEDIA</p>
+      <h1>同工内部媒体库</h1>
+      <p>这里的素材只给已开通媒体权限的同工使用，不会出现在公开网站或会众端 App。</p>
+    </section>
+    <section class="media-tools">
+      <label>搜索内部素材<input id="mediaSearch" type="search" placeholder="输入中文或荷兰文标题" autocomplete="off"></label>
+      <span id="mediaCount">0 项</span>
+    </section>
+    <p class="media-status" id="mediaStatus">正在读取内部媒体…</p>
+    <section class="media-grid" id="mediaGrid"></section>
+    <section class="media-player-card" id="playerCard" hidden>
+      <div class="player-copy"><small>正在播放</small><h2 id="playerTitle">—</h2></div>
+      <video id="mediaPlayer" controls playsinline preload="metadata"></video>
+    </section>
+  </main>
+  <script src="/team/media/app.js?v=2"></script>
+</body>
+</html>

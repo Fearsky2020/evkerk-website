@@ -1,8 +1,23 @@
 # EVKERK Workboard
 
-_Last updated: 2026-09-03_
+_Last updated: 2026-09-09_
 
 This board records the current church website work plus the boundaries/status of closely related projects. Status claims follow this evidence order: executable code/live behavior → executed test or live validation → repository documentation → roadmap.
+
+## 2026-09-09 checkpoint — EVKERK App v0.9.4 + internal media
+
+- Android dev build: `0.9.4-test`, versionCode 16.
+- App automated contract tests: **17/17 passing** at the accepted checkpoint.
+- Official public data origin is `https://evkerk.nl`; App `www` contains no `workers.dev` dependency.
+- Native sermon playback is verified on Xiaomi/HyperOS with lock-screen metadata, play/pause, ±15s seek and background playback.
+- Daily verse reminders and reading-plan reminders each register **60/60** real Android notifications in validation, then restore to zero test residue.
+- HyperOS can re-deny background networking for the dev package; the App exposes direct background-data and battery settings shortcuts instead of bypassing OEM privacy controls.
+- Accepted APK snapshot: `D:\EVKERK-Test\福音教会_v0.9.4-test_accepted.apk` (SHA-256 `7E6F07EC4F984BB23C1A00A94AD30550002979B124749A95D298E01D37ECD172`).
+- Internal coworker media portal: `/team/media/`, guarded by the `media` service permission at page and API level.
+- Internal media metadata now lives in D1 table `internal_media` (migration `0016_internal_media.sql`); R2 keys are never exposed to the browser.
+- Current registered internal hymn media: `001-he-er-wei-yi` / `合而为一`.
+- Operator import helper: `scripts/import-internal-media.ps1` supports validated private R2 upload + D1 registration and `-DryRun`.
+- Small-black source folder `C:\Users\Tao\Desktop\诗歌视频_normalized` is intentionally not bulk-imported yet; prepare/import only when that folder is accessible in an authorized tool scope.
 
 ## P0 — ACTIVE: Sinan church publishing automation
 

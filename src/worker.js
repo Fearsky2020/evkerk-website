@@ -111,6 +111,38 @@ async function listSermons(env) {
   );
 }
 
+const ALLOWED_BIBLE_VERSIONS = new Set(['cuvs', 'dutch1917']);
+
+function publicSchedule() {
+  return {
+    zoetermeer_service: { day_zh: '每周日', day_nl: 'Elke zondag', time: '10:00–12:00', label_zh: '中文及荷兰文主日聚会', label_nl: 'Chinese en Nederlandstalige zondagsdienst' },
+    rijswijk_service: { day_zh: '每周日', day_nl: 'Elke zondag', time: '12:30–15:30', label_zh: '主日聚会', label_nl: 'Zondagsdienst' },
+  };
+}
+
+async function bibleChapter(url) {
+  const book = String(url.searchParams.get('book') || '').trim();
+  const chapter = Number(url.searchParams.get('chapter'));
+  const version = String(url.searchParams.get('version') || 'cuvs');
+  if (!/^[1-3A-Za-z ]{2,32}$/.test(book) || !Number.isInteger(chapter) || chapter < 1 || chapter > 176 || !ALLOWED_BIBLE_VERSIONS.has(version)) {
+    return json({ ok: false, error: 'invalid bible request' }, 400);
+  }
+  const target = new URL('https://api.midvash.com/v1/passages');
+  target.searchParams.set('refs', `${book} ${chapter}`);
+  target.searchParams.set('version', version);
+  try {
+    const response = await fetch(target, { headers: { accept: 'application/json' } });
+    if (!response.ok) return json({ ok: false, error: `bible source ${response.status}` }, 502);
+    const body = await response.json();
+    const row = Array.isArray(body?.data) ? body.data[0] : null;
+    if (!row || row.error) return json({ ok: false, error: row?.error || 'chapter unavailable' }, 404);
+    return json({ ok: true, chapter: { book: row.bookName || book, chapter: row.chapter, reference: row.reference || row.ref, verses: row.verses || [] } });
+  } catch (error) {
+    console.error('BIBLE_PROXY_FAILED', error?.message || error);
+    return json({ ok: false, error: 'bible unavailable' }, 502);
+  }
+}
+
 async function listAnnouncements(env) {
   return queryAll(
     env,
@@ -401,6 +433,8 @@ async function handleApi(request, env, url) {
       sinan: Boolean(env.SINAN_TOKEN),
     });
   }
+  if (request.method === 'GET' && url.pathname === '/api/schedule') return json({ ok: true, schedule: publicSchedule() });
+  if (request.method === 'GET' && url.pathname === '/api/bible/chapter') return bibleChapter(url);
   if (request.method === 'GET' && url.pathname === '/api/events') return json({ ok: true, events: await listEvents(env) });
   if (request.method === 'GET' && url.pathname === '/api/sermons') return json({ ok: true, sermons: await listSermons(env) });
   if (request.method === 'GET' && url.pathname === '/api/announcements') return json({ ok: true, announcements: await listAnnouncements(env) });
