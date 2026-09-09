@@ -57,3 +57,18 @@ test('Bible toolbar uses a clear search icon and compact passage selector',()=>{
   assert.match(css,/\.passage-button\{flex:0 1 230px/);
   assert.match(css,/@media\(max-width:720px\).*\.bible-toolbar\{top:66px;flex-wrap:nowrap/);
 });
+
+
+test('Bible page stays reading-first with a compact daily verse strip',()=>{
+  assert.doesNotMatch(html,/class="bible-hero"/);
+  assert.match(html,/class="daily-verse-strip"/);
+  assert.match(css,/Clean Bible reading layout/);
+});
+
+test('Bible offers free browser-based audio reading',()=>{
+  assert.match(html,/id="audioButton"/);
+  assert.match(js,/speechSynthesis/);
+  assert.match(js,/SpeechSynthesisUtterance/);
+  assert.match(js,/function toggleAudio/);
+});
+
