@@ -26,3 +26,9 @@ test('Bible body uses the App-style readable sans stack',()=>{
   assert.match(css,/Noto Sans CJK SC/);
   assert.doesNotMatch(css,/\.verse-flow\{font-family:"Songti SC"/);
 });
+
+
+test('selection action bar is fully hidden after copy or cancel',()=>{
+  assert.match(css,/\.selection-bar\[hidden\]\{display:none!important\}/);
+  assert.match(js,/\$\('clearSelection'\)\.onclick=\(\)=>\{selected\.clear\(\);renderVerses\(\)\}/);
+});
