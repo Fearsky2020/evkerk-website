@@ -452,6 +452,35 @@ async function directSermonAudio(request, env, year, filename) {
   return new Response(object.body, { headers });
 }
 
+async function archiveSermonAudio(request, env, id) {
+  const unavailable = requireStorage(env);
+  if (unavailable) return unavailable;
+  const row = await env.DB.prepare(
+    `SELECT r2_key, mime_type, filename FROM internal_media
+      WHERE id=? AND category='sermon' AND status='active' AND media_date LIKE '2026-%' LIMIT 1`,
+  ).bind(clean(id, 180)).first();
+  if (!row) return new Response('not found', { status: 404 });
+  const object = await env.MEDIA.get(row.r2_key, { range: request.headers });
+  if (!object) return new Response('not found', { status: 404 });
+  const headers = new Headers();
+  object.writeHttpMetadata(headers);
+  headers.set('content-type', row.mime_type || 'audio/mpeg');
+  headers.set('cache-control', 'public, max-age=3600');
+  headers.set('accept-ranges', 'bytes');
+  headers.set('content-disposition', 'inline');
+  headers.set('etag', object.httpEtag);
+  if (request.method === 'HEAD') return new Response(null, { headers });
+  if (object.range) {
+    const offset = object.range.offset || 0;
+    const length = object.range.length || object.size;
+    headers.set('content-range', `bytes ${offset}-${offset + length - 1}/${object.size}`);
+    headers.set('content-length', String(length));
+    return new Response(object.body, { status: 206, headers });
+  }
+  headers.set('content-length', String(object.size));
+  return new Response(object.body, { headers });
+}
+
 async function publicAudio(env, id) {
   const unavailable = requireStorage(env);
   if (unavailable) return unavailable;
@@ -486,6 +515,8 @@ export async function handleMediaApi(request, env, url) {
   if (request.method === 'POST' && path === '/api/admin/sermon-audio') return uploadSermonAudio(request, env);
   let directMatch = path.match(/^\/api\/media\/sermon-audio\/(\d{4})\/([^/]+)$/);
   if (directMatch && request.method === 'GET') return directSermonAudio(request, env, directMatch[1], directMatch[2]);
+  const archiveMatch = path.match(/^\/api\/media\/archive-sermon\/([^/]+)$/);
+  if (archiveMatch && ['GET', 'HEAD'].includes(request.method)) return archiveSermonAudio(request, env, decodeURIComponent(archiveMatch[1]));
   if (request.method === 'GET' && path === '/api/media/jobs') return listAdminJobs(request, env, url);
 
   let match = path.match(/^\/api\/media\/jobs\/([^/]+)$/);

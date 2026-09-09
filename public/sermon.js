@@ -150,13 +150,14 @@
       body.appendChild(el('p', '', isNl() ? 'Transcript laden…' : '正在加载讲道正文…'));
       loadTranscriptInto(body, sermon.transcript_url);
     } else {
-      articleParagraphs(body, '');
+      articleParagraphs(body, isNl() ? 'Voor deze historische preek is de volledige audio beschikbaar. De tekst wordt later toegevoegd.' : '这篇历史讲道已经提供完整录音，文字整理会在核对后继续补充。');
     }
     page.appendChild(body);
 
-    const footer = el('footer', 'article-footer', isNl()
-      ? 'Dit artikel is op basis van een preektranscript door Sinan voorbereid en vóór publicatie door een mens beoordeeld.'
-      : '本文由司南根据讲道录音转写整理，并在正式发布前经过人工审核。');
+    const hasPreparedText = Boolean(articleText || sermon.transcript_url);
+    const footer = el('footer', 'article-footer', hasPreparedText
+      ? (isNl() ? 'Deze tekst is op basis van een preektranscript voorbereid en vóór publicatie door een mens beoordeeld.' : '本文根据讲道录音转写整理，并在正式发布前经过人工审核。')
+      : (isNl() ? 'Archiefopname van een zondagse preek uit 2026.' : '2026 年主日讲道录音归档。'));
     page.appendChild(footer);
 
     document.title = `${title} | ${isNl() ? 'Evangeliekerk' : '福音教会'}`;

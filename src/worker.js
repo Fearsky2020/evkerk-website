@@ -106,8 +106,9 @@ async function listSermons(env) {
             youtube_url, audio_url, transcript_url, media_job_id, published_at
        FROM sermons
       WHERE status = 'published'
+        AND sermon_date LIKE '2026-%'
       ORDER BY sermon_date DESC, published_at DESC
-      LIMIT 24`,
+      LIMIT 40`,
   );
 }
 
