@@ -48,3 +48,12 @@ test('Bible copy lets readers choose verse-numbered or continuous text',()=>{
   assert.match(js,/join\('\\n'\)/);
   assert.match(js,/\.trim\(\)\)\.join\(''\)/);
 });
+
+
+test('Bible toolbar uses a clear search icon and compact passage selector',()=>{
+  assert.match(html,/class="font-button search-button"/);
+  assert.match(html,/<circle cx="10\.5" cy="10\.5" r="6\.5"><\/circle>/);
+  assert.match(html,/<path d="M15\.5 15\.5 21 21"><\/path>/);
+  assert.match(css,/\.passage-button\{flex:0 1 230px/);
+  assert.match(css,/@media\(max-width:720px\).*\.bible-toolbar\{top:66px;flex-wrap:nowrap/);
+});
