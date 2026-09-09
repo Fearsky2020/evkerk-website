@@ -34,8 +34,7 @@ test('selection action bar is fully hidden after copy or cancel',()=>{
 });
 
 
-test('selected Bible verse has strong visible contrast',()=>{
-  assert.match(css,/\.verse-unit\.selected\{background:#9edcf2;color:#073348/);
-  assert.match(css,/inset 0 0 0 2px #168fbd/);
-  assert.match(css,/background:#0d6f98;color:#fff/);
+test('selected Bible verse uses bold only, without color or frame',()=>{
+  assert.ok(css.includes('.verse-unit.selected{background:transparent;color:inherit;box-shadow:none;font-weight:800}'));
+  assert.ok(css.includes('.verse-unit.selected sup{color:inherit;font-weight:800}'));
 });
