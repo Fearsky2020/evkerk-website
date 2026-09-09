@@ -68,3 +68,27 @@ test('Bible reader uses a wider reading column with visible prev and next contro
   assert.doesNotMatch(html,/dailyVerseCard/);
   assert.doesNotMatch(html,/audioButton/);
 });
+
+
+test('Bible reader can switch between Chinese and Dutch versions',()=>{
+  assert.match(html,/id="versionButton"/);
+  assert.match(html,/data-version="dutch1917"/);
+  assert.match(js,/DUTCH_BOOKS/);
+  assert.match(js,/version=localStorage\.getItem\(versionKey\)==='dutch1917'/);
+  assert.match(js,/version=\$\{version\}/);
+});
+
+test('chapter navigation is fixed at the middle left and right edges',()=>{
+  assert.match(html,/id="prevChapter"[^>]*>&lt;<\/button>/);
+  assert.match(html,/id="nextChapter"[^>]*>&gt;<\/button>/);
+  assert.match(css,/\.paper-heading #prevChapter,.paper-heading #nextChapter\{position:fixed;top:50%/);
+  assert.match(css,/\.paper-heading #prevChapter\{left:8px\}/);
+  assert.match(css,/\.paper-heading #nextChapter\{right:8px\}/);
+});
+
+
+test('Dutch mode search stays Dutch',()=>{
+  assert.match(html,/id="searchHelp"/);
+  assert.match(js,/if\(version==='dutch1917'\)/);
+  assert.match(js,/Geen resultaat in dit hoofdstuk/);
+});
