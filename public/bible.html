@@ -10,7 +10,7 @@
   <link rel="icon" href="/assets/evkerk-logo.webp" type="image/webp">
   <link rel="stylesheet" href="/styles.css?v=1">
   <link rel="stylesheet" href="/brand.css?v=32">
-  <link rel="stylesheet" href="/bible.css?v=1">
+  <link rel="stylesheet" href="/bible.css?v=2">
 </head>
 <body class="bible-page">
   <header class="site-header bible-site-header">
@@ -26,7 +26,7 @@
     <section class="bible-toolbar" aria-label="读经工具">
       <button id="passageButton" class="passage-button" type="button"><span id="passageLabel">罗马书 8</span><small>切换书卷与章节</small></button>
       <div class="reading-mode-switch"><button class="active" type="button" data-mode="paper">纸质</button><button type="button" data-mode="verse">分节</button></div>
-      <button id="fontButton" class="font-button" type="button">Aa</button><span class="version-chip">和合本</span>
+      <button id="searchButton" class="font-button" type="button" aria-label="搜索圣经">⌕</button><button id="fontButton" class="font-button" type="button">Aa</button><span class="version-chip">和合本</span>
     </section>
     <article class="paper-bible" id="paperBible">
       <header class="paper-heading"><button id="prevChapter" type="button" aria-label="上一章">‹</button><div><small>和合本</small><h2 id="chapterTitle">罗马书 第8章</h2></div><button id="nextChapter" type="button" aria-label="下一章">›</button></header>
@@ -46,8 +46,9 @@
   <div id="selectionBar" class="selection-bar" hidden><div><strong id="selectionRef">已选经文</strong><small id="selectionCount">0 节</small></div><div><button id="copySelection" type="button">复制</button><button id="clearSelection" type="button">取消</button></div></div>
   <dialog id="passageDialog" class="bible-dialog passage-dialog"><form method="dialog"><header><strong>选择经文</strong><button value="cancel">×</button></header><input id="bookSearch" type="search" placeholder="搜索书卷，例如：约翰"><div class="picker-label">书卷</div><div id="bookPicker" class="book-picker"></div><div class="picker-label">章节</div><div id="chapterPicker" class="chapter-picker"></div></form></dialog>
   <dialog id="fontDialog" class="bible-dialog"><form method="dialog"><header><strong>经文字号</strong><button value="cancel">×</button></header><p>只调整圣经正文。</p><div class="font-options"><button type="button" data-font="small">小</button><button type="button" data-font="normal">标准</button><button type="button" data-font="large">大</button><button type="button" data-font="xlarge">特大</button></div></form></dialog>
+  <dialog id="searchDialog" class="bible-dialog search-dialog"><form method="dialog"><header><strong>搜索圣经</strong><button value="cancel">×</button></header><input id="bibleSearchInput" type="search" placeholder="搜书名或经文，例如：约翰、不要惧怕、爱"><p class="search-help">输入书名可直接打开书卷；输入关键词会搜索整本和合本。</p><div id="bibleSearchResults" class="bible-search-results"><div class="related-empty">输入关键词开始搜索。</div></div></form></dialog>
   <div id="toast" class="bible-toast" role="status" aria-live="polite"></div>
   <footer class="site-footer shell bible-footer"><div class="footer-brand"><img src="/assets/evkerk-logo.webp" alt="" width="34" height="34"><span><strong>基督教福音教会</strong><small>EVANGELIEKERK</small></span></div><div class="footer-links"><a href="/">首页</a><a href="/sermons">讲道</a><a href="/bible">读经</a></div></footer>
-  <script src="/bible.js?v=1"></script>
+  <script src="/bible.js?v=2"></script>
 </body>
 </html>
