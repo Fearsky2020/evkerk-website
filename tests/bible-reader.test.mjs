@@ -32,3 +32,10 @@ test('selection action bar is fully hidden after copy or cancel',()=>{
   assert.match(css,/\.selection-bar\[hidden\]\{display:none!important\}/);
   assert.match(js,/\$\('clearSelection'\)\.onclick=\(\)=>\{selected\.clear\(\);renderVerses\(\)\}/);
 });
+
+
+test('selected Bible verse has strong visible contrast',()=>{
+  assert.match(css,/\.verse-unit\.selected\{background:#9edcf2;color:#073348/);
+  assert.match(css,/inset 0 0 0 2px #168fbd/);
+  assert.match(css,/background:#0d6f98;color:#fff/);
+});
