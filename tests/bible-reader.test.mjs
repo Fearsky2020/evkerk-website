@@ -34,7 +34,7 @@ test('selection action bar is fully hidden after copy or cancel',()=>{
 });
 
 
-test('selected Bible verse uses bold only, without color or frame',()=>{
-  assert.ok(css.includes('.verse-unit.selected{background:transparent;color:inherit;box-shadow:none;font-weight:800}'));
+test('selected Bible verse uses bold underline only, without color or frame',()=>{
+  assert.ok(css.includes('.verse-unit.selected{background:transparent;color:inherit;box-shadow:none;font-weight:800;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:4px}')); 
   assert.ok(css.includes('.verse-unit.selected sup{color:inherit;font-weight:800}'));
 });
