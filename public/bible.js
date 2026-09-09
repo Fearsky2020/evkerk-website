@@ -31,7 +31,8 @@ function checkins(){return readJson(checkinKey,[])}
 function streak(days){const set=new Set(days),d=new Date();let n=0;while(true){const day=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Amsterdam',year:'numeric',month:'2-digit',day:'2-digit'}).format(d);if(!set.has(day))break;n++;d.setDate(d.getDate()-1)}return n}
 function updateCheckin(){const days=checkins(),today=localDay(),done=days.includes(today),s=streak(days);$('readingCheckin').textContent=done?'✓ 今日已读':'✓ 今日读完打卡';$('readingStreak').textContent=`连续 ${s} 天 · 累计读经 ${days.length} 天`}
 function checkIn(){const days=checkins(),today=localDay();if(!days.includes(today)){days.push(today);days.sort();writeJson(checkinKey,days);toast('今天的读经已经记录')}else toast('今天已经打过卡了');updateCheckin()}
-async function copySelection(){if(!selected.size)return;const text=`${selectionRef()}\n${selectedNumbers().map(n=>`${n} ${verses[n-1]}`).join('\n')}`;try{await navigator.clipboard.writeText(text);selected.clear();renderVerses();toast('经文已复制')}catch{toast('复制失败，请重试')}}
+function copyText(withVerseNumbers){const nums=selectedNumbers(),body=withVerseNumbers?nums.map(n=>`${n} ${String(verses[n-1]||'').trim()}`).join('\n'):nums.map(n=>String(verses[n-1]||'').trim()).join('');return `${selectionRef()}\n${body}`}
+async function copySelection(withVerseNumbers){if(!selected.size)return;const text=copyText(withVerseNumbers);try{await navigator.clipboard.writeText(text);$('copyDialog').close();selected.clear();renderVerses();toast(withVerseNumbers?'经文已复制（带节号）':'经文已复制（连续正文）')}catch{toast('复制失败，请重试')}}
 const SEARCH_URL='/data/bible-cuvs-search.json';let searchIndex=null,searchTimer=null;
 function norm(text){return String(text||'').toLowerCase().replace(/[\s，。；：、！？,.!?;:'\"“”‘’（）()\[\]【】]/g,'')}
 function bigrams(text){const s=norm(text),out=[];for(let i=0;i<s.length-1;i++)out.push(s.slice(i,i+2));return out}
@@ -42,6 +43,6 @@ async function renderBibleSearch(query){const box=$('bibleSearchResults'),q=quer
 function openBibleSearch(){$('bibleSearchInput').value='';$('bibleSearchResults').innerHTML='<div class="related-empty">输入书名或经文关键词开始搜索。</div>';$('searchDialog').showModal();setTimeout(()=>$('bibleSearchInput').focus(),80)}
 
 $('passageButton').onclick=()=>{renderPicker();$('bookSearch').value='';$('passageDialog').showModal()};$('searchButton').onclick=openBibleSearch;$('bibleSearchInput').oninput=()=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>renderBibleSearch($('bibleSearchInput').value),140)};$('bookSearch').oninput=()=>renderPicker($('bookSearch').value);$('fontButton').onclick=()=>{$('fontDialog').showModal();applyFont()};document.querySelectorAll('[data-font]').forEach(b=>b.onclick=()=>setFont(b.dataset.font));document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>setMode(b.dataset.mode));
-$('prevChapter').onclick=()=>moveChapter(-1);$('nextChapter').onclick=()=>moveChapter(1);$('readingCheckin').onclick=checkIn;$('copySelection').onclick=copySelection;$('clearSelection').onclick=()=>{selected.clear();renderVerses()};
+$('prevChapter').onclick=()=>moveChapter(-1);$('nextChapter').onclick=()=>moveChapter(1);$('readingCheckin').onclick=checkIn;$('copySelection').onclick=()=>$('copyDialog').showModal();$('copyWithVerseNumbers').onclick=()=>copySelection(true);$('copyPlainText').onclick=()=>copySelection(false);$('clearSelection').onclick=()=>{selected.clear();renderVerses()};
 applyFont();updateMode();updateCheckin();updateHeading();loadChapter();
 })();

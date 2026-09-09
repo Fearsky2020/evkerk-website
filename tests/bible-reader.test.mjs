@@ -18,7 +18,7 @@ test('Bible search index contains the full CUVS corpus',()=>{
   assert.ok(index.rows.some(row=>String(row[3]).includes('不要惧怕')));
 });
 test('Bible reading copy clears selected highlights after success',()=>{
-  assert.match(js,/navigator\.clipboard\.writeText\(text\);selected\.clear\(\);renderVerses\(\);toast\('经文已复制'\)/);
+  assert.match(js,/navigator\.clipboard\.writeText\(text\).*selected\.clear\(\);renderVerses\(\)/);
 });
 
 test('Bible body uses the App-style readable sans stack',()=>{
@@ -37,4 +37,14 @@ test('selection action bar is fully hidden after copy or cancel',()=>{
 test('selected Bible verse uses bold underline only, without color or frame',()=>{
   assert.ok(css.includes('.verse-unit.selected{background:transparent;color:inherit;box-shadow:none;font-weight:800;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:4px}')); 
   assert.ok(css.includes('.verse-unit.selected sup{color:inherit;font-weight:800}'));
+});
+
+
+test('Bible copy lets readers choose verse-numbered or continuous text',()=>{
+  assert.match(html,/id="copyDialog"/);
+  assert.match(html,/id="copyWithVerseNumbers"/);
+  assert.match(html,/id="copyPlainText"/);
+  assert.match(js,/function copyText\(withVerseNumbers\)/);
+  assert.match(js,/join\('\\n'\)/);
+  assert.match(js,/\.trim\(\)\)\.join\(''\)/);
 });
