@@ -78,12 +78,14 @@ test('Bible reader can switch between Chinese and Dutch versions',()=>{
   assert.match(js,/version=\$\{version\}/);
 });
 
-test('chapter navigation is fixed at the middle left and right edges',()=>{
+test('chapter navigation is fixed near the reading column at screen middle',()=>{
   assert.match(html,/id="prevChapter"[^>]*>&lt;<\/button>/);
   assert.match(html,/id="nextChapter"[^>]*>&gt;<\/button>/);
   assert.match(css,/\.paper-heading #prevChapter,.paper-heading #nextChapter\{position:fixed;top:50%/);
-  assert.match(css,/\.paper-heading #prevChapter\{left:8px\}/);
-  assert.match(css,/\.paper-heading #nextChapter\{right:8px\}/);
+  assert.match(css,/left:max\(6px,calc\(\(100vw - 1180px\)\/2 - 52px\)\)/);
+  assert.match(css,/right:max\(6px,calc\(\(100vw - 1180px\)\/2 - 52px\)\)/);
+  assert.match(css,/width:46px;height:64px/);
+  assert.match(css,/font:500 40px\/1/);
 });
 
 
