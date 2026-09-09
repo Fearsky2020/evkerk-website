@@ -6,6 +6,7 @@ import { handleSundaySchoolPortalGuard } from './sunday-school-portal-guard.js';
 import { handleHumanAuthApi } from './human-auth.js';
 import { handleTeamServicesApi, guardHumanServiceAccess } from './team-services.js';
 import { handleWelcomeApi } from './welcome.js';
+import { handleInternalMediaApi } from './internal-media.js';
 
 async function injectScripts(request, env, sources) {
   const response = await env.ASSETS.fetch(request);
@@ -45,6 +46,8 @@ async function route(request, env, ctx) {
     if (humanAuthResponse) return humanAuthResponse;
     const teamServicesResponse = await handleTeamServicesApi(request, env, url);
     if (teamServicesResponse) return teamServicesResponse;
+    const internalMediaResponse = await handleInternalMediaApi(request, env, url);
+    if (internalMediaResponse) return internalMediaResponse;
     const welcomeResponse = await handleWelcomeApi(request, env, url);
     if (welcomeResponse) return welcomeResponse;
     const serviceGuardResponse = await guardHumanServiceAccess(request, env, url);
