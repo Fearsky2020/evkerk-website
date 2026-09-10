@@ -157,6 +157,24 @@ async function listAnnouncements(env) {
   );
 }
 
+async function listDevotionals(env) {
+  if (env.DB?.prepare) {
+    await env.DB.prepare(`CREATE TABLE IF NOT EXISTS devotionals (
+      id TEXT PRIMARY KEY, devotional_date TEXT NOT NULL, title_zh TEXT NOT NULL, scripture TEXT,
+      body_zh TEXT NOT NULL, audio_url TEXT, status TEXT NOT NULL DEFAULT 'draft', author_openid TEXT,
+      published_at TEXT, updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )`).run();
+  }
+  return queryAll(
+    env,
+    `SELECT id, devotional_date, title_zh, scripture, body_zh, audio_url, published_at
+       FROM devotionals
+      WHERE status = 'published'
+      ORDER BY devotional_date DESC, published_at DESC
+      LIMIT 30`,
+  );
+}
+
 async function listAdminEvents(request, env) {
   const denied = await requireToken(request, env);
   if (denied) return denied;
@@ -439,6 +457,7 @@ async function handleApi(request, env, url) {
   if (request.method === 'GET' && url.pathname === '/api/events') return json({ ok: true, events: await listEvents(env) });
   if (request.method === 'GET' && url.pathname === '/api/sermons') return json({ ok: true, sermons: await listSermons(env) });
   if (request.method === 'GET' && url.pathname === '/api/announcements') return json({ ok: true, announcements: await listAnnouncements(env) });
+  if (request.method === 'GET' && url.pathname === '/api/devotionals') return json({ ok: true, devotionals: await listDevotionals(env) });
   if (request.method === 'GET' && url.pathname === '/api/admin/events') return listAdminEvents(request, env);
   const eventMatch = url.pathname.match(/^\/api\/admin\/events\/([^/]+)\/hide$/);
   if (eventMatch && request.method === 'POST') return unpublishEvent(request, env, decodeURIComponent(eventMatch[1]));
