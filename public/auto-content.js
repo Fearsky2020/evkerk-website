@@ -1,5 +1,5 @@
 (() => {
-  const state = { events: [], sermons: [], announcements: [] };
+  const state = { events: [], sermons: [], announcements: [], devotionals: [] };
 
   function isNl() { return document.documentElement.lang === 'nl'; }
   function t(zh, nl) { return isNl() ? (nl || zh || '') : (zh || nl || ''); }
@@ -24,6 +24,8 @@
       .auto-announcement{display:flex;gap:18px;align-items:flex-start;padding:15px 18px;border:1px solid var(--line);border-radius:16px;background:var(--paper)}
       .auto-announcement strong{min-width:78px;color:var(--accent);font-size:12px;letter-spacing:.12em;text-transform:uppercase}
       .auto-announcement h3{margin:0 0 5px;font-size:17px}.auto-announcement p{margin:0;color:var(--muted);line-height:1.55}
+      .auto-devotional{width:min(1180px,calc(100% - 36px));margin:0 auto 22px;padding:20px 22px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(135deg,#fff,#f2fbff)}
+      .auto-devotional strong{color:#087fae;font-size:12px;letter-spacing:.12em}.auto-devotional h3{margin:8px 0 5px;font-size:22px}.auto-devotional blockquote{margin:8px 0;color:#9b5939;font-weight:800}.auto-devotional p{margin:8px 0 0;color:var(--muted);line-height:1.7;white-space:pre-line}.auto-devotional audio{width:100%;margin-top:14px}
       .auto-upcoming{margin:18px 0 24px}.auto-upcoming-head{display:flex;justify-content:space-between;gap:16px;align-items:end;margin-bottom:12px}
       .auto-upcoming-head h3{margin:0;font-size:20px}.auto-upcoming-head span{font-size:12px;color:var(--muted)}
       .auto-location-list{display:grid;gap:18px}.auto-location-group{padding:16px;border:1px solid var(--line);border-radius:18px;background:color-mix(in srgb,var(--paper) 88%,#eaf8fd)}.auto-location-title{margin:0 0 14px;padding-left:12px;border-left:5px solid #12afe6;font-size:24px;font-weight:950;line-height:1.15;color:#087fae}.auto-event-list{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
@@ -71,6 +73,22 @@
         <div><h3>${esc(t(item.title_zh, item.title_nl))}</h3><p>${esc(t(item.body_zh, item.body_nl))}</p></div>
       </article>`).join('');
     document.querySelector('.hero')?.insertAdjacentElement('afterend', host);
+  }
+
+  function renderDevotional() {
+    document.querySelector('.auto-devotional')?.remove();
+    if (!state.devotionals.length) return;
+    const item = state.devotionals[0];
+    const host = document.createElement('section');
+    host.className = 'auto-devotional';
+    host.innerHTML = `<strong>${isNl() ? 'DAGOVERDENKING' : '今日灵修'}</strong>
+      <h3>${esc(item.title_zh)}</h3>
+      ${item.scripture ? `<blockquote>${esc(item.scripture)}</blockquote>` : ''}
+      <p>${esc(item.body_zh)}</p>
+      ${item.audio_url ? `<audio controls preload="metadata" src="${esc(item.audio_url)}"></audio>` : ''}`;
+    const announcements = document.querySelector('.auto-announcements');
+    if (announcements) announcements.insertAdjacentElement('afterend', host);
+    else document.querySelector('.hero')?.insertAdjacentElement('afterend', host);
   }
 
   function renderEvents() {
@@ -156,19 +174,22 @@
     ensureStyles();
     ensureTeamLink();
     renderAnnouncements();
+    renderDevotional();
     renderEvents();
     renderSermon();
   }
 
   async function load() {
-    const [events, sermons, announcements] = await Promise.all([
+    const [events, sermons, announcements, devotionals] = await Promise.all([
       fetch('/api/events', {headers:{Accept:'application/json'}}).then(r => r.ok ? r.json() : {events:[]}).catch(() => ({events:[]})),
       fetch('/api/sermons', {headers:{Accept:'application/json'}}).then(r => r.ok ? r.json() : {sermons:[]}).catch(() => ({sermons:[]})),
       fetch('/api/announcements', {headers:{Accept:'application/json'}}).then(r => r.ok ? r.json() : {announcements:[]}).catch(() => ({announcements:[]})),
+      fetch('/api/devotionals', {headers:{Accept:'application/json'}}).then(r => r.ok ? r.json() : {devotionals:[]}).catch(() => ({devotionals:[]})),
     ]);
     state.events = events.events || [];
     state.sermons = sermons.sermons || [];
     state.announcements = announcements.announcements || [];
+    state.devotionals = devotionals.devotionals || [];
     renderAll();
   }
 
