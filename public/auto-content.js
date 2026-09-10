@@ -110,7 +110,7 @@
         ${sermon.audio_url
           ? `<button class="play sermon-play-toggle" type="button" aria-label="${isNl() ? 'Speel de preek af' : '播放讲道'}" aria-pressed="false"><span aria-hidden="true">▶</span></button>`
           : `<div class="play" aria-hidden="true">▶</div>`}
-        <div>
+        <div class="latest-sermon-copy">
           <span>${isNl() ? 'LAATSTE PREEK' : '最新讲道'}</span>
           <h3><a class="auto-sermon-title-link" href="/sermon?id=${encodeURIComponent(sermon.id)}">${sermonTitleHtml(t(sermon.title_zh, sermon.title_nl) || (isNl() ? 'Preek' : '讲道'))}</a></h3>
           <div class="auto-sermon-meta">
