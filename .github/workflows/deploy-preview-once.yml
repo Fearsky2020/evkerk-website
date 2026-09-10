@@ -1,4 +1,4 @@
-# One-shot trigger refreshed for Bingbing UX production deployment.
+# One-shot trigger refreshed for weekly sermon card alignment deployment.
 name: deploy-preview-once
 
 on:
