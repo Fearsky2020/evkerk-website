@@ -7,6 +7,7 @@ import { handleHumanAuthApi } from './human-auth.js';
 import { handleTeamServicesApi, guardHumanServiceAccess } from './team-services.js';
 import { handleWelcomeApi } from './welcome.js';
 import { handleInternalMediaApi, guardInternalMediaPage } from './internal-media.js';
+import { handleWechatApi } from './wechat.js';
 
 async function injectScripts(request, env, sources) {
   const response = await env.ASSETS.fetch(request);
@@ -42,6 +43,8 @@ async function route(request, env, ctx) {
       url.hostname = 'evkerk.nl';
       return Response.redirect(url.toString(), 301);
     }
+    const wechatResponse = await handleWechatApi(request, env, url);
+    if (wechatResponse) return wechatResponse;
     const humanAuthResponse = await handleHumanAuthApi(request, env, url);
     if (humanAuthResponse) return humanAuthResponse;
     const teamServicesResponse = await handleTeamServicesApi(request, env, url);
@@ -85,4 +88,3 @@ export default {
     return baseWorker.scheduled(controller, env, ctx);
   },
 };
-
