@@ -275,10 +275,11 @@ html[data-theme="dark"] .sunday-bridge-places a::after { color: #72d4f5; }
 .home-page .sermons .sermon-heading-actions .text-link { display: inline-block; margin-top: 8px; }
 
 .home-page .sermon-placeholder {
-  grid-template-columns: minmax(0,1fr) 240px;
-  height: 180px;
-  min-height: 0;
-  padding: 14px;
+  grid-template-columns: minmax(0,1fr) minmax(280px,34%);
+  min-height: 210px;
+  height: auto;
+  gap: clamp(22px,2.4vw,34px);
+  padding: 24px 26px;
   border: 1px solid var(--home-line);
   border-radius: 20px;
   background: rgba(255,255,255,.62);
@@ -292,9 +293,9 @@ html[data-theme="dark"] .sunday-bridge-places a::after { color: #72d4f5; }
 }
 
 .home-page .latest-sermon-main .play {
-  width: 54px;
-  height: 54px;
-  min-width: 54px;
+  width: 64px;
+  height: 64px;
+  min-width: 64px;
   background: #18ace0;
   box-shadow: 0 12px 28px rgba(18,175,230,.24);
 }
@@ -302,7 +303,10 @@ html[data-theme="dark"] .sunday-bridge-places a::after { color: #72d4f5; }
 .home-page .sermon-summary-band {
   height: 100%;
   margin: 0;
-  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 24px 26px;
   overflow: hidden;
   border-color: rgba(44,167,185,.2);
   background: linear-gradient(145deg,#eaf8f5,#dff1ee);
@@ -313,29 +317,52 @@ html[data-theme="dark"] .sunday-bridge-places a::after { color: #72d4f5; }
   overflow: hidden;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 4;
-  font-size: 12px;
-  line-height: 1.5;
+  margin: 14px 0 0;
+  font-size: 16px;
+  line-height: 1.65;
 }
 
-.home-page .latest-sermon-main { height: 100%; gap: 14px; overflow: hidden; }
+.home-page .latest-sermon-main {
+  display: grid;
+  grid-template-columns: 64px minmax(0,1fr);
+  align-items: center;
+  height: 100%;
+  gap: 22px;
+  overflow: hidden;
+}
 .home-page .latest-sermon-main > div { min-width: 0; }
+.home-page .latest-sermon-copy > span {
+  display: block;
+  margin-bottom: 6px;
+}
 .home-page .latest-sermon-main h3 {
   display: -webkit-box;
-  margin: 5px 0;
+  margin: 0 0 12px;
   overflow: hidden;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   font-size: clamp(19px,1.45vw,24px);
-  line-height: 1.2;
+  line-height: 1.22;
 }
-.home-page .latest-sermon-main .auto-sermon-meta { line-height: 1.35; }
+.home-page .latest-sermon-main .auto-sermon-meta {
+  align-items: baseline;
+  gap: 18px;
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.4;
+}
+.home-page .latest-sermon-main .auto-sermon-meta b,
+.home-page .latest-sermon-main .auto-sermon-meta span {
+  font-size: inherit;
+  font-weight: 750;
+}
 .home-page .latest-sermon-main .auto-sermon-scripture {
   display: -webkit-box;
-  margin: 7px 0 0;
+  margin: 14px 0 0!important;
   overflow: hidden;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 1;
-  line-height: 1.4;
+  line-height: 1.45!important;
 }
 
 /* Church life: large human photograph with a simple story rail. */
