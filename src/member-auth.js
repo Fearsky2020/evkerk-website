@@ -9,6 +9,20 @@ async function hash(v){const d=await crypto.subtle.digest('SHA-256',new TextEnco
 function rawToken(){const b=crypto.getRandomValues(new Uint8Array(32));return btoa(String.fromCharCode(...b)).replaceAll('+','-').replaceAll('/','_').replaceAll('=','')}
 function loginCode(){const b=crypto.getRandomValues(new Uint32Array(2));return String(b[0]%1000000).padStart(6,'0')+String(b[1]%1000).padStart(3,'0')}
 function bearer(r){return(r.headers.get('authorization')||'').replace(/^Bearer\s+/i,'')}
+export function parseMemberScopes(value){
+ if(Array.isArray(value))return[...new Set(value.map(v=>clean(v,100)).filter(Boolean))];
+ const raw=clean(value,2000);if(!raw)return[];
+ if(raw.startsWith('[')){try{const parsed=JSON.parse(raw);if(Array.isArray(parsed))return parseMemberScopes(parsed)}catch{}}
+ return[...new Set(raw.split(/[\s,]+/).map(v=>clean(v,100)).filter(Boolean))];
+}
+export async function authenticateMemberAppToken(request,env){
+ const raw=bearer(request);if(!raw)return null;
+ const row=await env.DB.prepare("SELECT t.id token_id,t.scopes,t.access_expires_at,m.id member_id,m.display_name,m.status member_status,m.cluster_id,m.group_id FROM member_app_tokens t JOIN church_members m ON m.id=t.member_id WHERE t.token_hash=? AND t.status='active' AND datetime(t.access_expires_at)>datetime('now')").bind(await hash(raw)).first();
+ if(!row||row.member_status!=='active')return null;
+ row.scope_list=parseMemberScopes(row.scopes);
+ env.DB.prepare("UPDATE member_app_tokens SET last_used_at=datetime('now') WHERE id=?").bind(row.token_id).run().catch(()=>{});
+ return row;
+}
 async function staff(request,env){
  const u=await authenticateHumanSession(request,env);if(!u)return null;
  const services=await servicesForUser(env,u.id);
@@ -60,10 +74,8 @@ async function refresh(request,env){
  return json({ok:true,...await issue(env,row.member_id,String(row.scopes||'my-group:read').split(/\s+/).filter(Boolean),row.device_id)});
 }
 async function session(request,env){
- const raw=bearer(request);if(!raw)return json({ok:false,error:'App 登录已失效'},401);
- const row=await env.DB.prepare("SELECT m.id,m.display_name,m.status,t.scopes,t.access_expires_at FROM member_app_tokens t JOIN church_members m ON m.id=t.member_id WHERE t.token_hash=? AND t.status='active' AND datetime(t.access_expires_at)>datetime('now')").bind(await hash(raw)).first();
- if(!row||row.status!=='active')return json({ok:false,error:'App 登录已失效'},401);
- return json({ok:true,member:{id:row.id,name:row.display_name},scopes:String(row.scopes).split(/\s+/),expires_at:row.access_expires_at});
+ const row=await authenticateMemberAppToken(request,env);if(!row)return json({ok:false,error:'App 登录已失效'},401);
+ return json({ok:true,member:{id:row.member_id,name:row.display_name},scopes:row.scope_list,expires_at:row.access_expires_at});
 }
 async function logout(request,env){
  const access=bearer(request),b=await request.json().catch(()=>({})),refresh=clean(b.refresh_token,500);
