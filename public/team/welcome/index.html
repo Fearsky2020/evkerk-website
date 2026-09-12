@@ -8,7 +8,7 @@
   <link rel="icon" href="/assets/evkerk-logo.webp" type="image/webp">
   <link rel="apple-touch-icon" href="/assets/evkerk-logo.webp">
   <link rel="stylesheet" href="/team/styles.css?v=3">
-  <link rel="stylesheet" href="/team/welcome/welcome.css?v=3">
+  <link rel="stylesheet" href="/team/welcome/welcome.css?v=4">
 </head>
 <body>
   <header class="topbar">
@@ -39,6 +39,7 @@
           <label>姓名 / 称呼<input name="display_name" placeholder="例如：张弟兄（可稍后补）"></label>
           <label>邮编<input name="postcode" placeholder="例如 2511 BT" autocomplete="postal-code" required></label>
           <label>联系方式备注<input name="contact_note" placeholder="例如：微信已加 / 电话由接待组保存"></label>
+          <label>新人信息卡照片（可多张，每张最大 12MB）<input name="card_photos" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" capture="environment" multiple><span class="small-note">照片只保存到私有存储，官网访客无法访问；仅有新人接待权限的同工可以查看。</span></label>
           <div class="form-grid">
             <label>接待地点<select name="reception_site"><option value="">未确认</option><option value="海牙教会">海牙教会（表格圈内“海”）</option><option value="主特美教会">主特美教会（表格圈内“主”）</option></select></label>
             <label>跟谁来的 / 谁邀请的<input name="invited_by" placeholder="例如：张姐妹 / 自己来的"></label>
@@ -117,6 +118,6 @@
   </main>
 
   <dialog id="caseDialog"><div class="dialog-card welcome-dialog"><button class="close" data-close>×</button><div id="caseDialogBody"></div></div></dialog>
-  <script src="/team/welcome/app.js?v=3"></script>
+  <script src="/team/welcome/app.js?v=4"></script>
 </body>
 </html>
