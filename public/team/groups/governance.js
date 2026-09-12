@@ -1,0 +1,22 @@
+const G={staff:[],roles:[],requests:[],audit:[],tree:[],groups:[],role:''};
+const ge=s=>document.querySelector(s),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+async function ga(p,o={}){const r=await fetch(p,{credentials:'same-origin',headers:{'content-type':'application/json'},...o}),d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||'请求失败');return d}
+async function governanceLoad(){
+ const [tree,groups,staff,roles,requests]=await Promise.all([ga('/api/organization/tree'),ga('/api/organization/groups'),ga('/api/organization/staff'),ga('/api/organization/roles'),ga('/api/organization/requests')]);
+ Object.assign(G,{tree:tree.clusters||[],groups:groups.groups||[],staff:staff.staff||[],roles:roles.roles||[],requests:requests.requests||[],role:tree.role});
+ try{G.audit=(await ga('/api/organization/audit?limit=80')).audit||[]}catch{G.audit=[]}
+ renderGovernance();
+}
+function renderGovernance(){
+ const staff=G.staff.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name)+' · '+esc(x.email)+'</option>').join('');
+ const clusters=G.tree.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name)+'</option>').join('');
+ const groups=G.groups.map(x=>'<option value="'+esc(x.id)+'">'+x.group_number+'组 · '+esc(x.name)+'</option>').join('');
+ ge('#appointmentForm').innerHTML='<label>同工账号<select name="user_id">'+staff+'</select></label><label>组织角色<select name="role"><option value="cluster_leader">大组长</option><option value="group_leader">小组长</option><option value="pastor">牧师</option></select></label><label>所属大组<select name="cluster_id"><option value="">—</option>'+clusters+'</select></label><label>所属小组<select name="group_id"><option value="">—</option>'+groups+'</select></label><button>任命</button>';
+ ge('#roleData').innerHTML=G.roles.length?G.roles.map(x=>'<article class="card"><b>'+esc(x.user_name)+'</b><p>'+({pastor:'牧师',cluster_leader:'大组长',group_leader:'小组长'}[x.role]||x.role)+' · '+esc(x.cluster_name||x.group_name||'全教会')+'</p>'+(G.role==='pastor'?'<button data-revoke="'+esc(x.id)+'">撤销任命</button>':'')+'</article>').join(''):'<p>尚无组织角色任命。</p>';
+ ge('#requestData').innerHTML=G.requests.length?G.requests.map(x=>'<article class="card"><b>'+esc(x.display_name||'组织调整')+'</b><p>'+esc(x.request_type)+' · '+esc(x.source_group_name||'')+' → '+esc(x.target_group_name||'离组')+'</p><p>状态：'+esc(x.status)+'</p>'+(x.status==='pending'&&G.role!=='group_leader'?'<button data-review="'+esc(x.id)+'" data-decision="approved">批准</button> <button data-review="'+esc(x.id)+'" data-decision="rejected">拒绝</button>':'')+'</article>').join(''):'<p>没有待处理申请。</p>';
+ ge('#auditData').innerHTML=G.audit.length?G.audit.map(x=>'<div class="auditRow"><b>'+esc(x.action)+'</b> · '+esc(x.entity_type)+' · '+esc(x.actor_name||'App成员')+'<time>'+esc(x.created_at)+'</time></div>').join(''):'<p>完整审计记录仅牧师可查看。</p>';
+}
+document.addEventListener('submit',async e=>{if(e.target.id!=='appointmentForm')return;e.preventDefault();try{await ga('/api/organization/roles',{method:'POST',body:JSON.stringify(Object.fromEntries(new FormData(e.target)))});await governanceLoad()}catch(err){alert(err.message)}});
+document.addEventListener('click',async e=>{try{if(e.target.dataset.revoke){if(!confirm('确认撤销这项任命？'))return;await ga('/api/organization/roles/'+e.target.dataset.revoke+'/revoke',{method:'POST',body:'{}'});await governanceLoad()}if(e.target.dataset.review){await ga('/api/organization/requests/'+e.target.dataset.review+'/review',{method:'POST',body:JSON.stringify({decision:e.target.dataset.decision})});await governanceLoad()}}catch(err){alert(err.message)}});
+window.addEventListener('hashchange',()=>{if(location.hash==='#governance')governanceLoad().catch(e=>ge('#governanceError').textContent=e.message)});
+if(location.hash==='#governance')governanceLoad().catch(()=>{});

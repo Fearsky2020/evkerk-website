@@ -8,6 +8,7 @@ import { handleTeamServicesApi, guardHumanServiceAccess } from './team-services.
 import { handleWelcomeApi } from './welcome.js';
 import { handleInternalMediaApi, guardInternalMediaPage } from './internal-media.js';
 import { handleWechatApi } from './wechat.js';
+import { handleOrganizationApi } from './organization.js';
 
 async function injectScripts(request, env, sources) {
   const response = await env.ASSETS.fetch(request);
@@ -53,6 +54,8 @@ async function route(request, env, ctx) {
     if (internalMediaPageGuard) return internalMediaPageGuard;
     const internalMediaResponse = await handleInternalMediaApi(request, env, url);
     if (internalMediaResponse) return internalMediaResponse;
+    const organizationResponse = await handleOrganizationApi(request, env, url);
+    if (organizationResponse) return organizationResponse;
     const welcomeResponse = await handleWelcomeApi(request, env, url);
     if (welcomeResponse) return welcomeResponse;
     const serviceGuardResponse = await guardHumanServiceAccess(request, env, url);

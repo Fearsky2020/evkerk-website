@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>小组与组织管理｜EVKERK</title><link rel="stylesheet" href="/team/groups/groups.css?v=2"></head>
+<body><header><a href="/team/">← 同工平台</a><div><h1>小组与组织管理</h1><p id="identity">正在确认权限…</p></div><button id="reload">刷新</button></header>
+<nav id="tabs"><button data-tab="tree">组织架构</button><button data-tab="clusters">大组管理</button><button data-tab="groups">小组管理</button><button data-tab="members">成员管理</button><button data-tab="welcome">新人分配</button><button data-tab="followups">跟进与通知</button><button data-tab="governance">权限与审批</button></nav>
+<main>
+<section id="tree" class="panel"><h2>组织架构</h2><div id="treeData" class="cards"></div></section>
+<section id="clusters" class="panel"><h2>大组管理</h2><div id="clusterData" class="cards"></div></section>
+<section id="groups" class="panel"><div class="title"><h2>小组管理</h2><button id="newGroup">建立小组</button></div><div class="filters"><select id="groupCluster"></select><input id="groupLeader" placeholder="按组长筛选"><input id="groupPostcode" placeholder="按邮编筛选"><select id="groupReception"><option value="">全部接纳状态</option><option value="open">开放接待</option><option value="near_full">接近满员</option><option value="closed">暂停接待</option><option value="paused">暂停聚会</option></select><button id="filterGroups">筛选</button></div><div id="groupData"></div></section>
+<section id="members" class="panel"><div class="title"><h2>成员管理</h2><button id="newMember">新增成员</button></div><div id="memberData"></div></section>
+<section id="welcome" class="panel"><h2>待分配新人</h2><p>推荐仅供参考，最终分配必须由牧师或大组长确认。</p><div id="welcomeData"></div></section>
+<section id="followups" class="panel"><div class="title"><div><h2>跟进与通知</h2><p>记录联系、欢迎信息、到访和下次跟进；通知可定向到全教会、大组或小组。</p></div><button id="newNotice">发布通知</button></div><div id="noticeData"></div></section>
+<section id="governance" class="panel"><h2>权限与审批</h2><p id="governanceError" class="error"></p><article class="card"><h3>任命组织负责人</h3><form id="appointmentForm" class="form"></form></article><h3>当前任命</h3><div id="roleData" class="cards"></div><h3>转组与离组申请</h3><div id="requestData" class="cards"></div><h3>操作审计</h3><div id="auditData"></div></section>
+</main>
+<dialog id="editor"><form method="dialog"><div class="title"><h2 id="editorTitle">编辑</h2><button value="cancel" class="ghost">关闭</button></div><div id="editorFields" class="form"></div><p id="editorError" class="error"></p><div class="actions"><button value="cancel" class="ghost">取消</button><button id="editorSave" value="default">保存</button></div></form></dialog><div id="toast"></div>
+<script src="/team/human-auth.js"></script><script src="/team/groups/app.js?v=2"></script><script src="/team/groups/governance.js?v=1"></script></body></html>

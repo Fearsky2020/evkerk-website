@@ -79,6 +79,7 @@ async function saveService(request,env,idFromPath=''){
 }
 
 function requiredServiceForPath(path){
+  if(path.startsWith('/api/organization/')||path.startsWith('/team/groups'))return'organization';
   if(path.startsWith('/api/welcome/')||path.startsWith('/team/welcome'))return'welcome';
   if(path.startsWith('/team/media'))return'media';
   if(path.startsWith('/api/sunday-school/')||path.startsWith('/team/sunday-school'))return'sunday_school';
