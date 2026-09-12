@@ -30,6 +30,7 @@ async function staff(request,env){
  return u;
 }
 async function issue(env,memberId,scopes,deviceId,createdBy=null){
+ scopes=parseMemberScopes([...scopes,'my-group:read','my-group:question:submit']);
  const access=rawToken(),refresh=rawToken(),tid=id('ATK');
  const accessExpiresAt=new Date(Date.now()+60*60*1000).toISOString();
  const refreshExpiresAt=new Date(Date.now()+30*24*60*60*1000).toISOString();
@@ -71,7 +72,7 @@ async function refresh(request,env){
  const row=await env.DB.prepare("SELECT id,member_id,scopes,device_id FROM member_app_tokens WHERE refresh_token_hash=? AND status='active' AND datetime(refresh_expires_at)>datetime('now')").bind(await hash(raw)).first();
  if(!row)return json({ok:false,error:'刷新令牌无效或已撤销'},401);
  await env.DB.prepare("UPDATE member_app_tokens SET status='revoked',revoked_at=datetime('now'),revoked_reason='rotated' WHERE id=?").bind(row.id).run();
- return json({ok:true,...await issue(env,row.member_id,String(row.scopes||'my-group:read').split(/\s+/).filter(Boolean),row.device_id)});
+ return json({ok:true,...await issue(env,row.member_id,parseMemberScopes(row.scopes),row.device_id)});
 }
 async function session(request,env){
  const row=await authenticateMemberAppToken(request,env);if(!row)return json({ok:false,error:'App 登录已失效'},401);
