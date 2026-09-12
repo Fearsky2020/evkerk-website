@@ -4,6 +4,7 @@ import { handleSundaySchoolApi } from './sunday-school.js';
 import { handleSundaySchoolContentApi } from './sunday-school-content.js';
 import { handleSundaySchoolPortalGuard } from './sunday-school-portal-guard.js';
 import { handleHumanAuthApi } from './human-auth.js';
+import { handleMemberAuthApi } from './member-auth.js';
 import { handleTeamServicesApi, guardHumanServiceAccess } from './team-services.js';
 import { handleWelcomeApi } from './welcome.js';
 import { handleInternalMediaApi, guardInternalMediaPage } from './internal-media.js';
@@ -48,6 +49,8 @@ async function route(request, env, ctx) {
     if (wechatResponse) return wechatResponse;
     const humanAuthResponse = await handleHumanAuthApi(request, env, url);
     if (humanAuthResponse) return humanAuthResponse;
+    const memberAuthResponse = await handleMemberAuthApi(request, env, url);
+    if (memberAuthResponse) return memberAuthResponse;
     const teamServicesResponse = await handleTeamServicesApi(request, env, url);
     if (teamServicesResponse) return teamServicesResponse;
     const internalMediaPageGuard = await guardInternalMediaPage(request, env, url);
