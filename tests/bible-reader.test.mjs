@@ -108,7 +108,10 @@ test('anonymous Bible readers can request pastoral review to join a group',()=>{
   assert.match(html,/id="memberRequiredDialog"/);
   assert.match(html,/id="openGroupApplication"[^>]*>申请加入小组<\/button>/);
   assert.match(html,/id="groupApplicationDialog"/);
+  assert.match(html,/id="applicationPostcode"[^>]*required/);
+  assert.doesNotMatch(html,/applicationGroupNumber/);
   assert.match(js,/\/api\/app\/register/);
+  assert.match(js,/display_name:name,phone,email,postcode/);
   assert.match(js,/牧者团队审核并安排小组/);
   assert.match(js,/if\(!access\)\{openMemberRequired\(\);return\}/);
 });

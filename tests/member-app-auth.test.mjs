@@ -6,3 +6,6 @@ test('member app credentials and tokens are hashed, scoped, expiring and revocab
 test('registration review is audited and initial code is shown once',()=>{assert.match(src,/member_account\.approve/);assert.match(src,/initial_login_code/);assert.match(src,/只显示一次/)});
 
 test('staff can invite members and revoke individual app sessions',()=>{assert.match(src,/\/api\/organization\/member-invitations/);assert.match(src,/app-sessions/);assert.match(src,/member_account\.invite/);assert.match(src,/member_session\.revoke/);assert.match(src,/staff_revoke/)});
+
+const postcodeMigration=fs.readFileSync(new URL('../migrations/0028_member_application_postcode.sql',import.meta.url),'utf8');
+test('member group application requires and preserves a normalized Dutch postcode',()=>{assert.match(postcodeMigration,/ADD COLUMN postcode TEXT NOT NULL/);assert.match(src,/normalizePostcode/);assert.match(src,/\^\[1-9\]\\d\{3\}\[A-Z\]\{2\}\$/);assert.match(src,/phone,email,postcode,requested_group_number/);assert.match(src,/a\.postcode/);});

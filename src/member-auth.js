@@ -4,6 +4,7 @@ import { servicesForUser } from './team-services.js';
 const json=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store'}});
 const clean=(v,n=500)=>String(v??'').trim().slice(0,n);
 const normalizeIdentifier=v=>clean(v,200).toLowerCase().replace(/\s+/g,'');
+const normalizePostcode=v=>clean(v,20).toUpperCase().replace(/\s+/g,'');
 const id=p=>p+'_'+crypto.randomUUID();
 async function hash(v){const d=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v));return [...new Uint8Array(d)].map(x=>x.toString(16).padStart(2,'0')).join('')}
 function rawToken(){const b=crypto.getRandomValues(new Uint8Array(32));return btoa(String.fromCharCode(...b)).replaceAll('+','-').replaceAll('/','_').replaceAll('=','')}
@@ -39,11 +40,12 @@ async function issue(env,memberId,scopes,deviceId,createdBy=null){
  return{access_token:access,refresh_token:refresh,token_type:'Bearer',expires_in:3600,scopes};
 }
 async function register(request,env){
- const b=await request.json().catch(()=>({})),name=clean(b.display_name,120),phone=normalizeIdentifier(b.phone),email=normalizeIdentifier(b.email);
+ const b=await request.json().catch(()=>({})),name=clean(b.display_name,120),phone=normalizeIdentifier(b.phone),email=normalizeIdentifier(b.email),postcode=normalizePostcode(b.postcode);
  if(!name||(!phone&&!email))return json({ok:false,error:'请填写姓名，并提供手机号或邮箱'},400);
+ if(!/^[1-9]\d{3}[A-Z]{2}$/.test(postcode))return json({ok:false,error:'请输入有效的荷兰住址邮编，例如 2511EC'},400);
  const aid=id('APP');
- try{await env.DB.prepare("INSERT INTO member_registration_applications(id,display_name,phone,email,requested_group_number,note) VALUES(?,?,?,?,?,?)")
-  .bind(aid,name,phone,email,Number.isInteger(Number(b.requested_group_number))?Number(b.requested_group_number):null,clean(b.note,1000)).run()}
+ try{await env.DB.prepare("INSERT INTO member_registration_applications(id,display_name,phone,email,postcode,requested_group_number,note) VALUES(?,?,?,?,?,?,?)")
+  .bind(aid,name,phone,email,postcode,null,clean(b.note,1000)).run()}
  catch{return json({ok:true,status:'pending',message:'申请已收到，请等待教会审核'},202)}
  return json({ok:true,application_id:aid,status:'pending',message:'申请已收到，请等待教会审核'},202);
 }
@@ -95,14 +97,14 @@ async function changeCode(request,env){
 }
 async function applications(request,env,url){
  const u=await staff(request,env);if(!u)return json({ok:false,error:'没有会友账号审核权限'},403);
- if(request.method==='GET'){const r=await env.DB.prepare("SELECT id,display_name,phone,email,requested_group_number,note,status,member_id,created_at,reviewed_at FROM member_registration_applications ORDER BY created_at DESC LIMIT 200").all();return json({ok:true,applications:r.results||[]})}
+ if(request.method==='GET'){const r=await env.DB.prepare("SELECT id,display_name,phone,email,postcode,requested_group_number,note,status,member_id,created_at,reviewed_at FROM member_registration_applications ORDER BY created_at DESC LIMIT 200").all();return json({ok:true,applications:r.results||[]})}
  const m=url.pathname.match(/^\/api\/organization\/member-applications\/([^/]+)\/review$/);if(!m)return null;
  const aid=decodeURIComponent(m[1]),b=await request.json().catch(()=>({})),decision=b.decision==='approved'?'approved':b.decision==='rejected'?'rejected':'';
  if(!decision)return json({ok:false,error:'审核结果不正确'},400);
  const a=await env.DB.prepare("SELECT * FROM member_registration_applications WHERE id=? AND status='pending'").bind(aid).first();if(!a)return json({ok:false,error:'申请不存在或已经处理'},404);
  if(decision==='rejected'){await env.DB.prepare("UPDATE member_registration_applications SET status='rejected',rejection_reason=?,reviewed_by=?,reviewed_at=datetime('now'),updated_at=datetime('now') WHERE id=?").bind(clean(b.reason,500),u.id,aid).run();return json({ok:true,status:'rejected'})}
  let mid=clean(b.member_id,100),group=null;if(!mid&&b.group_id)group=await env.DB.prepare("SELECT id,cluster_id FROM church_groups WHERE id=? AND status='active' AND is_demo=0").bind(clean(b.group_id,100)).first();
- if(!mid){mid=id('MEM');await env.DB.prepare("INSERT INTO church_members(id,display_name,phone,email,cluster_id,group_id,status,joined_at,created_by) VALUES(?,?,?,?,?,?,'active',datetime('now'),?)").bind(mid,a.display_name,a.phone,a.email,group?.cluster_id||null,group?.id||null,u.id).run()}
+ if(!mid){mid=id('MEM');await env.DB.prepare("INSERT INTO church_members(id,display_name,phone,email,postcode,cluster_id,group_id,status,joined_at,created_by) VALUES(?,?,?,?,?,?,?,'active',datetime('now'),?)").bind(mid,a.display_name,a.phone,a.email,a.postcode||'',group?.cluster_id||null,group?.id||null,u.id).run()}
  const identifier=normalizeIdentifier(b.identifier||a.email||a.phone);if(!identifier)return json({ok:false,error:'审核通过前须设置手机号或邮箱登录账号'},400);
  const code=loginCode();await env.DB.prepare("INSERT INTO member_app_credentials(member_id,identifier,login_code_hash,created_by) VALUES(?,?,?,?) ON CONFLICT(member_id) DO UPDATE SET identifier=excluded.identifier,login_code_hash=excluded.login_code_hash,status='active',must_change_code=1,updated_at=datetime('now')").bind(mid,identifier,await hash(code),u.id).run();
  await env.DB.prepare("UPDATE member_registration_applications SET status='approved',member_id=?,reviewed_by=?,reviewed_at=datetime('now'),updated_at=datetime('now') WHERE id=?").bind(mid,u.id,aid).run();
