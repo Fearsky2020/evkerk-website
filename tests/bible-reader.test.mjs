@@ -103,10 +103,13 @@ test('selected Bible verses can be taken to the member group question flow',()=>
   assert.match(js,/r\.status===201/);
 });
 
-test('anonymous Bible readers are directed to the pastoral team, not self registration',()=>{
+test('anonymous Bible readers can request pastoral review to join a group',()=>{
   assert.match(html,/请联系牧者团队，申请加入小组/);
   assert.match(html,/id="memberRequiredDialog"/);
-  assert.doesNotMatch(html,/api\/app\/register/);
+  assert.match(html,/id="openGroupApplication"[^>]*>申请加入小组<\/button>/);
+  assert.match(html,/id="groupApplicationDialog"/);
+  assert.match(js,/\/api\/app\/register/);
+  assert.match(js,/牧者团队审核并安排小组/);
   assert.match(js,/if\(!access\)\{openMemberRequired\(\);return\}/);
 });
 
