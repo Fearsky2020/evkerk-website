@@ -1,4 +1,5 @@
 import { authorizeService } from './team-services.js';
+import { expectedPhotoCount, normalizeFaithStatus, normalizeReceptionSite, presentWelcomeCase } from './welcome-normalization.js';
 
 function json(data,status=200){return new Response(JSON.stringify(data),{status,headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store'}})}
 function clean(value,max=500){return String(value??'').trim().slice(0,max)}
@@ -53,17 +54,17 @@ async function casePhotoRows(env,caseId){
 async function uploadCasePhoto(request,env,caseId){
   const auth=await authWelcome(request,env);if(auth.response)return auth.response;
   if(!env.MEDIA)return json({ok:false,error:'照片存储尚未配置'},503);
-  const item=await env.DB.prepare('SELECT id FROM welcome_cases WHERE id=?').bind(caseId).first();if(!item)return json({ok:false,error:'新人记录不存在'},404);
+  const item=await env.DB.prepare('SELECT id FROM welcome_cases WHERE id=?').bind(caseId).first();if(!item)return json({ok:false,error:'新人记录不存在'},404);const quality=await env.DB.prepare('SELECT expected_photo_count FROM welcome_cases WHERE id=?').bind(caseId).first();item.expected_photo_count=Number(quality?.expected_photo_count||0);
   const form=await request.formData().catch(()=>null),file=form?.get('image');
   if(!file||typeof file.arrayBuffer!=='function')return json({ok:false,error:'请选择信息卡照片'},400);
   const mime=clean(file.type,100).toLowerCase(),ext=WELCOME_PHOTO_TYPES.get(mime);if(!ext)return json({ok:false,error:'仅支持 JPG、PNG、WebP 或 HEIC 照片'},415);
   if(!file.size||file.size>MAX_WELCOME_PHOTO_BYTES)return json({ok:false,error:'每张照片最大 12MB'},413);
   const bytes=await file.arrayBuffer();if(!validPhotoBytes(bytes,mime))return json({ok:false,error:'照片内容与文件格式不符'},415);
   const photoId=id('wphoto'),key=`private/welcome-cards/${caseId}/${photoId}.${ext}`,filename=clean(file.name,180)||`welcome-card.${ext}`;
-  await env.MEDIA.put(key,bytes,{httpMetadata:{contentType:mime,contentDisposition:'inline'},customMetadata:{caseId,photoId}});
+  try{await env.MEDIA.put(key,bytes,{httpMetadata:{contentType:mime,contentDisposition:'inline'},customMetadata:{caseId,photoId}})}catch{await env.DB.prepare("UPDATE welcome_cases SET submission_status='needs_attention',updated_at=datetime('now') WHERE id=?").bind(caseId).run().catch(()=>{});return json({ok:false,error:'照片暂时无法保存，请稍后重试'},503)}
   try{await env.DB.prepare("INSERT INTO welcome_case_photos(id,case_id,r2_key,mime_type,filename,size_bytes,uploaded_by,status) VALUES(?,?,?,?,?,?,?,'active')").bind(photoId,caseId,key,mime,filename,file.size,auth.user.id).run();}
-  catch(error){await env.MEDIA.delete(key).catch(()=>{});console.error('WELCOME_PHOTO_DB_FAILED',error?.message||error);return json({ok:false,error:'照片记录保存失败，已撤销上传'},500)}
-  return json({ok:true,photo:{id:photoId,mime_type:mime,filename,size_bytes:file.size,href:`/api/welcome/photos/${encodeURIComponent(photoId)}`}},201);
+  catch(error){await env.MEDIA.delete(key).catch(()=>{});await env.DB.prepare("UPDATE welcome_cases SET submission_status='needs_attention',updated_at=datetime('now') WHERE id=?").bind(caseId).run().catch(()=>{});console.error('WELCOME_PHOTO_DB_FAILED');return json({ok:false,error:'照片记录保存失败，已撤销上传；请稍后重试'},500)}
+  const countRow=await env.DB.prepare("SELECT COUNT(*) count FROM welcome_case_photos WHERE case_id=? AND status='active'").bind(caseId).first();const uploaded=Number(countRow?.count||0),submissionStatus=!item.expected_photo_count||uploaded>=Number(item.expected_photo_count)?'complete':'photo_pending';await env.DB.prepare("UPDATE welcome_cases SET submission_status=?,updated_at=datetime('now') WHERE id=?").bind(submissionStatus,caseId).run();await env.DB.prepare('INSERT INTO organization_audit_log(id,actor_user_id,action,entity_type,entity_id,after_json) VALUES(?,?,?,?,?,?)').bind(id('audit'),auth.user.id,'welcome.photo_upload','welcome_case',caseId,JSON.stringify({photo_id:photoId,submission_status:submissionStatus})).run();return json({ok:true,submission_status:submissionStatus,uploaded_photo_count:uploaded,expected_photo_count:Number(item.expected_photo_count||0),photo:{id:photoId,mime_type:mime,filename,size_bytes:file.size,href:`/api/welcome/photos/${encodeURIComponent(photoId)}`}},201);
 }
 async function readCasePhoto(request,env,photoId){
   const auth=await authWelcome(request,env);if(auth.response)return auth.response;
@@ -77,7 +78,7 @@ async function deleteCasePhoto(request,env,photoId){
   if(!env.MEDIA)return json({ok:false,error:'照片存储尚未配置'},503);
   const photo=await env.DB.prepare("SELECT id,r2_key FROM welcome_case_photos WHERE id=? AND status='active'").bind(photoId).first();if(!photo)return json({ok:false,error:'照片不存在'},404);
   await env.DB.prepare("UPDATE welcome_case_photos SET status='deleted',deleted_at=datetime('now'),deleted_by=? WHERE id=?").bind(auth.user.id,photoId).run();
-  try{await env.MEDIA.delete(photo.r2_key);}catch(error){await env.DB.prepare("UPDATE welcome_case_photos SET status='active',deleted_at=NULL,deleted_by=NULL WHERE id=?").bind(photoId).run().catch(()=>{});console.error('WELCOME_PHOTO_DELETE_FAILED',error?.message||error);return json({ok:false,error:'照片删除失败，请稍后再试'},500)}
+  try{await env.MEDIA.delete(photo.r2_key);}catch(error){await env.DB.prepare("UPDATE welcome_case_photos SET status='active',deleted_at=NULL,deleted_by=NULL WHERE id=?").bind(photoId).run().catch(()=>{});console.error('WELCOME_PHOTO_DELETE_FAILED');return json({ok:false,error:'照片删除失败，请稍后再试'},500)}
   return json({ok:true,id:photoId});
 }
 
@@ -115,13 +116,13 @@ async function hydrateGroupCoordinates(env,groups){
       const geo=await geocodePostcode(group.postcode);
       group.postcode=geo.postcode;group.latitude=geo.latitude;group.longitude=geo.longitude;
       await env.DB.prepare("UPDATE church_groups SET postcode=?,latitude=?,longitude=?,updated_at=datetime('now') WHERE id=?").bind(geo.postcode,geo.latitude,geo.longitude,group.id).run();
-    }catch(error){console.error('WELCOME_GROUP_GEOCODE_FAILED',group.id,error?.message||error)}
+    }catch(error){console.error('WELCOME_GROUP_GEOCODE_FAILED',group.id)}
   }));
   return groups;
 }
 async function recommend(request,env){
   const auth=await authWelcome(request,env);if(auth.response)return auth.response;
-  const body=await request.json().catch(()=>({}));let geo;try{geo=await geocodePostcode(body.postcode)}catch(e){return json({ok:false,error:e.message},400)}
+  const body=await request.json().catch(()=>({})),photoCount=expectedPhotoCount(body.expected_photo_count??body.photo_count),submissionStatus=photoCount?'photo_pending':'complete',faithStatus=normalizeFaithStatus(body.faith_status),receptionSite=normalizeReceptionSite(body.reception_site,body.reception_site_confidence??body.ocr_confidence);let geo;try{geo=await geocodePostcode(body.postcode)}catch(e){return json({ok:false,error:e.message},400)}
   const rows=await env.DB.prepare('SELECT * FROM church_groups WHERE is_demo=0 ORDER BY cluster_name,COALESCE(group_number,999),name').all(),person={...body,postcode:geo.postcode,latitude:geo.latitude,longitude:geo.longitude};
   const groups=await hydrateGroupCoordinates(env,rows.results||[]);
   const recommendations=groups.filter(g=>g.latitude!=null&&g.longitude!=null).map(group=>{const distance_km=kmBetween(person,group),fit=recommendationScore(person,group,distance_km);return{group,distance_km:Math.round(distance_km*10)/10,...fit}}).sort((a,b)=>b.score-a.score||a.distance_km-b.distance_km);
@@ -132,22 +133,29 @@ async function recommend(request,env){
 async function listCases(request,env){
   const auth=await authWelcome(request,env);if(auth.response)return auth.response;
   const rows=await env.DB.prepare(`SELECT c.*,g.name AS group_name,u.name AS carer_account_name,(SELECT COUNT(*) FROM welcome_case_photos p WHERE p.case_id=c.id AND p.status='active') AS photo_count FROM welcome_cases c LEFT JOIN church_groups g ON g.id=c.assigned_group_id LEFT JOIN admin_users u ON u.id=c.primary_carer_user_id ORDER BY CASE c.status WHEN 'new' THEN 0 WHEN 'recommended' THEN 1 WHEN 'assigned' THEN 2 WHEN 'contacted' THEN 3 WHEN 'visited' THEN 4 WHEN 'following' THEN 5 ELSE 9 END,c.updated_at DESC`).all();
-  return json({ok:true,cases:rows.results||[]});
+  return json({ok:true,cases:(rows.results||[]).map(presentWelcomeCase)});
 }
 async function createCase(request,env){
   const auth=await authWelcome(request,env);if(auth.response)return auth.response;
   const body=await request.json().catch(()=>({}));let geo;try{geo=await geocodePostcode(body.postcode)}catch(e){return json({ok:false,error:e.message},400)}
   const caseId=id('case');
-  await env.DB.prepare('INSERT INTO welcome_cases(id,display_name,contact_note,postcode,latitude,longitude,age_band,family_status,children_note,occupation_stage,preferred_days,language_note,background_note,reception_site,invited_by,faith_status,status,created_by) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)')
-    .bind(caseId,clean(body.display_name,100)||'新朋友',clean(body.contact_note,500),geo.postcode,geo.latitude,geo.longitude,clean(body.age_band,50),clean(body.family_status,50),clean(body.children_note,100),clean(body.occupation_stage,100),clean(body.preferred_days,100),clean(body.language_note,100),clean(body.background_note,500),clean(body.reception_site,50),clean(body.invited_by,120),clean(body.faith_status,50),'recommended',auth.user.id).run();
-  return json({ok:true,id:caseId,postcode:geo.postcode},201);
+  await env.DB.prepare('INSERT INTO welcome_cases(id,display_name,contact_note,postcode,latitude,longitude,age_band,family_status,children_note,occupation_stage,preferred_days,language_note,background_note,reception_site,invited_by,faith_status,status,created_by,submission_status,expected_photo_count) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)')
+    .bind(caseId,clean(body.display_name,100)||'新朋友',clean(body.contact_note,500),geo.postcode,geo.latitude,geo.longitude,clean(body.age_band,50),clean(body.family_status,50),clean(body.children_note,100),clean(body.occupation_stage,100),clean(body.preferred_days,100),clean(body.language_note,100),clean(body.background_note,500),receptionSite,clean(body.invited_by,120),faithStatus,'recommended',auth.user.id,submissionStatus,photoCount).run();
+  return json({ok:true,id:caseId,postcode:geo.postcode,submission_status:submissionStatus,expected_photo_count:photoCount},201);
 }
 async function caseDetail(request,env,caseId){
   const auth=await authWelcome(request,env);if(auth.response)return auth.response;
   const item=await env.DB.prepare('SELECT c.*,g.name AS group_name,u.name AS carer_account_name FROM welcome_cases c LEFT JOIN church_groups g ON g.id=c.assigned_group_id LEFT JOIN admin_users u ON u.id=c.primary_carer_user_id WHERE c.id=?').bind(caseId).first();
   if(!item)return json({ok:false,error:'新人记录不存在'},404);
   const [assignments,followups,photos]=await Promise.all([env.DB.prepare('SELECT a.*,g.name AS group_name,u.name AS carer_account_name FROM welcome_assignments a LEFT JOIN church_groups g ON g.id=a.group_id LEFT JOIN admin_users u ON u.id=a.carer_user_id WHERE a.case_id=? ORDER BY a.created_at DESC').bind(caseId).all(),env.DB.prepare('SELECT f.*,u.name AS actor_name FROM welcome_followups f LEFT JOIN admin_users u ON u.id=f.actor_user_id WHERE f.case_id=? ORDER BY f.created_at DESC').bind(caseId).all(),casePhotoRows(env,caseId)]);
-  return json({ok:true,case:item,assignments:assignments.results||[],followups:followups.results||[],photos});
+  return json({ok:true,case:presentWelcomeCase(item),assignments:assignments.results||[],followups:followups.results||[],photos});
+}
+async function updateCase(request,env,caseId){
+  const auth=await authWelcome(request,env);if(auth.response)return auth.response;
+  const item=await env.DB.prepare('SELECT id,reception_site,faith_status FROM welcome_cases WHERE id=?').bind(caseId).first();if(!item)return json({ok:false,error:'新人记录不存在'},404);
+  const body=await request.json().catch(()=>({})),receptionSite=normalizeReceptionSite(body.reception_site,body.reception_site_confidence??body.ocr_confidence),faithStatus=normalizeFaithStatus(body.faith_status),after=presentWelcomeCase({id:caseId,reception_site:receptionSite,faith_status:faithStatus});
+  await env.DB.batch([env.DB.prepare("UPDATE welcome_cases SET reception_site=?,faith_status=?,updated_at=datetime('now') WHERE id=?").bind(receptionSite,faithStatus,caseId),env.DB.prepare('INSERT INTO organization_audit_log(id,actor_user_id,action,entity_type,entity_id,before_json,after_json) VALUES(?,?,?,?,?,?,?)').bind(id('audit'),auth.user.id,'welcome.intake_update','welcome_case',caseId,JSON.stringify(presentWelcomeCase(item)),JSON.stringify(after))]);
+  return json({ok:true,case:after});
 }
 async function assignCase(request,env,caseId){
   const auth=await authWelcome(request,env);if(auth.response)return auth.response;
@@ -193,6 +201,7 @@ export async function handleWelcomeApi(request,env,url){
   m=url.pathname.match(/^\/api\/welcome\/photos\/([^/]+)$/);if(m&&(request.method==='GET'||request.method==='HEAD'))return readCasePhoto(request,env,decodeURIComponent(m[1]));
   if(m&&request.method==='DELETE')return deleteCasePhoto(request,env,decodeURIComponent(m[1]));
   m=url.pathname.match(/^\/api\/welcome\/cases\/([^/]+)$/);if(m&&request.method==='GET')return caseDetail(request,env,decodeURIComponent(m[1]));
+  if(m&&request.method==='POST')return updateCase(request,env,decodeURIComponent(m[1]));
   m=url.pathname.match(/^\/api\/welcome\/cases\/([^/]+)\/assign$/);if(m&&request.method==='POST')return assignCase(request,env,decodeURIComponent(m[1]));
   m=url.pathname.match(/^\/api\/welcome\/cases\/([^/]+)\/followups$/);if(m&&request.method==='POST')return addFollowup(request,env,decodeURIComponent(m[1]));
   return null;
