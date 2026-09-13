@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "project": "EVKERK Website",
+  "canonicalBranch": "main",
+  "publicBaseUrl": "https://evkerk.nl",
+  "checks": [
+    "syntax",
+    "tests",
+    "contract-markers",
+    "sensitive-log-scan",
+    "production-readonly"
+  ]
+}
