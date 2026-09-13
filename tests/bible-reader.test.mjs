@@ -94,3 +94,33 @@ test('Dutch mode search stays Dutch',()=>{
   assert.match(js,/if\(version==='dutch1917'\)/);
   assert.match(js,/Geen resultaat in dit hoofdstuk/);
 });
+
+test('selected Bible verses can be taken to the member group question flow',()=>{
+  assert.match(html,/id="askGroup"[^>]*>带去小组提问<\/button>/);
+  assert.match(html,/id="groupQuestionDialog"/);
+  assert.match(js,/\/api\/app\/my-group\/questions/);
+  assert.match(js,/x-evkerk-platform':'website'/);
+  assert.match(js,/r\.status===201/);
+});
+
+test('anonymous Bible readers are directed to the pastoral team, not self registration',()=>{
+  assert.match(html,/请联系牧者团队，申请加入小组/);
+  assert.match(html,/id="memberRequiredDialog"/);
+  assert.doesNotMatch(html,/api\/app\/register/);
+  assert.match(js,/if\(!access\)\{openMemberRequired\(\);return\}/);
+});
+
+test('Bible member login uses the unified server auth and session-scoped tokens',()=>{
+  assert.match(js,/\/api\/app\/auth\/login/);
+  assert.match(js,/\/api\/app\/auth\/refresh/);
+  assert.match(js,/\/api\/app\/session/);
+  assert.match(js,/sessionStorage\.setItem\(memberAccessKey/);
+  assert.doesNotMatch(js,/localStorage\.setItem\(memberAccessKey/);
+});
+
+test('group question keeps an idempotent local draft until real server success',()=>{
+  assert.match(js,/questionDraftKey='evkerk-web:group-question-draft'/);
+  assert.match(js,/client_request_id/);
+  assert.match(js,/if\(r\.status===201\)\{localStorage\.removeItem\(questionDraftKey\)/);
+  assert.match(js,/草稿已保留/);
+});
