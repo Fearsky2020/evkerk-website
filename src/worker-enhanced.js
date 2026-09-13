@@ -10,6 +10,7 @@ import { handleWelcomeApi } from './welcome.js';
 import { handleInternalMediaApi, guardInternalMediaPage } from './internal-media.js';
 import { handleWechatApi } from './wechat.js';
 import { handleOrganizationApi } from './organization.js';
+import { handleDailyDevotionalApi } from './daily-devotional.js';
 
 async function injectScripts(request, env, sources) {
   const response = await env.ASSETS.fetch(request);
@@ -45,6 +46,8 @@ async function route(request, env, ctx) {
       url.hostname = 'evkerk.nl';
       return Response.redirect(url.toString(), 301);
     }
+    const dailyDevotionalResponse = await handleDailyDevotionalApi(request, env, url);
+    if (dailyDevotionalResponse) return dailyDevotionalResponse;
     const wechatResponse = await handleWechatApi(request, env, url);
     if (wechatResponse) return wechatResponse;
     const humanAuthResponse = await handleHumanAuthApi(request, env, url);

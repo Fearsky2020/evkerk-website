@@ -48,6 +48,8 @@ function fakeDb() {
         if (/actor_openid=\? AND action_type='authorize_pastor'/.test(sql)) return state.pending.find((row) => row.actor_openid === params[0] && row.action_type === 'authorize_pastor' && row.status === 'pending') || null;
         if (/confirmation_code=\? AND actor_openid=\?/.test(sql)) return state.pending.find((row) => row.confirmation_code === params[0] && row.actor_openid === params[1]) || null;
         if (/confirmation_code=\? AND action_type='authorize_pastor'/.test(sql)) return state.pending.find((row) => row.confirmation_code === params[0] && row.action_type === 'authorize_pastor') || null;
+        if (/SELECT id FROM daily_devotionals/.test(sql)) return state.devotionals.find((row) => row.devotional_date === params[0]) || null;
+        if (/FROM daily_devotionals WHERE devotional_date=\\?/.test(sql)) return state.devotionals.find((row) => row.devotional_date === params[0] && row.status === 'published') || null;
         return null;
       },
       async all() {
@@ -73,7 +75,8 @@ function fakeDb() {
           row.status = status;
           return { meta: { changes: 1 } };
         }
-        if (/INSERT INTO announcements/.test(sql)) { state.announcements.push({ id: params[0], title_zh: params[1], body_zh: params[2], status: 'published' }); return { meta: { changes: 1 } }; }
+        if (/INSERT INTO announcements/.test(sql)) { state.announcements.push({ id: params[0], title_zh: params[1], body_zh: params[2], status: 'published' }); return { meta: { changes: 1 } }; }        if (/INSERT INTO daily_devotionals/.test(sql)) { const row={id:params[0],devotional_date:params[1],reference:params[2],scripture_text:params[3],reflection_prompt:params[4],share_text:params[5],status:'published',updated_at:'2026-09-13 00:00:00'}; const old=state.devotionals.findIndex(x=>x.devotional_date===row.devotional_date); if(old>=0)state.devotionals[old]=row; else state.devotionals.push(row); return { meta: { changes: 1 } }; }
+
         if (/INSERT INTO devotionals/.test(sql)) { state.devotionals.push({ id: params[0], devotional_date: params[1], title_zh: params[2], scripture: params[3], body_zh: params[4], audio_url: params[5], status: 'published' }); return { meta: { changes: 1 } }; }
         if (/INSERT INTO wechat_users/.test(sql)) { state.users.set(params[0], { role: 'pastoral_admin', status: 'active', approved_by: params[1] }); return { meta: { changes: 1 } }; }
         if (/INSERT INTO wechat_audit_log/.test(sql)) { state.audit.push(params); return { meta: { changes: 1 } }; }
@@ -136,13 +139,14 @@ test('announcement requires confirmation and cannot publish twice', async () => 
 test('devotional publishes to the shared public API after confirmation', async () => {
   const DB = fakeDb();
   const testEnv = env({ DB });
-  const draftText = await (await postWechat(testEnv, { content: '发布灵修\n标题：神爱世人\n经文：约翰福音 3:16\n内容：今天默想神的爱。', id: 'msg-devotional' })).text();
+  const draftText = await (await postWechat(testEnv, { content: '发布灵修\n日期：2026-09-13\n经文：约翰福音 3:16\n经文内容：神爱世人，甚至将他的独生子赐给他们。\n默想问题：今天我怎样回应神的爱？', id: 'msg-devotional' })).text();
   const confirmationCode = draftText.match(/确认 ([0-9A-F]{6})/)[1];
   assert.match(await (await postWechat(testEnv, { content: `确认 ${confirmationCode}` })).text(), /灵修已发布成功/);
-  const response = await worker.fetch(new Request('https://evkerk.nl/api/devotionals'), testEnv);
+  const response = await worker.fetch(new Request('https://evkerk.nl/api/app/daily-devotional?date=2026-09-13'), testEnv);
   const body = await response.json();
-  assert.equal(body.devotionals[0].title_zh, '神爱世人');
-  assert.equal(body.devotionals[0].scripture, '约翰福音 3:16');
+  assert.equal(body.reference, '约翰福音 3:16');
+  assert.match(body.scripture_text, /神爱世人/);
+  assert.equal(body.timezone, 'Europe/Amsterdam');
 });
 
 test('owner can approve a pastoral team administrator request', async () => {

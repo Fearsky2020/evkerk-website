@@ -1,0 +1,16 @@
+(()=>{
+const $=id=>document.getElementById(id),TZ='Europe/Amsterdam';let rows=[];
+const localDate=()=>{const p=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:TZ,year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()).map(x=>[x.type,x.value]));return p.year+'-'+p.month+'-'+p.day};
+const message=(text,type='')=>{$('formMessage').textContent=text;$('formMessage').className='message '+type};
+async function api(path,options={}){const r=await fetch(path,{credentials:'same-origin',cache:'no-store',...options,headers:{Accept:'application/json',...(options.headers||{})}}),d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||'操作失败');return d}
+function shareText(){const ref=$('devotionalReference').value.trim(),text=$('devotionalScripture').value.trim(),prompt=$('devotionalReflection').value.trim();return[ref,text,prompt?'默想：'+prompt:''].filter(Boolean).join('\n')}
+function preview(){$('sharePreview').textContent=shareText()}
+function clear(){const today=localDate();$('devotionalId').value='';$('devotionalDate').value=today;$('devotionalReference').value='';$('devotionalScripture').value='';$('devotionalReflection').value='';$('devotionalStatus').value='draft';$('updatedLabel').textContent='新内容尚未保存';message('');preview()}
+function edit(row){$('devotionalId').value=row.id;$('devotionalDate').value=row.devotional_date;$('devotionalReference').value=row.reference;$('devotionalScripture').value=row.scripture_text;$('devotionalReflection').value=row.reflection_prompt;$('devotionalStatus').value=row.status;$('updatedLabel').textContent='最后更新：'+(row.updated_at||'—')+' · '+TZ;message('');preview();scrollTo({top:0,behavior:'smooth'})}
+function render(){$('devotionalList').innerHTML=rows.length?rows.map((x,i)=>'<button class="devotional-item" data-index="'+i+'" type="button"><header><h3>'+escapeHtml(x.devotional_date+' · '+x.reference)+'</h3><span class="status '+x.status+'">'+(x.status==='published'?'已发布':'草稿')+'</span></header><p>'+escapeHtml(x.reflection_prompt)+'</p><p>更新：'+escapeHtml(x.updated_at||'—')+'</p></button>').join(''):'<div class="empty">还没有安排每日经文。</div>';document.querySelectorAll('[data-index]').forEach(b=>b.onclick=()=>edit(rows[Number(b.dataset.index)]))}
+function escapeHtml(v){return String(v||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+async function load(){try{const d=await api('/api/admin/daily-devotionals');rows=d.devotionals||[];render()}catch(e){message(e.message,'error')}}
+$('devotionalForm').onsubmit=async e=>{e.preventDefault();message('正在保存…');try{const d=await api('/api/admin/daily-devotionals',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({date:$('devotionalDate').value,reference:$('devotionalReference').value,scripture_text:$('devotionalScripture').value,reflection_prompt:$('devotionalReflection').value,status:$('devotionalStatus').value})});message(d.devotional.status==='published'?'已经发布，网站和 App 将读取这条内容':'草稿已保存，App 暂不显示','ok');await load();edit(rows.find(x=>x.devotional_date===$('devotionalDate').value)||d.devotional)}catch(err){message(err.message,'error')}};
+for(const id of ['devotionalReference','devotionalScripture','devotionalReflection'])$(id).addEventListener('input',preview);
+$('newButton').onclick=clear;$('reloadButton').onclick=load;clear();load();
+})();

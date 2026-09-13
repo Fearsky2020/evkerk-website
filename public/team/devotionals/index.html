@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>每日经文管理｜福音教会</title>
+  <link rel="icon" href="/assets/evkerk-logo.webp" type="image/webp">
+  <link rel="stylesheet" href="/team/styles.css?v=3">
+  <link rel="stylesheet" href="/team/devotionals/devotionals.css?v=1">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/team/"><img src="/assets/evkerk-logo.webp" alt="福音教会"><span>每日经文</span></a>
+    <a class="back" href="/team/">← 返回同工入口</a>
+  </header>
+  <main class="devotional-shell">
+    <section class="page-head">
+      <p class="eyebrow">DAILY DEVOTIONAL</p>
+      <h1>每日经文／每日灵修</h1>
+      <p class="muted">这里是网站、iOS 与 Android 的唯一正式数据源。日期按 Europe/Amsterdam 计算；同一天只保留一条内容。</p>
+    </section>
+    <div class="devotional-layout">
+      <form id="devotionalForm" class="card editor-card">
+        <input id="devotionalId" type="hidden">
+        <label>日期<input id="devotionalDate" type="date" required></label>
+        <label>经文出处<input id="devotionalReference" maxlength="160" placeholder="例如：诗篇 119:105" required></label>
+        <label>完整经文<textarea id="devotionalScripture" rows="7" maxlength="10000" required></textarea></label>
+        <label>默想问题<textarea id="devotionalReflection" rows="4" maxlength="4000" required></textarea></label>
+        <label>发布状态<select id="devotionalStatus"><option value="draft">草稿（App 不显示）</option><option value="published">发布</option></select></label>
+        <div class="share-preview"><strong>分享文字预览</strong><pre id="sharePreview"></pre></div>
+        <p id="updatedLabel" class="muted"></p>
+        <p id="formMessage" class="message" role="status"></p>
+        <div class="actions"><button class="primary" type="submit">保存</button><button id="newButton" class="secondary" type="button">新建日期</button></div>
+      </form>
+      <section>
+        <div class="list-head"><h2>已安排内容</h2><button id="reloadButton" class="secondary" type="button">刷新</button></div>
+        <div id="devotionalList" class="devotional-list"></div>
+      </section>
+    </div>
+  </main>
+  <script src="/team/devotionals/app.js?v=1"></script>
+</body>
+</html>

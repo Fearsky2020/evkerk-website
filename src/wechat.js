@@ -2,6 +2,12 @@ const CALLBACK_PATH = '/api/wechat/callback';
 const ROLE_OWNER = 'owner';
 const ROLE_PASTORAL_ADMIN = 'pastoral_admin';
 const PENDING_MINUTES = 15;
+const DAILY_TIMEZONE = 'Europe/Amsterdam';
+
+function amsterdamDate(date = new Date()) {
+  const parts = Object.fromEntries(new Intl.DateTimeFormat('en-CA', { timeZone: DAILY_TIMEZONE, year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(date).map((part) => [part.type, part.value]));
+  return `${parts.year}-${parts.month}-${parts.day}`;
+}
 
 function text(value) { return String(value ?? '').trim(); }
 
@@ -73,7 +79,7 @@ function code() {
 function parseFields(input) {
   const source = String(input || '').replaceAll('\r\n', '\n');
   const result = {};
-  const matches = [...source.matchAll(/(?:^|\n)\s*(标题|经文|内容|音频)[：:]\s*/g)];
+  const matches = [...source.matchAll(/(?:^|\n)\s*(经文内容|默想问题|日期|标题|经文|内容|音频)[：:]\s*/g)];
   for (let index = 0; index < matches.length; index += 1) {
     const start = matches[index].index + matches[index][0].length;
     result[matches[index][1]] = source.slice(start, matches[index + 1]?.index ?? source.length).trim();
@@ -82,10 +88,9 @@ function parseFields(input) {
 }
 
 function preview(actionType, payload, confirmationCode) {
-  const lines = [actionType === 'announcement.publish' ? '通知发布预览' : '灵修发布预览', `标题：${payload.title_zh}`];
-  if (payload.scripture) lines.push(`经文：${payload.scripture}`);
-  lines.push(`内容：${payload.body_zh}`);
-  if (payload.audio_url) lines.push(`音频：${payload.audio_url}`);
+  const lines = [actionType === 'announcement.publish' ? '通知发布预览' : '每日灵修发布预览'];
+  if (actionType === 'announcement.publish') lines.push(`标题：${payload.title_zh}`, `内容：${payload.body_zh}`);
+  else lines.push(`日期：${payload.devotional_date}`, `经文：${payload.reference}`, `经文内容：${payload.scripture_text}`, `默想问题：${payload.reflection_prompt}`);
   lines.push('', `确认发布请发送：确认 ${confirmationCode}`, `取消请发送：取消 ${confirmationCode}`, `${PENDING_MINUTES} 分钟内有效。`);
   return lines.join('\n');
 }
@@ -111,10 +116,14 @@ async function publishAnnouncement(env, payload) {
 }
 
 async function publishDevotional(env, actor, payload) {
-  const id = `devotional-${crypto.randomUUID()}`;
-  await env.DB.prepare(`INSERT INTO devotionals (id, devotional_date, title_zh, scripture, body_zh, audio_url, status, author_openid, published_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, 'published', ?, datetime('now'), datetime('now'))`)
-    .bind(id, new Date().toISOString().slice(0, 10), payload.title_zh, payload.scripture || '', payload.body_zh, payload.audio_url || '', actor).run();
-  return { entityType: 'devotional', entityId: id };
+  const existing = await env.DB.prepare('SELECT id FROM daily_devotionals WHERE devotional_date=?').bind(payload.devotional_date).first();
+  const id = existing?.id || `daily-${crypto.randomUUID()}`;
+  const shareText = payload.reference+'\n'+payload.scripture_text+'\n\n默想：'+payload.reflection_prompt;
+  await env.DB.prepare(`INSERT INTO daily_devotionals(id,devotional_date,reference,scripture_text,reflection_prompt,share_text,status,source,published_at,updated_at)
+    VALUES(?,?,?,?,?,?,'published','wechat',datetime('now'),datetime('now'))
+    ON CONFLICT(devotional_date) DO UPDATE SET reference=excluded.reference,scripture_text=excluded.scripture_text,reflection_prompt=excluded.reflection_prompt,share_text=excluded.share_text,status='published',source='wechat',published_at=COALESCE(daily_devotionals.published_at,datetime('now')),updated_at=datetime('now')`)
+    .bind(id,payload.devotional_date,payload.reference,payload.scripture_text,payload.reflection_prompt,shareText).run();
+  return { entityType: 'daily_devotional', entityId: id };
 }
 
 async function confirmPending(env, actor, role, confirmationCode) {
@@ -165,7 +174,7 @@ async function approvePastor(env, owner, confirmationCode) {
 }
 
 function helpMessage(role) {
-  const lines = ['司南微信命令', '1. 查询状态', '2. 发布通知（另起行填写“标题：”“内容：”）', '3. 发布灵修（填写“标题：”“经文：”“内容：”，音频可暂填网址）', '4. 确认 六位码 / 取消 六位码'];
+  const lines = ['司南微信命令', '1. 查询状态', '2. 发布通知（另起行填写“标题：”“内容：”）', '3. 发布灵修（填写“日期：”“经文：”“经文内容：”“默想问题：”）', '4. 确认 六位码 / 取消 六位码'];
   if (role === ROLE_OWNER) lines.push('5. 批准 六位码（授权牧者团队）');
   return lines.join('\n');
 }
@@ -187,9 +196,9 @@ async function commandReply(content, env, actor, role, sourceMessageId) {
     return createPending(env, actor, 'announcement.publish', { title_zh: fields.标题.slice(0, 300), body_zh: fields.内容.slice(0, 12000) }, sourceMessageId);
   }
   if (/^发布灵修(?:\s|$)/.test(raw)) {
-    const fields = parseFields(raw);
-    if (!fields.标题 || !fields.内容) return '格式不完整。请发送：\n发布灵修\n标题：今日灵修\n经文：约翰福音 3:16\n内容：这里填写灵修正文';
-    return createPending(env, actor, 'devotional.publish', { title_zh: fields.标题.slice(0, 300), scripture: text(fields.经文).slice(0, 500), body_zh: fields.内容.slice(0, 20000), audio_url: text(fields.音频).slice(0, 1000) }, sourceMessageId);
+    const fields = parseFields(raw), devotionalDate = text(fields.日期) || amsterdamDate();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(devotionalDate) || !fields.经文 || !fields.经文内容 || !fields.默想问题) return '格式不完整。请发送：\n发布灵修\n日期：2026-09-13（可省略，默认荷兰当天）\n经文：约翰福音 3:16\n经文内容：请填写完整经文\n默想问题：今天这节经文怎样帮助我？';
+    return createPending(env, actor, 'devotional.publish', { devotional_date: devotionalDate, reference: fields.经文.slice(0, 160), scripture_text: fields.经文内容.slice(0, 10000), reflection_prompt: fields.默想问题.slice(0, 4000) }, sourceMessageId);
   }
   return helpMessage(role);
 }

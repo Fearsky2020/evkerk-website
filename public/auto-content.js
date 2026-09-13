@@ -82,10 +82,9 @@
     const host = document.createElement('section');
     host.className = 'auto-devotional';
     host.innerHTML = `<strong>${isNl() ? 'DAGOVERDENKING' : '今日灵修'}</strong>
-      <h3>${esc(item.title_zh)}</h3>
-      ${item.scripture ? `<blockquote>${esc(item.scripture)}</blockquote>` : ''}
-      <p>${esc(item.body_zh)}</p>
-      ${item.audio_url ? `<audio controls preload="metadata" src="${esc(item.audio_url)}"></audio>` : ''}`;
+      <h3>${esc(item.reference)}</h3>
+      <blockquote>${esc(item.scripture_text)}</blockquote>
+      <p>${esc(item.reflection_prompt)}</p>`;
     const announcements = document.querySelector('.auto-announcements');
     if (announcements) announcements.insertAdjacentElement('afterend', host);
     else document.querySelector('.hero')?.insertAdjacentElement('afterend', host);
@@ -184,7 +183,7 @@
       fetch('/api/events', {headers:{Accept:'application/json'}}).then(r => r.ok ? r.json() : {events:[]}).catch(() => ({events:[]})),
       fetch('/api/sermons', {headers:{Accept:'application/json'}}).then(r => r.ok ? r.json() : {sermons:[]}).catch(() => ({sermons:[]})),
       fetch('/api/announcements', {headers:{Accept:'application/json'}}).then(r => r.ok ? r.json() : {announcements:[]}).catch(() => ({announcements:[]})),
-      fetch('/api/devotionals', {headers:{Accept:'application/json'}}).then(r => r.ok ? r.json() : {devotionals:[]}).catch(() => ({devotionals:[]})),
+      fetch('/api/app/daily-devotional', {headers:{Accept:'application/json'}}).then(async r => r.ok ? {devotionals:[await r.json()]} : {devotionals:[]}).catch(() => ({devotionals:[]})),
     ]);
     state.events = events.events || [];
     state.sermons = sermons.sermons || [];
