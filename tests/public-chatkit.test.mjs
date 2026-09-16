@@ -10,7 +10,7 @@ test('public ChatKit uses the EU Zoho endpoint and route-specific agents', () =>
   assert.match(loader, /https:\/\/agents\.zoho\.eu\/resources\/addon-chat\/assets\/js\/agents-chat-sdk\.js/);
   assert.match(loader, /ORG_ID\s*=\s*'20119587307'/);
   assert.match(loader, /PUBLIC_ASSISTANT_ID\s*=\s*'3612000000002124'/);
-  assert.match(loader, /BIBLE_FINDER_ID\s*=\s*'3612000000002179'/);
+  assert.match(loader, /BIBLE_FINDER_ID\s*=\s*'3612000000002240'/);
   assert.match(loader, /path === '\/bible'/);
 });
 

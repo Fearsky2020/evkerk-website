@@ -5,7 +5,7 @@
 
   const ORG_ID = '20119587307';
   const PUBLIC_ASSISTANT_ID = '3612000000002124';
-  const BIBLE_FINDER_ID = '3612000000002179';
+  const BIBLE_FINDER_ID = '3612000000002240';
   const entityId = (path === '/bible' || path === '/bible.html') ? BIBLE_FINDER_ID : PUBLIC_ASSISTANT_ID;
 
   const revealChatKit = (chat) => {
