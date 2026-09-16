@@ -5,6 +5,8 @@ const CHATKIT_MARKER = '/evkerk-chatkit.js?v=2';
 const CHATKIT_TAG = `<script src="${CHATKIT_MARKER}" defer></script>`;
 const BIBLE_DEEPLINK_MARKER = '/bible-deeplink.js?v=1';
 const BIBLE_DEEPLINK_TAG = `<script src="${BIBLE_DEEPLINK_MARKER}" defer></script>`;
+const SERMON_PLAY_HOVER_FIX_MARKER = '/sermon-play-hover-fix.js?v=1';
+const SERMON_PLAY_HOVER_FIX_TAG = `<script src="${SERMON_PLAY_HOVER_FIX_MARKER}" defer></script>`;
 
 function isPublicPage(url) {
   return !url.pathname.startsWith('/api/')
@@ -16,6 +18,10 @@ function isBiblePage(url) {
   return url.pathname === '/bible' || url.pathname === '/bible.html';
 }
 
+function isHomePage(url) {
+  return url.pathname === '/' || url.pathname === '/index.html';
+}
+
 async function injectPublicScripts(response, url) {
   if (!response.ok) return response;
   const contentType = response.headers.get('content-type') || '';
@@ -25,6 +31,7 @@ async function injectPublicScripts(response, url) {
   const additions = [];
   if (!html.includes(CHATKIT_MARKER)) additions.push(CHATKIT_TAG);
   if (isBiblePage(url) && !html.includes(BIBLE_DEEPLINK_MARKER)) additions.push(BIBLE_DEEPLINK_TAG);
+  if (isHomePage(url) && !html.includes(SERMON_PLAY_HOVER_FIX_MARKER)) additions.push(SERMON_PLAY_HOVER_FIX_TAG);
 
   if (!additions.length || !/<\/body>/i.test(html)) {
     return new Response(html, {
