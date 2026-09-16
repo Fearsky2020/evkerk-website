@@ -37,12 +37,14 @@ Assert-ExitCode 'git add'
 
 $staged = git diff --cached --name-only
 Assert-ExitCode 'git diff --cached'
-if (-not $staged) { throw 'No staged Bible search changes found.' }
-Write-Host $staged
-
-Write-Host '4/7 Commit'
-git commit -m 'fix: repair Bible search API release'
-Assert-ExitCode 'git commit'
+if ($staged) {
+  Write-Host $staged
+  Write-Host '4/7 Commit'
+  git commit -m 'fix: repair Bible search API release'
+  Assert-ExitCode 'git commit'
+} else {
+  Write-Host '4/7 Commit skipped - current main already contains the validated files.'
+}
 
 Write-Host '5/7 SINAN QA on clean commit'
 node scripts/sinan-qa.mjs
