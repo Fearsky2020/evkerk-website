@@ -1,7 +1,7 @@
 import enhancedWorker from './worker-enhanced.js';
 import { handleBibleSearch } from './bible-search.js';
 
-const CHATKIT_MARKER = '/evkerk-chatkit.js?v=1';
+const CHATKIT_MARKER = '/evkerk-chatkit.js?v=2';
 const CHATKIT_TAG = `<script src="${CHATKIT_MARKER}" defer></script>`;
 const BIBLE_DEEPLINK_MARKER = '/bible-deeplink.js?v=1';
 const BIBLE_DEEPLINK_TAG = `<script src="${BIBLE_DEEPLINK_MARKER}" defer></script>`;
