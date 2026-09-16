@@ -41,7 +41,7 @@ function parseReference(query) {
     const book = BOOKS[i];
     if (!compact.startsWith(book)) continue;
     const rest = compact.slice(book.length);
-    const match = rest.match(/^第?(\d+)章?(?:[:：](\d+)(?:[-–—](\d+))?)?)?$/);
+    const match = rest.match(/^第?(\d+)章?(?:[:：](\d+)(?:[-–—](\d+))?)?$/);
     if (!match) continue;
     return {
       bookIndex: i,
@@ -82,7 +82,16 @@ function json(data, status = 200) {
 export async function handleBibleSearch(request, env, url = new URL(request.url)) {
   if (url.pathname !== '/api/bible/search') return null;
   if (!['GET', 'POST', 'OPTIONS'].includes(request.method)) return json({ ok: false, error: 'method not allowed' }, 405);
-  if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: { 'access-control-allow-origin': '*', 'access-control-allow-methods': 'GET, POST, OPTIONS', 'access-control-allow-headers': 'content-type' } });
+  if (request.method === 'OPTIONS') {
+    return new Response(null, {
+      status: 204,
+      headers: {
+        'access-control-allow-origin': '*',
+        'access-control-allow-methods': 'GET, POST, OPTIONS',
+        'access-control-allow-headers': 'content-type',
+      },
+    });
+  }
 
   let query = url.searchParams.get('q') || '';
   let requestedLimit = Number(url.searchParams.get('limit') || 5);

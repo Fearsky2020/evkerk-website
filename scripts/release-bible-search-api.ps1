@@ -4,16 +4,23 @@ Set-StrictMode -Version Latest
 $root = Split-Path -Parent $PSScriptRoot
 Set-Location $root
 
+function Assert-ExitCode([string]$Step) {
+  if ($LASTEXITCODE -ne 0) { throw "$Step failed with exit code $LASTEXITCODE" }
+}
+
 Write-Host 'EVKERK_BIBLE_SEARCH_RELEASE_START'
 
 $branch = (git branch --show-current).Trim()
+Assert-ExitCode 'git branch'
 if ($branch -ne 'main') { throw "Expected main branch, got: $branch" }
 
 Write-Host '1/7 Syntax checks'
 npm run check
+Assert-ExitCode 'npm run check'
 
 Write-Host '2/7 Automated tests'
 npm test
+Assert-ExitCode 'npm test'
 
 $releaseFiles = @(
   'package.json',
@@ -26,26 +33,31 @@ $releaseFiles = @(
 
 Write-Host '3/7 Stage exact release files'
 git add -- $releaseFiles
+Assert-ExitCode 'git add'
 
 $staged = git diff --cached --name-only
+Assert-ExitCode 'git diff --cached'
 if (-not $staged) { throw 'No staged Bible search changes found.' }
 Write-Host $staged
 
 Write-Host '4/7 Commit'
-git commit -m 'feat: add public Bible search API for Zia Bible Finder'
+git commit -m 'fix: repair Bible search API release'
+Assert-ExitCode 'git commit'
 
 Write-Host '5/7 SINAN QA on clean commit'
 node scripts/sinan-qa.mjs
+Assert-ExitCode 'SINAN QA'
 
 Write-Host '6/7 Push main'
 git push origin main
+Assert-ExitCode 'git push'
 
 Write-Host '7/7 Deploy Cloudflare Worker'
 npx wrangler deploy
+Assert-ExitCode 'wrangler deploy'
 
 Start-Sleep -Seconds 4
 
-# Keep this release script ASCII-only so Windows PowerShell 5.1 parses it reliably.
 $searchUrl = 'https://evkerk.nl/api/bible/search?q=%E4%B8%8D%E8%A6%81%E4%B8%BA%E6%98%8E%E5%A4%A9%E5%BF%A7%E8%99%91'
 $searchResponse = Invoke-RestMethod -Uri $searchUrl -Method Get -TimeoutSec 30
 if (-not $searchResponse.ok) { throw 'Bible search API did not return ok=true.' }
