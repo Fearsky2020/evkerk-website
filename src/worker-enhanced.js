@@ -8,6 +8,7 @@ import { handleMemberAuthApi } from './member-auth.js';
 import { handleTeamServicesApi, guardHumanServiceAccess } from './team-services.js';
 import { handleWelcomeApi } from './welcome.js';
 import { handleInternalMediaApi, guardInternalMediaPage } from './internal-media.js';
+import { handlePublicHymnsApi } from './public-hymns.js';
 import { handleWechatApi } from './wechat.js';
 import { handleOrganizationApi } from './organization.js';
 import { handleDailyDevotionalApi } from './daily-devotional.js';
@@ -38,62 +39,59 @@ function secure(response) {
 }
 
 async function route(request, env, ctx) {
-    const url = new URL(request.url);
-    const hostHeader = request.headers.get('host') || '';
-    const isLocal = Boolean(env.LOCAL_DEV) || url.hostname === '127.0.0.1' || url.hostname === 'localhost' || /^(?:127\.0\.0\.1|localhost)(?::\d+)?$/i.test(hostHeader);
-    if (!isLocal && (url.hostname === 'www.evkerk.nl' || url.protocol === 'http:')) {
-      url.protocol = 'https:';
-      url.hostname = 'evkerk.nl';
-      return Response.redirect(url.toString(), 301);
-    }
-    const dailyDevotionalResponse = await handleDailyDevotionalApi(request, env, url);
-    if (dailyDevotionalResponse) return dailyDevotionalResponse;
-    const wechatResponse = await handleWechatApi(request, env, url);
-    if (wechatResponse) return wechatResponse;
-    const humanAuthResponse = await handleHumanAuthApi(request, env, url);
-    if (humanAuthResponse) return humanAuthResponse;
-    const memberAuthResponse = await handleMemberAuthApi(request, env, url);
-    if (memberAuthResponse) return memberAuthResponse;
-    const teamServicesResponse = await handleTeamServicesApi(request, env, url);
-    if (teamServicesResponse) return teamServicesResponse;
-    const internalMediaPageGuard = await guardInternalMediaPage(request, env, url);
-    if (internalMediaPageGuard) return internalMediaPageGuard;
-    const internalMediaResponse = await handleInternalMediaApi(request, env, url);
-    if (internalMediaResponse) return internalMediaResponse;
-    const organizationResponse = await handleOrganizationApi(request, env, url);
-    if (organizationResponse) return organizationResponse;
-    const welcomeResponse = await handleWelcomeApi(request, env, url);
-    if (welcomeResponse) return welcomeResponse;
-    const serviceGuardResponse = await guardHumanServiceAccess(request, env, url);
-    if (serviceGuardResponse) return serviceGuardResponse;
-    const guardResponse = await handleSundaySchoolPortalGuard(request, env, url);
-    if (guardResponse) return guardResponse;
-    const contentResponse = await handleSundaySchoolContentApi(request, env, url);
-    if (contentResponse) return contentResponse;
-    if (url.pathname.startsWith('/api/sunday-school/')) {
-      const sundaySchoolResponse = await handleSundaySchoolApi(request, env, url);
-      if (sundaySchoolResponse) return sundaySchoolResponse;
-    }
-    const settingsResponse = await handleSiteSettings(request, env, url);
-    if (settingsResponse) return settingsResponse;
-    if (url.pathname === '/admin' || url.pathname === '/admin/' || url.pathname === '/admin/index.html') {
-      return injectScripts(request, env, ['/admin/session-bridge.js?v=2', '/admin-enhancements.js?v=5', '/admin/team-permissions.js?v=5']);
-    }
-    if (url.pathname === '/admin/media.html') {
-      return injectScripts(request, env, ['/admin/session-bridge.js?v=2']);
-    }
-    if (url.pathname === '/' || url.pathname === '/index.html') {
-      return injectScripts(request, env, ['/schedule-settings.js?v=1', '/nl-copy-fixes.js?v=1']);
-    }
-    return baseWorker.fetch(request, env, ctx);
+  const url = new URL(request.url);
+  const hostHeader = request.headers.get('host') || '';
+  const isLocal = Boolean(env.LOCAL_DEV) || url.hostname === '127.0.0.1' || url.hostname === 'localhost' || /^(?:127\.0\.0\.1|localhost)(?::\d+)?$/i.test(hostHeader);
+  if (!isLocal && (url.hostname === 'www.evkerk.nl' || url.protocol === 'http:')) {
+    url.protocol = 'https:';
+    url.hostname = 'evkerk.nl';
+    return Response.redirect(url.toString(), 301);
+  }
+  const dailyDevotionalResponse = await handleDailyDevotionalApi(request, env, url);
+  if (dailyDevotionalResponse) return dailyDevotionalResponse;
+  const wechatResponse = await handleWechatApi(request, env, url);
+  if (wechatResponse) return wechatResponse;
+  const humanAuthResponse = await handleHumanAuthApi(request, env, url);
+  if (humanAuthResponse) return humanAuthResponse;
+  const memberAuthResponse = await handleMemberAuthApi(request, env, url);
+  if (memberAuthResponse) return memberAuthResponse;
+  const teamServicesResponse = await handleTeamServicesApi(request, env, url);
+  if (teamServicesResponse) return teamServicesResponse;
+  const publicHymnsResponse = await handlePublicHymnsApi(request, env, url);
+  if (publicHymnsResponse) return publicHymnsResponse;
+  const internalMediaPageGuard = await guardInternalMediaPage(request, env, url);
+  if (internalMediaPageGuard) return internalMediaPageGuard;
+  const internalMediaResponse = await handleInternalMediaApi(request, env, url);
+  if (internalMediaResponse) return internalMediaResponse;
+  const organizationResponse = await handleOrganizationApi(request, env, url);
+  if (organizationResponse) return organizationResponse;
+  const welcomeResponse = await handleWelcomeApi(request, env, url);
+  if (welcomeResponse) return welcomeResponse;
+  const serviceGuardResponse = await guardHumanServiceAccess(request, env, url);
+  if (serviceGuardResponse) return serviceGuardResponse;
+  const guardResponse = await handleSundaySchoolPortalGuard(request, env, url);
+  if (guardResponse) return guardResponse;
+  const contentResponse = await handleSundaySchoolContentApi(request, env, url);
+  if (contentResponse) return contentResponse;
+  if (url.pathname.startsWith('/api/sunday-school/')) {
+    const sundaySchoolResponse = await handleSundaySchoolApi(request, env, url);
+    if (sundaySchoolResponse) return sundaySchoolResponse;
+  }
+  const settingsResponse = await handleSiteSettings(request, env, url);
+  if (settingsResponse) return settingsResponse;
+  if (url.pathname === '/admin' || url.pathname === '/admin/' || url.pathname === '/admin/index.html') {
+    return injectScripts(request, env, ['/admin/session-bridge.js?v=2', '/admin-enhancements.js?v=5', '/admin/team-permissions.js?v=5']);
+  }
+  if (url.pathname === '/admin/media.html') {
+    return injectScripts(request, env, ['/admin/session-bridge.js?v=2']);
+  }
+  if (url.pathname === '/' || url.pathname === '/index.html') {
+    return injectScripts(request, env, ['/schedule-settings.js?v=1', '/nl-copy-fixes.js?v=1']);
+  }
+  return baseWorker.fetch(request, env, ctx);
 }
 
 export default {
-  async fetch(request, env, ctx) {
-    return secure(await route(request, env, ctx));
-  },
-
-  async scheduled(controller, env, ctx) {
-    return baseWorker.scheduled(controller, env, ctx);
-  },
+  async fetch(request, env, ctx) { return secure(await route(request, env, ctx)); },
+  async scheduled(controller, env, ctx) { return baseWorker.scheduled(controller, env, ctx); },
 };
