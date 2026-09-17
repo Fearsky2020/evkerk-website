@@ -9,8 +9,8 @@ test('assistant routes time-sensitive sermon wording to live sermons', () => {
   assert.equal(selectContextKind('五饼二鱼在哪里？', '/bible'), 'bible');
 });
 
-test('assistant injects current sermon data into Workers AI messages', async () => {
-  let capturedMessages = [];
+test('assistant answers sermon facts deterministically without spending model tokens', async () => {
+  let aiCalls = 0;
   const env = {
     DB: {
       prepare() {
@@ -35,13 +35,9 @@ test('assistant injects current sermon data into Workers AI messages', async () 
       },
     },
     AI: {
-      async run(_model, options) {
-        capturedMessages = options.messages;
-        return {
-          choices: [{
-            message: { role: 'assistant', content: '上周日的信息是第十九讲。' },
-          }],
-        };
+      async run() {
+        aiCalls += 1;
+        return { choices: [{ message: { content: '不应该被调用' } }] };
       },
     },
   };
@@ -56,13 +52,15 @@ test('assistant injects current sermon data into Workers AI messages', async () 
   const data = await response.json();
   assert.equal(data.ok, true);
   assert.equal(data.context, 'sermons');
-  assert.equal(data.provider, 'workers-ai');
-  const serialized = JSON.stringify(capturedMessages);
-  assert.match(serialized, /2026-09-13/);
-  assert.match(serialized, /预备发旺的根基（十九）/);
+  assert.equal(data.provider, 'live-data');
+  assert.equal(data.model, 'deterministic');
+  assert.equal(aiCalls, 0);
+  assert.match(data.answer, /2026/);
+  assert.match(data.answer, /预备发旺的根基（十九）/);
+  assert.match(data.answer, /王涛牧师/);
 });
 
-test('assistant keeps conversation history bounded', async () => {
+test('assistant keeps conversation history bounded for open-ended AI replies', async () => {
   let capturedMessages = [];
   const env = {
     DB: {
@@ -75,12 +73,8 @@ test('assistant keeps conversation history bounded', async () => {
     },
     AI: {
       async run(_model, options) {
-        capturedMessages = options.messages;
-        return {
-          choices: [{
-            message: { role: 'assistant', content: '好的。' },
-          }],
-        };
+        capturedMessages = options.messages || [];
+        return { choices: [{ message: { content: '好的。' } }] };
       },
     },
   };
@@ -92,7 +86,7 @@ test('assistant keeps conversation history bounded', async () => {
   });
   const response = await handleAssistantChat(request, env, new URL(request.url));
   assert.equal(response.status, 200);
-  const serialized = JSON.stringify(capturedMessages);
-  assert.doesNotMatch(serialized, /turn-0/);
-  assert.match(serialized, /turn-11/);
+  const flattened = JSON.stringify(capturedMessages);
+  assert.doesNotMatch(flattened, /turn-0/);
+  assert.match(flattened, /turn-11/);
 });

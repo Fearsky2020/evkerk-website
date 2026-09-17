@@ -72,6 +72,104 @@ function amsterdamNow() {
   }).format(new Date());
 }
 
+function userLanguage(message) {
+  const text = String(message || '');
+  if (/[㐀-鿿]/.test(text)) return 'zh';
+  if (/\b(waar|wanneer|dienst|zondag|preek|adres|tijd|kerk|activiteit|mededeling|bijbel)\b/i.test(text)) return 'nl';
+  return 'en';
+}
+
+function prettyDate(value, lang) {
+  if (!value) return '';
+  const date = new Date(`${String(value).slice(0, 10)}T12:00:00`);
+  const locale = lang === 'zh' ? 'zh-CN' : (lang === 'nl' ? 'nl-NL' : 'en-GB');
+  return new Intl.DateTimeFormat(locale, {
+    timeZone: 'Europe/Amsterdam',
+    year: 'numeric', month: lang === 'zh' ? 'numeric' : 'short', day: 'numeric',
+  }).format(date);
+}
+
+function compactDateTime(value, lang) {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+  const locale = lang === 'zh' ? 'zh-CN' : (lang === 'nl' ? 'nl-NL' : 'en-GB');
+  return new Intl.DateTimeFormat(locale, {
+    timeZone: 'Europe/Amsterdam',
+    month: lang === 'zh' ? 'numeric' : 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
+  }).format(date);
+}
+
+function directFactAnswer(kind, context, message) {
+  const lang = userLanguage(message);
+  if (!context?.ok) return null;
+
+  if (kind === 'sermons') {
+    const sermon = context.sermons?.[0];
+    if (!sermon) {
+      return lang === 'zh' ? '目前没有查到已发布的讲道。' : (lang === 'nl' ? 'Ik kan momenteel geen gepubliceerde preek vinden.' : 'I could not find a published sermon right now.');
+    }
+    const date = prettyDate(sermon.sermon_date, lang);
+    if (lang === 'zh') {
+      const lines = [`${date ? `${date}的讲道是` : '最新讲道是'}《${sermon.title_zh || sermon.title_nl || '讲道'}》。`];
+      if (sermon.speaker) lines.push(`讲员：${sermon.speaker}。`);
+      if (sermon.scripture) lines.push(`经文：${sermon.scripture}。`);
+      if (sermon.page_url) lines.push(`查看或收听：${sermon.page_url}`);
+      return lines.join('\n');
+    }
+    if (lang === 'nl') {
+      const lines = [`De preek van ${date || 'de meest recente zondag'} is “${sermon.title_nl || sermon.title_zh || 'Preek'}”.`];
+      if (sermon.speaker) lines.push(`Spreker: ${sermon.speaker}.`);
+      if (sermon.scripture) lines.push(`Schriftlezing: ${sermon.scripture}.`);
+      if (sermon.page_url) lines.push(`Bekijken of beluisteren: ${sermon.page_url}`);
+      return lines.join('\n');
+    }
+    const lines = [`The sermon from ${date || 'the most recent Sunday'} is “${sermon.title_zh || sermon.title_nl || 'Sermon'}”.`];
+    if (sermon.speaker) lines.push(`Speaker: ${sermon.speaker}.`);
+    if (sermon.scripture) lines.push(`Scripture: ${sermon.scripture}.`);
+    if (sermon.page_url) lines.push(`View or listen: ${sermon.page_url}`);
+    return lines.join('\n');
+  }
+
+  if (kind === 'schedule') {
+    const schedule = Array.isArray(context.schedule) ? context.schedule : [];
+    if (!schedule.length) return null;
+    if (lang === 'zh') {
+      return ['目前主日聚会时间：', ...schedule.map((item) => `• ${item.site}：${item.sunday_service}，${item.address}`)].join('\n');
+    }
+    if (lang === 'nl') {
+      return ['De huidige zondagse samenkomsttijden zijn:', ...schedule.map((item) => `• ${item.site}: ${item.sunday_service}, ${item.address}`)].join('\n');
+    }
+    return ['Current Sunday service times:', ...schedule.map((item) => `• ${item.site}: ${item.sunday_service}, ${item.address}`)].join('\n');
+  }
+
+  if (kind === 'events') {
+    const events = Array.isArray(context.events) ? context.events : [];
+    if (!events.length) {
+      return lang === 'zh' ? '目前没有查到已发布的近期活动。' : (lang === 'nl' ? 'Er zijn momenteel geen gepubliceerde komende activiteiten gevonden.' : 'No published upcoming events were found right now.');
+    }
+    if (lang === 'zh') {
+      return ['近期活动：', ...events.map((item) => `• ${compactDateTime(item.start_at, lang)} ${item.title_zh || item.title_nl || ''}${item.location ? `｜${item.location}` : ''}`)].join('\n');
+    }
+    if (lang === 'nl') {
+      return ['Komende activiteiten:', ...events.map((item) => `• ${compactDateTime(item.start_at, lang)} ${item.title_nl || item.title_zh || ''}${item.location ? ` | ${item.location}` : ''}`)].join('\n');
+    }
+    return ['Upcoming events:', ...events.map((item) => `• ${compactDateTime(item.start_at, lang)} ${item.title_zh || item.title_nl || ''}${item.location ? ` | ${item.location}` : ''}`)].join('\n');
+  }
+
+  if (kind === 'announcements') {
+    const announcements = Array.isArray(context.announcements) ? context.announcements : [];
+    if (!announcements.length) {
+      return lang === 'zh' ? '目前没有正在生效的公开通知。' : (lang === 'nl' ? 'Er zijn momenteel geen actieve openbare mededelingen.' : 'There are no active public announcements right now.');
+    }
+    if (lang === 'zh') return ['当前通知：', ...announcements.map((item) => `• ${item.title_zh || item.title_nl || ''}${item.body_zh ? `：${item.body_zh}` : ''}`)].join('\n');
+    if (lang === 'nl') return ['Actuele mededelingen:', ...announcements.map((item) => `• ${item.title_nl || item.title_zh || ''}${item.body_nl ? `: ${item.body_nl}` : ''}`)].join('\n');
+    return ['Current announcements:', ...announcements.map((item) => `• ${item.title_zh || item.title_nl || ''}${item.body_zh ? `: ${item.body_zh}` : ''}`)].join('\n');
+  }
+
+  return null;
+}
+
 function buildSystemPrompt(contextKind, context) {
   const contextJson = JSON.stringify(context || {}, null, 2);
   return `你是福音教会官网的公开信息助手。你服务 evkerk.nl 的访客，语气友善、清楚、简洁。
@@ -122,9 +220,7 @@ async function callGemini(env, systemPrompt, history, message) {
     body: JSON.stringify({
       systemInstruction: { parts: [{ text: systemPrompt }] },
       contents: historyForGemini(history, message),
-      generationConfig: {
-        maxOutputTokens: 600,
-      },
+      generationConfig: { maxOutputTokens: 600 },
     }),
   });
   if (!response.ok) {
@@ -140,10 +236,7 @@ async function callGemini(env, systemPrompt, history, message) {
 function workersMessages(systemPrompt, history, message) {
   return [
     { role: 'system', content: systemPrompt },
-    ...history.map((item) => ({
-      role: item.role === 'assistant' ? 'assistant' : 'user',
-      content: item.text,
-    })),
+    ...history.map((item) => ({ role: item.role === 'assistant' ? 'assistant' : 'user', content: item.text })),
     { role: 'user', content: message },
   ];
 }
@@ -152,10 +245,7 @@ function extractWorkersAIText(result) {
   const choiceContent = result?.choices?.[0]?.message?.content;
   if (typeof choiceContent === 'string' && choiceContent.trim()) return choiceContent.trim();
   if (Array.isArray(choiceContent)) {
-    const joined = choiceContent
-      .map((part) => typeof part === 'string' ? part : (part?.text || part?.content || ''))
-      .join('')
-      .trim();
+    const joined = choiceContent.map((part) => typeof part === 'string' ? part : (part?.text || part?.content || '')).join('').trim();
     if (joined) return joined;
   }
   return String(result?.response ?? result?.result?.response ?? '').trim();
@@ -167,9 +257,7 @@ async function callWorkersAI(env, systemPrompt, history, message) {
   const result = await env.AI.run(model, {
     messages: workersMessages(systemPrompt, history, message),
     max_completion_tokens: 600,
-    chat_template_kwargs: {
-      enable_thinking: false,
-    },
+    chat_template_kwargs: { enable_thinking: false },
   });
   const text = extractWorkersAIText(result);
   if (!text) throw new Error('WORKERS_AI_EMPTY');
@@ -216,6 +304,18 @@ export async function handleAssistantChat(request, env, url = new URL(request.ur
     const context = contextKind === 'bible'
       ? await bibleContext(env, message)
       : await liveContext(env, contextKind);
+
+    const direct = directFactAnswer(contextKind, context, message);
+    if (direct) {
+      return json({
+        ok: true,
+        answer: direct,
+        context: contextKind,
+        provider: 'live-data',
+        model: 'deterministic',
+      });
+    }
+
     const systemPrompt = buildSystemPrompt(contextKind, context);
     const answer = await answerWithModel(env, systemPrompt, history, message);
     return json({
