@@ -8,6 +8,7 @@
   const homeLink = document.getElementById('homeLink');
   const params = new URLSearchParams(location.search);
   const sermonId = params.get('id') || '';
+  const autoPlay = params.get('play') === '1';
   let sermon = null;
 
   function isNl() { return document.documentElement.lang === 'nl'; }
@@ -131,6 +132,10 @@
         audio.controls = true;
         audio.preload = 'metadata';
         audio.src = sermon.audio_url;
+        if (autoPlay) {
+          audio.autoplay = true;
+          audio.addEventListener('canplay', () => audio.play().catch(() => {}), { once: true });
+        }
         media.appendChild(audio);
       }
       const actions = el('div', 'article-actions');

@@ -138,7 +138,7 @@ test('sermon-linked passages restore dashed underline markers',()=>{
   assert.match(css,/\.verse-unit\.sermon-linked:not\(\.selected\)/);
   assert.match(css,/text-decoration-style:dashed/);
   assert.match(html,/bible\.css\?v=17/);
-  assert.match(html,/bible\.js\?v=10/);
+  assert.match(html,/bible\.js\?v=11/);
 });
 
 test('sermon marker parser uses exact chapter and verse ranges',()=>{

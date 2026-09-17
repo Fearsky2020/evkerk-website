@@ -5,7 +5,7 @@
   margin: 18px auto 0;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   overflow-x: auto;
   padding: 4px 2px 8px;
   scrollbar-width: none;
@@ -16,16 +16,16 @@
 
 .subpage-quicknav a {
   flex: 0 0 auto;
-  min-height: 38px;
+  min-height: 48px;
   display: inline-flex;
   align-items: center;
-  padding: 0 13px;
+  padding: 0 18px;
   border: 1px solid rgba(18,175,230,.16);
   border-radius: 999px;
   background: rgba(255,255,255,.58);
   color: var(--muted);
   text-decoration: none;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 800;
   transition: color .18s ease, border-color .18s ease, background .18s ease, transform .18s ease;
 }
@@ -81,9 +81,9 @@ html[data-theme="dark"] .subpage-quicknav a[aria-current="page"] {
   }
 
   .subpage-quicknav a {
-    min-height: 36px;
-    padding-inline: 12px;
-    font-size: 12px;
+    min-height: 42px;
+    padding-inline: 14px;
+    font-size: 13px;
   }
 
   body:not(.home-page) .site-header {
