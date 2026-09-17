@@ -661,3 +661,17 @@ html[data-theme="dark"] .home-page .about-card { background: #292722; }
 @media (max-width: 640px) {
   .home-page .activity-carousel { height: 390px; }
 }
+
+
+/* Latest sermon inside homepage hero */
+.home-page .home-cover .sermon-placeholder{width:min(860px,100%);min-height:0;margin:24px 0 0;padding:18px 20px;grid-template-columns:minmax(0,1fr) minmax(240px,32%);gap:18px;border:1px solid rgba(255,255,255,.22);border-radius:18px;background:rgba(8,28,37,.68);color:#fff;box-shadow:0 16px 38px rgba(0,0,0,.2);backdrop-filter:blur(12px)}
+.home-page .home-cover .sermon-placeholder .latest-sermon-main{grid-template-columns:54px minmax(0,1fr);gap:16px}
+.home-page .home-cover .sermon-placeholder .latest-sermon-main .play{width:54px;height:54px;min-width:54px}
+.home-page .home-cover .sermon-placeholder h3,.home-page .home-cover .sermon-placeholder .auto-sermon-title-link{color:#fff}
+.home-page .home-cover .sermon-placeholder .latest-sermon-copy>span,.home-page .home-cover .sermon-placeholder .auto-sermon-meta,.home-page .home-cover .sermon-placeholder .auto-sermon-meta b,.home-page .home-cover .sermon-placeholder .auto-sermon-meta span{color:rgba(255,255,255,.82)}
+.home-page .home-cover .sermon-placeholder .auto-sermon-scripture{color:#b8ecfb!important}
+.home-page .home-cover .sermon-summary-band{min-height:0;padding:16px 18px;border-color:rgba(255,255,255,.16);background:rgba(230,248,247,.93);color:#24343a}
+.home-page .home-cover .sermon-summary-band p{margin-top:8px;font-size:14px;line-height:1.5;-webkit-line-clamp:3}
+.home-page .home-cover-actions{margin-top:18px}
+@media(max-width:900px){.home-page .home-cover .sermon-placeholder{grid-template-columns:1fr}.home-page .home-cover .sermon-summary-band{display:none}}
+@media(max-width:640px){.home-page .home-cover-content{justify-content:flex-end;padding-bottom:58px}.home-page .home-cover .sermon-placeholder{margin-top:18px;padding:14px 15px}.home-page .home-cover .sermon-placeholder .latest-sermon-main{grid-template-columns:46px minmax(0,1fr);gap:12px}.home-page .home-cover .sermon-placeholder .latest-sermon-main .play{width:46px;height:46px;min-width:46px}.home-page .home-cover .latest-sermon-main h3{font-size:18px;margin-bottom:6px}.home-page .home-cover .latest-sermon-main .auto-sermon-scripture{display:none}.home-page .home-cover-actions{margin-top:16px}}
