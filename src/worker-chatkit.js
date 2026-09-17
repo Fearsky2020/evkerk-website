@@ -1,13 +1,13 @@
 import enhancedWorker from './worker-enhanced.js';
 import { handleBibleSearch } from './bible-search.js';
 import { handlePublicAssistantLive } from './public-assistant-live.js';
-import { handleAssistantChatV2 } from './assistant-chat-v2.js';
+import { handleAssistantChatV3 } from './assistant-chat-v3.js';
 
 const ASSISTANT_MARKER = '/evkerk-assistant.js?v=1';
 const ASSISTANT_TAG = `<script src="${ASSISTANT_MARKER}" defer></script>`;
 const BIBLE_DEEPLINK_MARKER = '/bible-deeplink.js?v=1';
 const BIBLE_DEEPLINK_TAG = `<script src="${BIBLE_DEEPLINK_MARKER}" defer></script>`;
-const BIBLE_AI_ENTRY_MARKER = '/evkerk-bible-ai-entry.js?v=1';
+const BIBLE_AI_ENTRY_MARKER = '/evkerk-bible-ai-entry.js?v=2';
 const BIBLE_AI_ENTRY_TAG = `<script src="${BIBLE_AI_ENTRY_MARKER}" defer></script>`;
 const SERMON_PLAY_HOVER_FIX_MARKER = '/sermon-play-hover-fix.js?v=1';
 const SERMON_PLAY_HOVER_FIX_TAG = `<script src="${SERMON_PLAY_HOVER_FIX_MARKER}" defer></script>`;
@@ -34,8 +34,6 @@ async function injectPublicScripts(response, url) {
   let html = await response.text();
   const additions = [];
 
-  // On the Bible page, install the native toolbar entry first so it can hide
-  // the floating launcher as soon as the assistant host appears.
   if (isBiblePage(url) && !html.includes(BIBLE_AI_ENTRY_MARKER)) additions.push(BIBLE_AI_ENTRY_TAG);
   if (!html.includes(ASSISTANT_MARKER)) additions.push(ASSISTANT_TAG);
   if (isBiblePage(url) && !html.includes(BIBLE_DEEPLINK_MARKER)) additions.push(BIBLE_DEEPLINK_TAG);
@@ -69,7 +67,7 @@ export default {
     const liveAssistantResponse = await handlePublicAssistantLive(request, env, url);
     if (liveAssistantResponse) return liveAssistantResponse;
 
-    const assistantChatResponse = await handleAssistantChatV2(request, env, url);
+    const assistantChatResponse = await handleAssistantChatV3(request, env, url);
     if (assistantChatResponse) return assistantChatResponse;
 
     const response = await enhancedWorker.fetch(request, env, ctx);

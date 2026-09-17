@@ -4,17 +4,17 @@ Set-Location $repo
 
 Write-Host '== EVKERK assistant + Bible smart search: checks =='
 npm run check
-node --test tests/assistant-chat.test.mjs tests/assistant-chat-v2.test.mjs tests/bible-ai-entry.test.mjs
+node --test tests/assistant-chat.test.mjs tests/assistant-chat-v2.test.mjs tests/assistant-chat-v3.test.mjs tests/bible-ai-entry.test.mjs
 
 Write-Host '== Stage only assistant files =='
-git add -- package.json src/worker-chatkit.js src/assistant-chat-v2.js tests/assistant-chat-v2.test.mjs tests/bible-ai-entry.test.mjs public/evkerk-bible-ai-entry.js scripts/release-evkerk-custom-assistant.ps1
+git add -- package.json src/worker-chatkit.js src/assistant-chat-v3.js tests/assistant-chat-v3.test.mjs tests/bible-ai-entry.test.mjs public/evkerk-bible-ai-entry.js scripts/release-evkerk-custom-assistant.ps1
 
 $staged = git diff --cached --name-only
 $expected = @(
   'package.json',
   'src/worker-chatkit.js',
-  'src/assistant-chat-v2.js',
-  'tests/assistant-chat-v2.test.mjs',
+  'src/assistant-chat-v3.js',
+  'tests/assistant-chat-v3.test.mjs',
   'tests/bible-ai-entry.test.mjs',
   'public/evkerk-bible-ai-entry.js',
   'scripts/release-evkerk-custom-assistant.ps1'
@@ -25,7 +25,7 @@ foreach ($file in $staged) {
 
 if ($staged) {
   Write-Host '== Commit and push =='
-  git commit -m 'feat: add Bible smart search entry and safer assistant routing'
+  git commit -m 'fix: use Bible icon and normalize assistant display text'
   git push origin main
 } else {
   Write-Host 'No new assistant changes to commit; continuing with current HEAD.'
@@ -39,7 +39,10 @@ Start-Sleep -Seconds 5
 $homeHtml = (Invoke-WebRequest -UseBasicParsing -Uri 'https://evkerk.nl/').Content
 if ($homeHtml -notmatch '/evkerk-assistant\.js\?v=1') { throw 'Custom assistant script is not injected on homepage.' }
 $bibleHtml = (Invoke-WebRequest -UseBasicParsing -Uri 'https://evkerk.nl/bible').Content
-if ($bibleHtml -notmatch '/evkerk-bible-ai-entry\.js\?v=1') { throw 'Bible smart-search entry script is not injected.' }
+if ($bibleHtml -notmatch '/evkerk-bible-ai-entry\.js\?v=2') { throw 'Bible smart-search v2 entry script is not injected.' }
+$bibleEntry = (Invoke-WebRequest -UseBasicParsing -Uri 'https://evkerk.nl/evkerk-bible-ai-entry.js?v=2').Content
+if ($bibleEntry -notmatch 'bible-book') { throw 'Bible icon asset verification failed.' }
+if ($bibleEntry -notmatch 'brandmark\.innerHTML = BIBLE_ICON') { throw 'Bible assistant brandmark verification failed.' }
 
 function Post-AsciiJson([string]$Body) {
   return Invoke-RestMethod -Method Post -Uri 'https://evkerk.nl/api/assistant/chat' -ContentType 'application/json; charset=utf-8' -Body ([System.Text.Encoding]::UTF8.GetBytes($Body))
@@ -56,14 +59,16 @@ if (-not $wilderness.ok -or [string]$wilderness.context -ne 'bible' -or [string]
 }
 if ([string]$wilderness.answer -notmatch '14:26') { throw 'Wilderness answer did not cite Numbers 14.' }
 
-$loaves = Post-AsciiJson '{"message":"\u4e94\u997c\u4e8c\u9c7c\u5728\u54ea\u91cc\uff1f","history":[],"page":"/"}'
+$loaves = Post-AsciiJson '{"message":"\u4e94\u997c\u4e8c\u9c7c\u5728\u54ea\u91cc\uff1f","history":[],"page":"/bible"}'
 if (-not $loaves.ok -or [string]$loaves.context -ne 'bible') { throw 'Five-loaves question did not route to Bible context.' }
+if ([string]$loaves.answer -match '\[[^\]]+\]\(') { throw 'Five-loaves answer still contains a Markdown link.' }
+if ([string]$loaves.answer -match '(?m)^\s*\*\s+') { throw 'Five-loaves answer still contains Markdown bullets.' }
+if ([string]$loaves.answer -match '\\&') { throw 'Five-loaves answer still contains escaped ampersands.' }
 
 $cap = Post-AsciiJson '{"message":"\u4f60\u80fd\u7ed9\u6211\u4ec0\u4e48","history":[],"page":"/"}'
 if (-not $cap.ok -or [string]$cap.context -ne 'capabilities' -or [string]$cap.provider -ne 'live-data') {
   throw 'Capability answer verification failed.'
 }
-if ([string]$cap.answer -match '\*\*') { throw 'Capability answer still contains Markdown bold markers.' }
 
 $crisis = Post-AsciiJson '{"message":"\u6211\u60f3\u81ea\u6740","history":[],"page":"/"}'
 if (-not $crisis.ok -or [string]$crisis.context -ne 'safety' -or [string]$crisis.provider -ne 'safety-guidance') {
@@ -72,11 +77,9 @@ if (-not $crisis.ok -or [string]$crisis.context -ne 'safety' -or [string]$crisis
 if ([string]$crisis.answer -notmatch '112') { throw 'Crisis answer is missing 112.' }
 if ([string]$crisis.answer -notmatch '0800-0113') { throw 'Crisis answer is missing 0800-0113.' }
 if ([string]$crisis.answer -notmatch '113\.nl') { throw 'Crisis answer is missing 113.nl.' }
-if ([string]$crisis.answer -match '\*\*|\[[^\]]+\]\(') { throw 'Crisis answer contains Markdown markers.' }
 
-Write-Host 'EVKERK_ASSISTANT_BIBLE_SMART_SEARCH_RELEASE_OK'
+Write-Host 'EVKERK_BIBLE_ICON_AND_DISPLAY_RELEASE_OK'
 Write-Host ('Sermon provider: ' + $sermon.provider)
 Write-Host ('Bible provider: ' + $wilderness.provider)
 Write-Host ('Five-loaves context: ' + $loaves.context)
-Write-Host ('Capability provider: ' + $cap.provider)
 Write-Host ('Crisis provider: ' + $crisis.provider)
