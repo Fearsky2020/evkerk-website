@@ -1,29 +1,32 @@
-# One-shot trigger refreshed for activities page branding alignment deployment.
-name: deploy-preview-once
+name: deploy-evkerk
 
 on:
   push:
     branches: [main]
-    paths:
-      - ".github/workflows/deploy-preview-once.yml"
 
 permissions:
   contents: read
 
 concurrency:
-  group: evkerk-preview-deploy
-  cancel-in-progress: false
+  group: evkerk-production-deploy
+  cancel-in-progress: true
 
 jobs:
   deploy:
-    runs-on: [self-hosted, Windows, X64]
+    runs-on: [self-hosted, Windows, X64, evkerk]
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm install
-      - run: npm run check
-      - name: Deploy existing preview Worker
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run release checks
+        run: npm run check
+
+      - name: Deploy EVKERK Worker
         run: npx wrangler deploy
