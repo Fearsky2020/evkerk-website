@@ -1,4 +1,4 @@
-# One-shot trigger refreshed for weekly sermon card alignment deployment.
+# One-shot trigger refreshed for activities page branding alignment deployment.
 name: deploy-preview-once
 
 on:
