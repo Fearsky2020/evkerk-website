@@ -27,10 +27,11 @@ test('ChatKit suppresses initialization flash before revealing the host', () => 
   assert.match(loader, /setTimeout/);
 });
 
-test('Wrangler entrypoint wraps public HTML routes with ChatKit injection', () => {
+test('Wrangler entrypoint wraps public HTML routes with the current public assistant injection', () => {
   assert.match(wrangler, /main = "src\/worker-chatkit\.js"/);
-  assert.match(wrapper, /import enhancedWorker from '\.\/worker-enhanced\.js'/);
-  assert.match(wrapper, /evkerk-chatkit\.js\?v=2/);
+  assert.match(wrapper, /import enhancedWorker from '\.\/worker-enhanced-v2\.js'/);
+  assert.match(wrapper, /ASSISTANT_MARKER = '\/evkerk-assistant\.js\?v=1'/);
+  assert.match(wrapper, /html\.includes\(ASSISTANT_MARKER\)/);
   for (const route of ['/activities', '/bible', '/privacy', '/sermon', '/sermons']) {
     assert.ok(wrangler.includes(`"${route}"`), `missing run_worker_first route ${route}`);
   }
