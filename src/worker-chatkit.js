@@ -7,6 +7,8 @@ const ASSISTANT_MARKER = '/evkerk-assistant.js?v=1';
 const ASSISTANT_TAG = `<script src="${ASSISTANT_MARKER}" defer></script>`;
 const BIBLE_DEEPLINK_MARKER = '/bible-deeplink.js?v=1';
 const BIBLE_DEEPLINK_TAG = `<script src="${BIBLE_DEEPLINK_MARKER}" defer></script>`;
+const BIBLE_AI_ENTRY_MARKER = '/evkerk-bible-ai-entry.js?v=1';
+const BIBLE_AI_ENTRY_TAG = `<script src="${BIBLE_AI_ENTRY_MARKER}" defer></script>`;
 const SERMON_PLAY_HOVER_FIX_MARKER = '/sermon-play-hover-fix.js?v=1';
 const SERMON_PLAY_HOVER_FIX_TAG = `<script src="${SERMON_PLAY_HOVER_FIX_MARKER}" defer></script>`;
 
@@ -31,6 +33,10 @@ async function injectPublicScripts(response, url) {
 
   let html = await response.text();
   const additions = [];
+
+  // On the Bible page, install the native toolbar entry first so it can hide
+  // the floating launcher as soon as the assistant host appears.
+  if (isBiblePage(url) && !html.includes(BIBLE_AI_ENTRY_MARKER)) additions.push(BIBLE_AI_ENTRY_TAG);
   if (!html.includes(ASSISTANT_MARKER)) additions.push(ASSISTANT_TAG);
   if (isBiblePage(url) && !html.includes(BIBLE_DEEPLINK_MARKER)) additions.push(BIBLE_DEEPLINK_TAG);
   if (isHomePage(url) && !html.includes(SERMON_PLAY_HOVER_FIX_MARKER)) additions.push(SERMON_PLAY_HOVER_FIX_TAG);

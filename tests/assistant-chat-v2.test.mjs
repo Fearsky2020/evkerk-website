@@ -39,6 +39,51 @@ test('wilderness wandering question answers Numbers 14 instead of latest sermon'
   assert.doesNotMatch(data.answer, /预备发旺的根基/);
 });
 
+test('five loaves question is forced through Bible search context', async () => {
+  let capturedMessages = [];
+  const env = {
+    ASSETS: {
+      async fetch() {
+        return new Response(JSON.stringify({
+          rows: [[42, 6, 9, '这里有一个孩童，带着五个大麦饼、两条鱼。']],
+        }), { headers: { 'content-type': 'application/json' } });
+      },
+    },
+    AI: {
+      async run(_model, options) {
+        capturedMessages = options.messages || [];
+        return { choices: [{ message: { content: '五饼二鱼的记载可见约翰福音 6:9。' } }] };
+      },
+    },
+  };
+  const request = post('五饼二鱼在哪里？');
+  const response = await handleAssistantChatV2(request, env, new URL(request.url));
+  const data = await response.json();
+  assert.equal(response.status, 200);
+  assert.equal(data.context, 'bible');
+  assert.equal(data.provider, 'workers-ai');
+  assert.match(JSON.stringify(capturedMessages), /五个大麦饼/);
+  assert.match(data.answer, /约翰福音 6:9/);
+});
+
+test('suicide crisis reply is deterministic and routes to 112, 113 and church pastoral support', async () => {
+  let aiCalls = 0;
+  const env = { AI: { async run() { aiCalls += 1; return { choices: [{ message: { content: 'unexpected' } }] }; } } };
+  const request = post('我想自杀');
+  const response = await handleAssistantChatV2(request, env, new URL(request.url));
+  const data = await response.json();
+  assert.equal(response.status, 200);
+  assert.equal(data.context, 'safety');
+  assert.equal(data.provider, 'safety-guidance');
+  assert.equal(data.model, 'deterministic');
+  assert.equal(aiCalls, 0);
+  assert.match(data.answer, /112/);
+  assert.match(data.answer, /0800-0113/);
+  assert.match(data.answer, /https:\/\/www\.113\.nl/);
+  assert.match(data.answer, /教会牧者或你所在的小组长/);
+  assert.doesNotMatch(data.answer, /\*\*|\[[^\]]+\]\(/);
+});
+
 test('model markdown is normalized for the plain-text chat window', async () => {
   const env = {
     DB: {
