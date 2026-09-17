@@ -130,3 +130,19 @@ test('group question keeps an idempotent local draft until real server success',
   assert.match(js,/if\(r\.status===201\)\{localStorage\.removeItem\(questionDraftKey\)/);
   assert.match(js,/草稿已保留/);
 });
+
+
+test('sermon-linked passages restore dashed underline markers',()=>{
+  assert.match(js,/function sermonVerseNumbers\(s\)/);
+  assert.match(js,/classList\.add\('sermon-linked'\)/);
+  assert.match(css,/\.verse-unit\.sermon-linked:not\(\.selected\)/);
+  assert.match(css,/text-decoration-style:dashed/);
+  assert.match(html,/bible\.css\?v=17/);
+  assert.match(html,/bible\.js\?v=10/);
+});
+
+test('sermon marker parser uses exact chapter and verse ranges',()=>{
+  assert.match(js,/function sermonChapterMatches\(s\)/);
+  assert.match(js,/Number\(match\[1\]\)===state\.chapter/);
+  assert.match(js,/split\(\/\[，,、\]\/\)/);
+});
