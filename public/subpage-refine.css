@@ -1,0 +1,119 @@
+/* EVKERK public subpage refinement — clearer visitor paths and calmer mobile rhythm. */
+
+.subpage-quicknav {
+  width: min(1180px, calc(100% - 32px));
+  margin: 18px auto 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 2px 8px;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.subpage-quicknav::-webkit-scrollbar { display: none; }
+
+.subpage-quicknav a {
+  flex: 0 0 auto;
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 13px;
+  border: 1px solid rgba(18,175,230,.16);
+  border-radius: 999px;
+  background: rgba(255,255,255,.58);
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 800;
+  transition: color .18s ease, border-color .18s ease, background .18s ease, transform .18s ease;
+}
+
+.subpage-quicknav a:hover,
+.subpage-quicknav a:focus-visible,
+.subpage-quicknav a[aria-current="page"] {
+  border-color: rgba(18,175,230,.38);
+  background: var(--brand-blue-soft);
+  color: var(--brand-blue-deep);
+  transform: translateY(-1px);
+}
+
+body:not(.home-page) .site-header {
+  position: sticky;
+  top: 0;
+  z-index: 80;
+  backdrop-filter: blur(18px);
+}
+
+body:not(.home-page) .archive-hero,
+body:not(.home-page) .sermon-page {
+  scroll-margin-top: 110px;
+}
+
+body:not(.home-page) .site-footer {
+  row-gap: 18px;
+}
+
+body:not(.home-page) .footer-brand {
+  min-width: 220px;
+}
+
+html[data-theme="dark"] .subpage-quicknav a {
+  border-color: rgba(114,212,245,.18);
+  background: rgba(13,34,48,.82);
+  color: #c1d8e3;
+}
+
+html[data-theme="dark"] .subpage-quicknav a:hover,
+html[data-theme="dark"] .subpage-quicknav a:focus-visible,
+html[data-theme="dark"] .subpage-quicknav a[aria-current="page"] {
+  border-color: rgba(114,212,245,.36);
+  background: #123548;
+  color: #e8f8fd;
+}
+
+@media (max-width: 760px) {
+  .subpage-quicknav {
+    width: calc(100% - 20px);
+    margin-top: 10px;
+    padding-bottom: 6px;
+  }
+
+  .subpage-quicknav a {
+    min-height: 36px;
+    padding-inline: 12px;
+    font-size: 12px;
+  }
+
+  body:not(.home-page) .site-header {
+    box-shadow: 0 8px 24px rgba(8,37,51,.08);
+  }
+
+  body:not(.home-page) .site-footer {
+    align-items: flex-start;
+  }
+
+  body:not(.home-page) .footer-brand,
+  body:not(.home-page) .footer-legal,
+  body:not(.home-page) .subpage-footer-links {
+    width: 100%;
+  }
+
+  body:not(.home-page) .footer-legal {
+    line-height: 1.65;
+  }
+}
+
+@media (max-width: 430px) {
+  .subpage-quicknav {
+    margin-top: 8px;
+  }
+
+  body:not(.home-page) .brand-copy strong {
+    max-width: 9.5em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
