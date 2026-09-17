@@ -1,5 +1,6 @@
 import enhancedWorker from './worker-enhanced.js';
 import { handleBibleSearch } from './bible-search.js';
+import { handlePublicAssistantLive } from './public-assistant-live.js';
 
 const CHATKIT_MARKER = '/evkerk-chatkit.js?v=2';
 const CHATKIT_TAG = `<script src="${CHATKIT_MARKER}" defer></script>`;
@@ -54,8 +55,12 @@ async function injectPublicScripts(response, url) {
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+
     const bibleSearchResponse = await handleBibleSearch(request, env, url);
     if (bibleSearchResponse) return bibleSearchResponse;
+
+    const liveAssistantResponse = await handlePublicAssistantLive(request, env, url);
+    if (liveAssistantResponse) return liveAssistantResponse;
 
     const response = await enhancedWorker.fetch(request, env, ctx);
     if (!isPublicPage(url)) return response;

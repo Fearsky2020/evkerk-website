@@ -1,0 +1,65 @@
+openapi: 3.0.3
+info:
+  title: EVKERK Live Data
+  version: 1.0.0
+  description: Compact read-only live data API for Evangeliekerk public assistants.
+servers:
+  - url: https://evkerk.nl
+paths:
+  /api/assistant/live:
+    get:
+      operationId: getLiveChurchData
+      summary: Get current Evangeliekerk public data
+      description: >
+        Use this tool for time-sensitive questions such as latest sermon, last week's sermon,
+        upcoming events, current announcements, or current Sunday service times.
+        Prefer one call only. Use kind=sermons for sermon questions, events for upcoming events,
+        announcements for notices, schedule for fixed Sunday times, and overview only when the
+        user asks generally what is happening recently.
+      parameters:
+        - name: kind
+          in: query
+          required: true
+          description: The live-data category needed for the user's question.
+          schema:
+            type: string
+            enum: [overview, sermons, events, announcements, schedule]
+        - name: limit
+          in: query
+          required: false
+          description: Maximum number of rows to return. Keep this small to reduce token usage.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 5
+            default: 3
+      responses:
+        '200':
+          description: Current public church data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  kind: { type: string }
+                  as_of:
+                    type: object
+                    properties:
+                      date: { type: string }
+                      local_time: { type: string }
+                      timezone: { type: string }
+                  sermons:
+                    type: array
+                    items: { type: object }
+                  events:
+                    type: array
+                    items: { type: object }
+                  announcements:
+                    type: array
+                    items: { type: object }
+                  schedule:
+                    type: array
+                    items: { type: object }
+        '400': { description: Invalid kind }
+        '503': { description: Live data temporarily unavailable }
