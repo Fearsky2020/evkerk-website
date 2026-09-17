@@ -1,7 +1,7 @@
 import enhancedWorker from './worker-enhanced.js';
 import { handleBibleSearch } from './bible-search.js';
 import { handlePublicAssistantLive } from './public-assistant-live.js';
-import { handleAssistantChat } from './assistant-chat.js';
+import { handleAssistantChatV2 } from './assistant-chat-v2.js';
 
 const ASSISTANT_MARKER = '/evkerk-assistant.js?v=1';
 const ASSISTANT_TAG = `<script src="${ASSISTANT_MARKER}" defer></script>`;
@@ -63,7 +63,7 @@ export default {
     const liveAssistantResponse = await handlePublicAssistantLive(request, env, url);
     if (liveAssistantResponse) return liveAssistantResponse;
 
-    const assistantChatResponse = await handleAssistantChat(request, env, url);
+    const assistantChatResponse = await handleAssistantChatV2(request, env, url);
     if (assistantChatResponse) return assistantChatResponse;
 
     const response = await enhancedWorker.fetch(request, env, ctx);
