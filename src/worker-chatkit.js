@@ -1,4 +1,4 @@
-import enhancedWorker from './worker-enhanced.js';
+import enhancedWorker from './worker-enhanced-v2.js';
 import { handleBibleSearch } from './bible-search.js';
 import { handlePublicAssistantLive } from './public-assistant-live.js';
 import { handleAssistantChatV3 } from './assistant-chat-v3.js';
