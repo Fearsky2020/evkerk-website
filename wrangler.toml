@@ -1,4 +1,5 @@
 name = "evkerk-website-preview"
+account_id = "294714bd4468cf9ece4f2ef6f2fed9d5"
 main = "src/worker-chatkit.js"
 compatibility_date = "2026-09-01"
 keep_vars = true
