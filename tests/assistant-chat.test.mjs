@@ -9,8 +9,8 @@ test('assistant routes time-sensitive sermon wording to live sermons', () => {
   assert.equal(selectContextKind('五饼二鱼在哪里？', '/bible'), 'bible');
 });
 
-test('assistant injects current sermon data into Workers AI prompt', async () => {
-  let capturedPrompt = '';
+test('assistant injects current sermon data into Workers AI messages', async () => {
+  let capturedMessages = [];
   const env = {
     DB: {
       prepare() {
@@ -36,8 +36,12 @@ test('assistant injects current sermon data into Workers AI prompt', async () =>
     },
     AI: {
       async run(_model, options) {
-        capturedPrompt = options.prompt;
-        return { response: '上周日的信息是第十九讲。' };
+        capturedMessages = options.messages;
+        return {
+          choices: [{
+            message: { role: 'assistant', content: '上周日的信息是第十九讲。' },
+          }],
+        };
       },
     },
   };
@@ -53,12 +57,13 @@ test('assistant injects current sermon data into Workers AI prompt', async () =>
   assert.equal(data.ok, true);
   assert.equal(data.context, 'sermons');
   assert.equal(data.provider, 'workers-ai');
-  assert.match(capturedPrompt, /2026-09-13/);
-  assert.match(capturedPrompt, /预备发旺的根基（十九）/);
+  const serialized = JSON.stringify(capturedMessages);
+  assert.match(serialized, /2026-09-13/);
+  assert.match(serialized, /预备发旺的根基（十九）/);
 });
 
 test('assistant keeps conversation history bounded', async () => {
-  let capturedPrompt = '';
+  let capturedMessages = [];
   const env = {
     DB: {
       prepare() {
@@ -70,8 +75,12 @@ test('assistant keeps conversation history bounded', async () => {
     },
     AI: {
       async run(_model, options) {
-        capturedPrompt = options.prompt;
-        return { response: '好的。' };
+        capturedMessages = options.messages;
+        return {
+          choices: [{
+            message: { role: 'assistant', content: '好的。' },
+          }],
+        };
       },
     },
   };
@@ -83,6 +92,7 @@ test('assistant keeps conversation history bounded', async () => {
   });
   const response = await handleAssistantChat(request, env, new URL(request.url));
   assert.equal(response.status, 200);
-  assert.doesNotMatch(capturedPrompt, /turn-0/);
-  assert.match(capturedPrompt, /turn-11/);
+  const serialized = JSON.stringify(capturedMessages);
+  assert.doesNotMatch(serialized, /turn-0/);
+  assert.match(serialized, /turn-11/);
 });

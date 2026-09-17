@@ -137,18 +137,41 @@ async function callGemini(env, systemPrompt, history, message) {
   return { text, provider: 'gemini', model };
 }
 
+function workersMessages(systemPrompt, history, message) {
+  return [
+    { role: 'system', content: systemPrompt },
+    ...history.map((item) => ({
+      role: item.role === 'assistant' ? 'assistant' : 'user',
+      content: item.text,
+    })),
+    { role: 'user', content: message },
+  ];
+}
+
+function extractWorkersAIText(result) {
+  const choiceContent = result?.choices?.[0]?.message?.content;
+  if (typeof choiceContent === 'string' && choiceContent.trim()) return choiceContent.trim();
+  if (Array.isArray(choiceContent)) {
+    const joined = choiceContent
+      .map((part) => typeof part === 'string' ? part : (part?.text || part?.content || ''))
+      .join('')
+      .trim();
+    if (joined) return joined;
+  }
+  return String(result?.response ?? result?.result?.response ?? '').trim();
+}
+
 async function callWorkersAI(env, systemPrompt, history, message) {
   if (!env.AI?.run) throw new Error('WORKERS_AI_MISSING');
   const model = env.CF_AI_MODEL || DEFAULT_CF_MODEL;
-  const transcript = history
-    .map((item) => `${item.role === 'assistant' ? '助手' : '访客'}：${item.text}`)
-    .join('\n');
-  const prompt = `${systemPrompt}\n\n${transcript ? `最近对话：\n${transcript}\n\n` : ''}访客：${message}\n助手：`;
   const result = await env.AI.run(model, {
-    prompt,
-    max_tokens: 600,
+    messages: workersMessages(systemPrompt, history, message),
+    max_completion_tokens: 600,
+    chat_template_kwargs: {
+      enable_thinking: false,
+    },
   });
-  const text = String(result?.response ?? result?.result?.response ?? '').trim();
+  const text = extractWorkersAIText(result);
   if (!text) throw new Error('WORKERS_AI_EMPTY');
   return { text, provider: 'workers-ai', model };
 }
