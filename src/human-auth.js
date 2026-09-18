@@ -8,6 +8,8 @@ function b64url(bytes){return btoa(String.fromCharCode(...bytes)).replaceAll('+'
 function randomToken(n=32){const b=crypto.getRandomValues(new Uint8Array(n));return b64url(b)}
 async function sha256Hex(text){const d=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(text));return [...new Uint8Array(d)].map(v=>v.toString(16).padStart(2,'0')).join('')}
 function cookieValue(request,name){const raw=request.headers.get('cookie')||'';for(const part of raw.split(';')){const [k,...rest]=part.trim().split('=');if(k===name)return decodeURIComponent(rest.join('='))}return''}
+function bearerValue(request){return(request.headers.get('authorization')||'').replace(/^Bearer\s+/i,'').trim()}
+function humanSessionToken(request){return cookieValue(request,'evkerk_admin_session')||bearerValue(request)}
 function sessionCookie(token,maxAge=2592000){return `evkerk_admin_session=${encodeURIComponent(token)}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${maxAge}`}
 function fromB64(s){const raw=atob(s);return Uint8Array.from(raw,c=>c.charCodeAt(0))}
 function toB64(bytes){return btoa(String.fromCharCode(...bytes))}
@@ -17,7 +19,7 @@ async function hmacProof(verifierB64,nonce){const key=await crypto.subtle.import
 
 export async function authenticateHumanSession(request,env){
   if(!env.DB)return null;
-  const token=cookieValue(request,'evkerk_admin_session');
+  const token=humanSessionToken(request);
   if(!token)return null;
   const hash=await sha256Hex(token);
   const row=await env.DB.prepare(`SELECT u.id,u.name,u.email,u.role,u.status,s.id session_id FROM admin_sessions s JOIN admin_users u ON u.id=s.user_id WHERE s.token_hash=? AND u.status='active' AND datetime(s.expires_at)>datetime('now') LIMIT 1`).bind(hash).first();
@@ -46,11 +48,13 @@ async function login(request,env){
   await env.DB.prepare("DELETE FROM admin_sessions WHERE datetime(expires_at)<=datetime('now')").run().catch(()=>{});
   try{await env.DB.prepare('INSERT INTO admin_sessions(id,user_id,token_hash,expires_at) VALUES(?,?,?,?)').bind(sessionId,user.id,hash,expiresAt).run()}
   catch(error){console.error('ADMIN_SESSION_INSERT_FAILED',error?.message||error);return json({ok:false,error:'登录会话创建失败，请稍后再试',code:'SESSION_CREATE_FAILED'},500)}
-  return json({ok:true,user:{id:user.id,name:user.name,email:user.email,role:user.role}},200,{'set-cookie':sessionCookie(token)});
+  const payload={ok:true,user:{id:user.id,name:user.name,email:user.email,role:user.role}};
+  if(request.headers.get('x-evkerk-app')==='1')payload.session_token=token;
+  return json(payload,200,{'set-cookie':sessionCookie(token)});
 }
 
 async function logout(request,env){
-  const token=cookieValue(request,'evkerk_admin_session');
+  const token=humanSessionToken(request);
   if(token&&env.DB){const hash=await sha256Hex(token);await env.DB.prepare('DELETE FROM admin_sessions WHERE token_hash=?').bind(hash).run().catch(()=>{})}
   return json({ok:true},200,{'set-cookie':sessionCookie('',0)});
 }
