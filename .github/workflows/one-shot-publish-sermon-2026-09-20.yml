@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   publish:
-    runs-on: [self-hosted, Windows, X64]
+    runs-on: [self-hosted, Windows, X64, evkerk]
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
@@ -24,22 +24,21 @@ jobs:
           function B([string]$s){[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($s))}
           function Q([string]$s){ "'" + $s.Replace("'","''") + "'" }
 
-          $audioUrl = 'https://sdmntprnortheu.oaiusercontent.com/files/00000000-2990-81f4-8ccb-d41f6dcffb74/raw?se=2026-09-25T10%3A42%3A04Z&sp=r&sv=2026-02-06&sr=b&scid=b043f3f9-cf26-5fb7-aedc-65c75adeaa28&skoid=0a4a0f0c-99ac-4752-9d87-cfac036fa93f&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-25T10%3A25%3A25Z&ske=2026-09-26T10%3A25%3A25Z&sks=b&skv=2026-02-06&sig=UoEXHMjnAoT%2BpWeNcroGZ4Bk9MqIwazkkZ4QIsaDq7k%3D'
+          $audioUrl = 'https://sdmntpreastus2.oaiusercontent.com/files/00000000-d204-81f6-b696-d0f74d88f914/raw?se=2026-09-25T12%3A33%3A49Z&sp=r&sv=2026-02-06&sr=b&scid=b6eb563c-665d-5fb1-9f27-98904f65c4ac&skoid=0a4a0f0c-99ac-4752-9d87-cfac036fa93f&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-25T11%3A33%3A09Z&ske=2026-09-26T11%3A33%3A09Z&sks=b&skv=2026-02-06&sig=6rQ2Lin8g8ZUYBqLzRpiFF96aGYon4VnhaF3UceyC68%3D'
           $audio = Join-Path $env:RUNNER_TEMP 'sermon-2026-09-20.mp3'
           Invoke-WebRequest -UseBasicParsing -Uri $audioUrl -OutFile $audio
 
-          $rid = [guid]::NewGuid().ToString()
-          $key = "sermon-direct/2026/$rid.mp3"
-          $public = "/api/media/sermon-audio/2026/$rid.mp3"
+          $key = 'sermon-direct/2026/sermon-2026-09-20.mp3'
+          $public = '/api/media/sermon-audio/2026/sermon-2026-09-20.mp3'
           npx wrangler r2 object put "evkerk-website-media/$key" --file $audio --content-type audio/mpeg --remote
           if($LASTEXITCODE -ne 0){ throw "R2_FAIL_$LASTEXITCODE" }
 
-          $sid = [guid]::NewGuid().ToString()
+          $sid = 'sermon-2026-09-20'
           $date = '2026-09-20'
           $title = B '44CK5bGe54G155qE5Y6f5YiZ44CL77yINu+8ie+8muWmguS9leeci+aUvuaJi+S4jui6uuW5sw=='
           $speaker = B '6IOh54mn5biI'
           $summary = B '5Li65LuA5LmI5Z+6552j5b6S5Zyo6Z2i5a+56Zeu6aKY5pe25b6A5b6A5peg5rOV6Kej5Yaz77yf6L+Z6YCa5bi45piv5Zug5Li65LuW5Lus6KaB5LmI5Zu65omn5bex6KeB44CB5LiN5oS/5pS+5omL77yM6KaB5LmI5bmy6ISG5pS+5byD44CB4oCc6Lq65bmz4oCd44CC5oiR5Lus6K+l5aaC5L2V55CG6Kej5bm25a6e6Le15YWz5LqO4oCc5pS+5omL4oCd5LiO4oCc6Lq65bmz4oCd55qE5bGe54G15Y6f5YiZ77yf6K+35pS25ZCs5pys5Li75pel55qE6K6y6YGT5L+h5oGv44CC5oS/56We56Wd56aP5aSn5a6244CC'
-          $sql = "INSERT INTO sermons (id,sermon_date,title_zh,title_nl,speaker,scripture,summary_zh,summary_nl,youtube_url,audio_url,transcript_url,article_zh,article_nl,status,published_at,updated_at) VALUES ("+(Q $sid)+","+(Q $date)+","+(Q $title)+",'',"+(Q $speaker)+",'',"+(Q $summary)+",'','',"+(Q $public)+",'','','','published',datetime('now'),datetime('now'));"
+          $sql = "INSERT INTO sermons (id,sermon_date,title_zh,title_nl,speaker,scripture,summary_zh,summary_nl,youtube_url,audio_url,transcript_url,article_zh,article_nl,status,published_at,updated_at) VALUES ("+(Q $sid)+","+(Q $date)+","+(Q $title)+",'',"+(Q $speaker)+",'',"+(Q $summary)+",'','',"+(Q $public)+",'','','','published',datetime('now'),datetime('now')) ON CONFLICT(id) DO UPDATE SET sermon_date=excluded.sermon_date,title_zh=excluded.title_zh,speaker=excluded.speaker,summary_zh=excluded.summary_zh,audio_url=excluded.audio_url,status='published',published_at=datetime('now'),updated_at=datetime('now');"
           npx wrangler d1 execute evkerk-website-db --remote --command $sql
           if($LASTEXITCODE -ne 0){ throw "D1_FAIL_$LASTEXITCODE" }
 
@@ -47,6 +46,7 @@ jobs:
           $row = @($api.sermons) | Where-Object { $_.id -eq $sid }
           if(-not $row){ throw 'VERIFY_NOT_FOUND' }
           if($row.audio_url -ne $public){ throw 'VERIFY_AUDIO_MISMATCH' }
+          if($row.speaker -ne $speaker){ throw 'VERIFY_SPEAKER_MISMATCH' }
           Write-Host 'EVKERK_SERMON_UPLOAD=PASS'
           Write-Host "SERMON_ID=$sid"
           Write-Host "AUDIO_URL=$public"
