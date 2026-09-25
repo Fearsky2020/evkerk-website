@@ -1,4 +1,5 @@
-function json(data,status=200){return new Response(JSON.stringify(data),{status,headers:{'content-type':'application/json; charset=utf-8','cache-control':'public, max-age=300'}})}
+import { authorizeService } from './team-services.js';
+function json(data,status=200){return new Response(JSON.stringify(data),{status,headers:{'content-type':'application/json; charset=utf-8','cache-control':'private, no-store'}})}
 function unavailable(){return json({ok:false,error:'hymn library unavailable'},503)}
 async function listHymns(env){
   if(!env.DB)return null;
@@ -10,6 +11,11 @@ async function findHymn(env,id){
   return env.DB.prepare(`SELECT id,r2_key,mime_type FROM internal_media WHERE id=? AND status='active' AND category='hymn' LIMIT 1`).bind(id).first();
 }
 export async function handlePublicHymnsApi(request,env,url){
+  const isHymnPath=url.pathname==='/api/hymns'||/^\/api\/hymns\/[^/]+$/.test(url.pathname);
+  if(isHymnPath){
+    const auth=await authorizeService(request,env,'choir');
+    if(auth.response)return auth.response;
+  }
   if(request.method==='GET'&&url.pathname==='/api/hymns'){
     const items=await listHymns(env);if(!items)return unavailable();
     return json({ok:true,count:items.length,hymns:items});
@@ -18,7 +24,7 @@ export async function handlePublicHymnsApi(request,env,url){
   if(!env.DB||!env.MEDIA)return unavailable();
   const item=await findHymn(env,decodeURIComponent(match[1]));if(!item)return json({ok:false,error:'not found'},404);
   const object=await env.MEDIA.get(item.r2_key,{range:request.headers});if(!object)return json({ok:false,error:'not found'},404);
-  const headers=new Headers();object.writeHttpMetadata(headers);headers.set('content-type',item.mime_type||'video/mp4');headers.set('cache-control','public, max-age=3600');headers.set('accept-ranges','bytes');headers.set('content-disposition','inline');headers.set('etag',object.httpEtag);
+  const headers=new Headers();object.writeHttpMetadata(headers);headers.set('content-type',item.mime_type||'video/mp4');headers.set('cache-control','private, no-store');headers.set('accept-ranges','bytes');headers.set('content-disposition','inline');headers.set('etag',object.httpEtag);
   if(request.method==='HEAD')return new Response(null,{headers});
   if(object.range){const offset=object.range.offset||0,length=object.range.length||object.size;headers.set('content-range',`bytes ${offset}-${offset+length-1}/${object.size}`);headers.set('content-length',String(length));return new Response(object.body,{status:206,headers});}
   headers.set('content-length',String(object.size));return new Response(object.body,{headers});
