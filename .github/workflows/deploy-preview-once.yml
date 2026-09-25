@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   deploy:
-    runs-on: [self-hosted, Windows, X64, evkerk]
+    runs-on: [self-hosted, Windows, X64, sinan-church]
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
