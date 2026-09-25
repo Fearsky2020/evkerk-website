@@ -39,7 +39,7 @@ jobs:
           print('MATCHES='+json.dumps(rows,ensure_ascii=False))
           if len(rows)!=1: raise SystemExit('VERIFY_NOT_FOUND')
           row=rows[0]
-          if row.get('speaker')!='胡牧师': raise SystemExit('VERIFY_SPEAKER')
+          if row.get('speaker')!='胡松林牧师': raise SystemExit('VERIFY_SPEAKER')
           if row.get('title_zh')!='《属灵的原则》（6）：如何看放手与躺平': raise SystemExit('VERIFY_TITLE')
           if 'sermon-media-2026-09-20' not in str(row.get('audio_url','')): raise SystemExit('VERIFY_AUDIO_URL')
           print('EVKERK_SERMON_UPLOAD=PASS')
