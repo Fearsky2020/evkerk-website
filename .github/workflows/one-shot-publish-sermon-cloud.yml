@@ -14,14 +14,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      INGEST_TOKEN_A: ${{ secrets.INGEST_TOKEN }}
+      INGEST_TOKEN_B: ${{ secrets.EVKERK_INGEST_TOKEN }}
+      INGEST_TOKEN_C: ${{ secrets.EVKERK_ADMIN_TOKEN }}
+      INGEST_TOKEN_D: ${{ secrets.ADMIN_TOKEN }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - run: npm ci
       - name: Download staged sermon audio
         uses: actions/download-artifact@v4
         with:
@@ -29,34 +27,80 @@ jobs:
           path: staged-audio
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: 36135540426
-      - name: Publish sermon to EVKERK
+      - name: Publish through EVKERK admin API
         shell: bash
         run: |
           set -euo pipefail
-          if [ -z "${CLOUDFLARE_API_TOKEN:-}" ]; then
-            echo "CLOUDFLARE_API_TOKEN_MISSING"
+          TOKEN="${INGEST_TOKEN_A:-}"
+          [ -n "$TOKEN" ] || TOKEN="${INGEST_TOKEN_B:-}"
+          [ -n "$TOKEN" ] || TOKEN="${INGEST_TOKEN_C:-}"
+          [ -n "$TOKEN" ] || TOKEN="${INGEST_TOKEN_D:-}"
+          if [ -z "$TOKEN" ]; then
+            echo "EVKERK_ADMIN_SECRET_MISSING"
             exit 2
           fi
-          test -f staged-audio/sermon-2026-09-20.mp3
-          test "$(stat -c%s staged-audio/sermon-2026-09-20.mp3)" -gt 40000000
 
-          npx wrangler r2 object put "evkerk-website-media/sermon-direct/2026/sermon-2026-09-20.mp3"             --file staged-audio/sermon-2026-09-20.mp3 --content-type audio/mpeg --remote
+          AUDIO='staged-audio/sermon-2026-09-20.mp3'
+          test -f "$AUDIO"
+          test "$(stat -c%s "$AUDIO")" -gt 40000000
 
+          curl --fail-with-body -sS \
+            -H "Authorization: Bearer $TOKEN" \
+            -F "audio=@$AUDIO;type=audio/mpeg" \
+            https://evkerk.nl/api/admin/sermon-audio \
+            -o upload.json
+
+          AUDIO_URL="$(python - <<'PY'
+          import json
+          d=json.load(open('upload.json',encoding='utf-8'))
+          if not d.get('ok') or not d.get('audio_url'):
+              raise SystemExit('UPLOAD_RESPONSE_INVALID')
+          print(d['audio_url'])
+          PY
+          )"
+
+          export AUDIO_URL
           python - <<'PY'
-          import base64
-          title='《属灵的原则》（6）：如何看放手与躺平'
-          speaker='胡牧师'
-          summary='为什么基督徒在面对问题时往往无法解决？这通常是因为他们要么固执己见、不愿放手，要么干脆放弃、“躺平”。我们该如何理解并实践关于“放手”与“躺平”的属灵原则？请收听本主日的讲道信息。愿神祝福大家。'
-          def q(s): return "'" + s.replace("'","''") + "'"
-          sql=f"""INSERT INTO sermons
-          (id,sermon_date,title_zh,title_nl,speaker,scripture,summary_zh,summary_nl,youtube_url,audio_url,transcript_url,article_zh,article_nl,status,published_at,updated_at)
-          VALUES ({q('sermon-2026-09-20')},{q('2026-09-20')},{q(title)},'',{q(speaker)},'',{q(summary)},'','',{q('/api/media/sermon-audio/2026/sermon-2026-09-20.mp3')},'','','','published',datetime('now'),datetime('now'))
-          ON CONFLICT(id) DO UPDATE SET
-          sermon_date=excluded.sermon_date,title_zh=excluded.title_zh,speaker=excluded.speaker,
-          summary_zh=excluded.summary_zh,audio_url=excluded.audio_url,status='published',
-          published_at=datetime('now'),updated_at=datetime('now');"""
-          open('sermon.sql','w',encoding='utf-8').write(sql)
+          import json, os
+          payload={
+            "id":"sermon-2026-09-20",
+            "sermon_date":"2026-09-20",
+            "speaker":"胡牧师",
+            "title_zh":"《属灵的原则》（6）：如何看放手与躺平",
+            "title_nl":"",
+            "scripture":"",
+            "summary_zh":"为什么基督徒在面对问题时往往无法解决？这通常是因为他们要么固执己见、不愿放手，要么干脆放弃、“躺平”。我们该如何理解并实践关于“放手”与“躺平”的属灵原则？请收听本主日的讲道信息。愿神祝福大家。",
+            "summary_nl":"",
+            "youtube_url":"",
+            "audio_url":os.environ["AUDIO_URL"],
+            "transcript_url":"",
+            "article_zh":"",
+            "article_nl":"",
+            "status":"published"
+          }
+          json.dump(payload,open('sermon.json','w',encoding='utf-8'),ensure_ascii=False)
           PY
 
-          npx wrangler d1 execute evkerk-website-db --remote --file sermon.sql
-          echo "EVKERK_SERMON_UPLOAD=PASS"
+          curl --fail-with-body -sS \
+            -H "Authorization: Bearer $TOKEN" \
+            -H "Content-Type: application/json; charset=utf-8" \
+            --data-binary @sermon.json \
+            https://evkerk.nl/api/ingest/sermon \
+            -o publish.json
+
+          python - <<'PY'
+          import json, urllib.request
+          p=json.load(open('publish.json',encoding='utf-8'))
+          if not p.get('ok'):
+              raise SystemExit('PUBLISH_RESPONSE_INVALID')
+          with urllib.request.urlopen('https://evkerk.nl/api/sermons', timeout=30) as r:
+              d=json.load(r)
+          rows=[x for x in d.get('sermons',[]) if x.get('id')=='sermon-2026-09-20']
+          if len(rows)!=1: raise SystemExit('VERIFY_NOT_FOUND')
+          row=rows[0]
+          if row.get('speaker')!='胡牧师': raise SystemExit('VERIFY_SPEAKER')
+          if row.get('title_zh')!='《属灵的原则》（6）：如何看放手与躺平': raise SystemExit('VERIFY_TITLE')
+          if not str(row.get('audio_url','')).startswith('/api/media/sermon-audio/'): raise SystemExit('VERIFY_AUDIO_URL')
+          print('EVKERK_SERMON_UPLOAD=PASS')
+          print('AUDIO_URL='+row['audio_url'])
+          PY
