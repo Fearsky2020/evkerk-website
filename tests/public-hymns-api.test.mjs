@@ -23,7 +23,10 @@ function envFor({choir=false,rows=[],item=null,object=null}={}){
             };
           },
           first:async()=>null,
-          all:async()=>({results:[]}),
+          all:async()=>{
+            if(sql.includes('internal_media'))return {results:rows};
+            return {results:[]};
+          },
           run:async()=>({})
         };
       }
