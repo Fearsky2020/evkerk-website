@@ -33,7 +33,7 @@ jobs:
             if python - <<'PY'
           import json, urllib.request, sys
           try:
-              with urllib.request.urlopen('https://evkerk.nl/api/sermons', timeout=20) as r:
+              with urllib.request.urlopen('https://evkerk.nl/api/sermons?bust=202609251450', timeout=20) as r:
                   d=json.load(r)
               rows=[x for x in d.get('sermons',[]) if x.get('id')=='sermon-2026-09-20']
               if len(rows)!=1: raise SystemExit(1)
