@@ -6,74 +6,47 @@ on:
       - ".github/workflows/one-shot-publish-sermon-cloud.yml"
 
 permissions:
-  contents: write
-  actions: read
+  contents: read
 
 jobs:
-  publish:
+  deploy:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
       - run: npm ci
-      - name: Download staged sermon audio
-        uses: actions/download-artifact@v4
-        with:
-          name: sermon-2026-09-20-audio
-          path: staged-audio
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          run-id: 36135540426
-      - name: Publish durable audio release and sermon metadata
+      - name: Release checks
+        run: npm run check
+      - name: Deploy EVKERK Worker
+        run: npx wrangler deploy
+      - name: Verify sermon is live
         shell: bash
         run: |
           set -euo pipefail
-          AUDIO='staged-audio/sermon-2026-09-20.mp3'
-          test -f "$AUDIO"
-          test "$(stat -c%s "$AUDIO")" -gt 40000000
-
-          TAG='sermon-media-2026-09-20'
-          if ! gh release view "$TAG" >/dev/null 2>&1; then
-            gh release create "$TAG" --title 'Sermon media 2026-09-20' --notes 'Audio media for EVKERK sermon 2026-09-20.'
-          fi
-          gh release upload "$TAG" "$AUDIO#sermon-2026-09-20.mp3" --clobber
-
-          AUDIO_URL='https://github.com/Fearsky2020/evkerk-website/releases/download/sermon-media-2026-09-20/sermon-2026-09-20.mp3'
-          export AUDIO_URL
-          python - <<'PY'
-          import os
-          title='《属灵的原则》（6）：如何看放手与躺平'
-          speaker='胡牧师'
-          summary='为什么基督徒在面对问题时往往无法解决？这通常是因为他们要么固执己见、不愿放手，要么干脆放弃、“躺平”。我们该如何理解并实践关于“放手”与“躺平”的属灵原则？请收听本主日的讲道信息。愿神祝福大家。'
-          def q(s): return "'" + s.replace("'","''") + "'"
-          sql=f"""INSERT INTO sermons
-          (id,sermon_date,title_zh,title_nl,speaker,scripture,summary_zh,summary_nl,youtube_url,audio_url,transcript_url,article_zh,article_nl,status,published_at,updated_at)
-          VALUES ({q('sermon-2026-09-20')},{q('2026-09-20')},{q(title)},'',{q(speaker)},'',{q(summary)},'','',{q(os.environ['AUDIO_URL'])},'','','','published',datetime('now'),datetime('now'))
-          ON CONFLICT(id) DO UPDATE SET
-          sermon_date=excluded.sermon_date,title_zh=excluded.title_zh,speaker=excluded.speaker,
-          summary_zh=excluded.summary_zh,audio_url=excluded.audio_url,status='published',
-          published_at=datetime('now'),updated_at=datetime('now');"""
-          open('sermon.sql','w',encoding='utf-8').write(sql)
+          for i in {1..12}; do
+            if python - <<'PY'
+          import json, urllib.request, sys
+          try:
+              with urllib.request.urlopen('https://evkerk.nl/api/sermons', timeout=20) as r:
+                  d=json.load(r)
+              rows=[x for x in d.get('sermons',[]) if x.get('id')=='sermon-2026-09-20']
+              if len(rows)!=1: raise SystemExit(1)
+              row=rows[0]
+              assert row.get('speaker')=='胡牧师'
+              assert row.get('title_zh')=='《属灵的原则》（6）：如何看放手与躺平'
+              assert 'sermon-media-2026-09-20' in str(row.get('audio_url',''))
+              print('EVKERK_SERMON_UPLOAD=PASS')
+              print(json.dumps(row,ensure_ascii=False))
+          except Exception:
+              raise SystemExit(1)
           PY
-
-          npx wrangler d1 execute evkerk-website-db --remote --file sermon.sql
-
-          python - <<'PY'
-          import json, urllib.request
-          with urllib.request.urlopen('https://evkerk.nl/api/sermons', timeout=30) as r:
-              d=json.load(r)
-          rows=[x for x in d.get('sermons',[]) if x.get('id')=='sermon-2026-09-20']
-          if len(rows)!=1: raise SystemExit('VERIFY_NOT_FOUND')
-          row=rows[0]
-          if row.get('speaker')!='胡牧师': raise SystemExit('VERIFY_SPEAKER')
-          if row.get('title_zh')!='《属灵的原则》（6）：如何看放手与躺平': raise SystemExit('VERIFY_TITLE')
-          if 'sermon-media-2026-09-20' not in str(row.get('audio_url','')): raise SystemExit('VERIFY_AUDIO_URL')
-          print('EVKERK_SERMON_UPLOAD=PASS')
-          print('AUDIO_URL='+row['audio_url'])
-          PY
+            then exit 0; fi
+            sleep 5
+          done
+          exit 1
