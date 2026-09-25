@@ -1,0 +1,29 @@
+name: stage-sermon-audio-2026-09-20
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/stage-sermon-audio-2026-09-20.yml"
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  stage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Download sermon audio from temporary handoff
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 --output sermon-2026-09-20.mp3 'https://sdmntpreastus2.oaiusercontent.com/files/00000000-34f4-81f6-8a58-51d910f2bba7/raw?se=2026-09-25T12%3A35%3A11Z&sp=r&sv=2026-02-06&sr=b&scid=4970a37f-ec57-5a84-996c-33d1001b1f50&skoid=0a4a0f0c-99ac-4752-9d87-cfac036fa93f&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-25T11%3A44%3A00Z&ske=2026-09-26T11%3A44%3A00Z&sks=b&skv=2026-02-06&sig=elz09qqSawD9PcnkMPdsOyYfU4AKaE4jcz6Pqj2nucQ%3D'
+          test "$(stat -c%s sermon-2026-09-20.mp3)" -gt 40000000
+      - name: Upload durable workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sermon-2026-09-20-audio
+          path: sermon-2026-09-20.mp3
+          retention-days: 7
+          if-no-files-found: error
