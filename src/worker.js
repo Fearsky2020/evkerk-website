@@ -98,8 +98,26 @@ async function listEvents(env) {
   }));
 }
 
+const SERMON_2026_09_20 = {
+  id: 'sermon-2026-09-20',
+  sermon_date: '2026-09-20',
+  title_zh: '《属灵的原则》（6）：如何看放手与躺平',
+  title_nl: '',
+  speaker: '胡牧师',
+  scripture: '',
+  summary_zh: '为什么基督徒在面对问题时往往无法解决？这通常是因为他们要么固执己见、不愿放手，要么干脆放弃、“躺平”。我们该如何理解并实践关于“放手”与“躺平”的属灵原则？请收听本主日的讲道信息。愿神祝福大家。',
+  summary_nl: '',
+  article_zh: '',
+  article_nl: '',
+  youtube_url: '',
+  audio_url: 'https://github.com/Fearsky2020/evkerk-website/releases/download/sermon-media-2026-09-20/sermon-2026-09-20.mp3',
+  transcript_url: '',
+  media_job_id: null,
+  published_at: '2026-09-20T12:00:00Z',
+};
+
 async function listSermons(env) {
-  return queryAll(
+  const rows = await queryAll(
     env,
     `SELECT id, sermon_date, title_zh, title_nl, speaker, scripture,
             summary_zh, summary_nl, article_zh, article_nl,
@@ -110,6 +128,12 @@ async function listSermons(env) {
       ORDER BY sermon_date DESC, published_at DESC
       LIMIT 40`,
   );
+  const merged = rows.some((row) => row.id === SERMON_2026_09_20.id)
+    ? rows
+    : [SERMON_2026_09_20, ...rows];
+  return merged
+    .sort((a, b) => String(b.sermon_date || '').localeCompare(String(a.sermon_date || '')))
+    .slice(0, 40);
 }
 
 const ALLOWED_BIBLE_VERSIONS = new Set(['cuvs', 'dutch1917']);
