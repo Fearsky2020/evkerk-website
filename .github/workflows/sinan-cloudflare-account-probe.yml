@@ -1,0 +1,49 @@
+name: SINAN Cloudflare Account Probe
+
+on:
+  push:
+    branches:
+      - chore/sinan-cloudflare-probe-20260925
+    paths:
+      - '.github/workflows/sinan-cloudflare-account-probe.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: [self-hosted, Windows, X64, evkerk]
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Probe Wrangler account and relay visibility without mutations
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Continue'
+          Write-Host '=== WRANGLER WHOAMI ==='
+          $who = npx --yes wrangler@latest whoami 2>&1
+          $who | ForEach-Object {
+            $line=[string]$_
+            $line=$line -replace '(?i)(token|secret|key)\s*[:=]\s*\S+','$1=<redacted>'
+            Write-Host $line
+          }
+          Write-Host ('WHOAMI_EXIT=' + $LASTEXITCODE)
+
+          Write-Host '=== CURRENT ACCOUNT FROM WRANGLER TOML ==='
+          if(Test-Path 'wrangler.toml'){
+            $m=Select-String -Path 'wrangler.toml' -Pattern '^account_id\s*=\s*"([0-9a-f]+)"' | Select-Object -First 1
+            if($m){ Write-Host ('ACCOUNT_ID=' + $m.Matches[0].Groups[1].Value) }
+          }
+
+          Write-Host '=== SINAN RELAY DEPLOYMENTS PROBE ==='
+          $dep = npx --yes wrangler@latest deployments list --name sinan-remote-relay 2>&1
+          $dep | Select-Object -First 80 | ForEach-Object {
+            $line=[string]$_
+            $line=$line -replace '(?i)(token|secret|key)\s*[:=]\s*\S+','$1=<redacted>'
+            Write-Host $line
+          }
+          Write-Host ('RELAY_PROBE_EXIT=' + $LASTEXITCODE)
+          Write-Host 'MUTATION=NONE'
