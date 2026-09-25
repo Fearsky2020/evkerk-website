@@ -29,24 +29,18 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for i in {1..12}; do
-            if python - <<'PY'
-          import json, urllib.request, sys
-          try:
-              with urllib.request.urlopen('https://evkerk.nl/api/sermons?bust=202609251450', timeout=20) as r:
-                  d=json.load(r)
-              rows=[x for x in d.get('sermons',[]) if x.get('id')=='sermon-2026-09-20']
-              if len(rows)!=1: raise SystemExit(1)
-              row=rows[0]
-              assert row.get('speaker')=='胡牧师'
-              assert row.get('title_zh')=='《属灵的原则》（6）：如何看放手与躺平'
-              assert 'sermon-media-2026-09-20' in str(row.get('audio_url',''))
-              print('EVKERK_SERMON_UPLOAD=PASS')
-              print(json.dumps(row,ensure_ascii=False))
-          except Exception:
-              raise SystemExit(1)
+          python - <<'PY'
+          import json, urllib.request, time
+          url='https://evkerk.nl/api/sermons?bust=202609251452'
+          with urllib.request.urlopen(url, timeout=30) as r:
+              d=json.load(r)
+          print(json.dumps(d,ensure_ascii=False))
+          rows=[x for x in d.get('sermons',[]) if x.get('id')=='sermon-2026-09-20']
+          print('MATCHES='+json.dumps(rows,ensure_ascii=False))
+          if len(rows)!=1: raise SystemExit('VERIFY_NOT_FOUND')
+          row=rows[0]
+          if row.get('speaker')!='胡牧师': raise SystemExit('VERIFY_SPEAKER')
+          if row.get('title_zh')!='《属灵的原则》（6）：如何看放手与躺平': raise SystemExit('VERIFY_TITLE')
+          if 'sermon-media-2026-09-20' not in str(row.get('audio_url','')): raise SystemExit('VERIFY_AUDIO_URL')
+          print('EVKERK_SERMON_UPLOAD=PASS')
           PY
-            then exit 0; fi
-            sleep 5
-          done
-          exit 1
