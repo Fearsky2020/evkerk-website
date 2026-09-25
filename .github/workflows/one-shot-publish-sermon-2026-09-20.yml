@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   publish:
-    runs-on: [self-hosted, Windows, X64, evkerk]
+    runs-on: self-hosted
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
@@ -24,7 +24,7 @@ jobs:
           function B([string]$s){[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($s))}
           function Q([string]$s){ "'" + $s.Replace("'","''") + "'" }
 
-          $audioUrl = 'https://sdmntpreastus2.oaiusercontent.com/files/00000000-d204-81f6-b696-d0f74d88f914/raw?se=2026-09-25T12%3A33%3A49Z&sp=r&sv=2026-02-06&sr=b&scid=b6eb563c-665d-5fb1-9f27-98904f65c4ac&skoid=0a4a0f0c-99ac-4752-9d87-cfac036fa93f&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-25T11%3A33%3A09Z&ske=2026-09-26T11%3A33%3A09Z&sks=b&skv=2026-02-06&sig=6rQ2Lin8g8ZUYBqLzRpiFF96aGYon4VnhaF3UceyC68%3D'
+          $audioUrl = 'https://sdmntpreastus2.oaiusercontent.com/files/00000000-34f4-81f6-8a58-51d910f2bba7/raw?se=2026-09-25T12%3A35%3A11Z&sp=r&sv=2026-02-06&sr=b&scid=4970a37f-ec57-5a84-996c-33d1001b1f50&skoid=0a4a0f0c-99ac-4752-9d87-cfac036fa93f&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-25T11%3A44%3A00Z&ske=2026-09-26T11%3A44%3A00Z&sks=b&skv=2026-02-06&sig=elz09qqSawD9PcnkMPdsOyYfU4AKaE4jcz6Pqj2nucQ%3D'
           $audio = Join-Path $env:RUNNER_TEMP 'sermon-2026-09-20.mp3'
           Invoke-WebRequest -UseBasicParsing -Uri $audioUrl -OutFile $audio
 
