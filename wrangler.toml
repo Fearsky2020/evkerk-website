@@ -32,6 +32,7 @@ crons = ["*/30 * * * *"]
 [vars]
 SITE_TIMEZONE = "Europe/Amsterdam"
 MAX_MEDIA_MB = "95"
+TURNSTILE_SITE_KEY = "0x4AAAAAAFEUlgxzLOR-z5yA"
 
 [[d1_databases]]
 binding = "DB"
