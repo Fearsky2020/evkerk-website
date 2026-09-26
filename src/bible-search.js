@@ -191,7 +191,16 @@ export async function handleBibleSearch(request, env, url = new URL(request.url)
       }
     }
 
-    return json({ ok: true, query, mode, matched_hint: matchedHint, count: results.length, results });
+    return json({
+      ok: true,
+      query,
+      mode,
+      matched_hint: matchedHint,
+      version: 'cuvs',
+      version_label: '和合本（简体）',
+      count: results.length,
+      results,
+    });
   } catch (error) {
     console.error('BIBLE_SEARCH_FAILED', error?.message || error);
     return json({ ok: false, error: 'bible search unavailable' }, 503);
