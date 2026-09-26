@@ -88,6 +88,52 @@
   const contactForm = document.getElementById('contactForm');
   const contactStatus = document.getElementById('contactFormStatus');
   if (contactForm && contactStatus) {
+    const startedAtInput = contactForm.querySelector('[name="_started_at"]');
+    const turnstileHolder = document.getElementById('contactTurnstile');
+    let turnstileWidgetId = null;
+
+    const markContactStarted = () => {
+      if (startedAtInput) startedAtInput.value = String(Date.now());
+    };
+
+    const loadTurnstile = async () => {
+      if (!turnstileHolder) return;
+      const response = await fetch('/api/contact/config', { headers: { Accept: 'application/json' } });
+      if (!response.ok) return;
+      const config = await response.json().catch(() => ({}));
+      if (!config.turnstileSiteKey) return;
+
+      if (!window.turnstile) {
+        await new Promise((resolve, reject) => {
+          const existing = document.querySelector('script[data-evkerk-turnstile]');
+          if (existing) {
+            if (window.turnstile) return resolve();
+            existing.addEventListener('load', resolve, { once: true });
+            existing.addEventListener('error', reject, { once: true });
+            return;
+          }
+          const script = document.createElement('script');
+          script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+          script.async = true;
+          script.defer = true;
+          script.dataset.evkerkTurnstile = '1';
+          script.addEventListener('load', resolve, { once: true });
+          script.addEventListener('error', reject, { once: true });
+          document.head.appendChild(script);
+        });
+      }
+
+      if (window.turnstile && turnstileWidgetId === null) {
+        turnstileWidgetId = window.turnstile.render(turnstileHolder, {
+          sitekey: config.turnstileSiteKey,
+          theme: 'auto',
+        });
+      }
+    };
+
+    markContactStarted();
+    loadTurnstile().catch(() => {});
+
     contactForm.addEventListener('submit', async (event) => {
       event.preventDefault();
       const lang = document.documentElement.lang === 'nl' ? 'nl' : 'zh';
@@ -105,6 +151,8 @@
         const result = await response.json().catch(() => ({}));
         if (!response.ok || result.success === false) throw new Error(result.message || `HTTP ${response.status}`);
         contactForm.reset();
+        markContactStarted();
+        if (window.turnstile && turnstileWidgetId !== null) window.turnstile.reset(turnstileWidgetId);
         contactStatus.className = 'contact-form-status success';
         contactStatus.textContent = dict['contact.form.success'];
       } catch (error) {

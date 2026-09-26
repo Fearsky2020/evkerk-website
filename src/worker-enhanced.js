@@ -10,6 +10,7 @@ import { handleWelcomeApi } from './welcome.js';
 import { handleInternalMediaApi, guardInternalMediaPage } from './internal-media.js';
 import { handlePublicHymnsApi } from './public-hymns.js';
 import { handleWechatApi } from './wechat.js';
+import { handleContactApi } from './contact-form.js';
 import { handleOrganizationApi } from './organization.js';
 import { handleDailyDevotionalApi } from './daily-devotional.js';
 
@@ -47,6 +48,8 @@ async function route(request, env, ctx) {
     url.hostname = 'evkerk.nl';
     return Response.redirect(url.toString(), 301);
   }
+  const contactResponse = await handleContactApi(request, env, url);
+  if (contactResponse) return contactResponse;
   const dailyDevotionalResponse = await handleDailyDevotionalApi(request, env, url);
   if (dailyDevotionalResponse) return dailyDevotionalResponse;
   const wechatResponse = await handleWechatApi(request, env, url);
