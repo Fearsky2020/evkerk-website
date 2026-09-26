@@ -123,21 +123,29 @@ async function verifyTurnstile(request, env, token) {
 }
 
 async function forwardMessage({ name, contact, message }) {
-  const form = new FormData();
-  form.set('_subject', 'evkerk.nl 新留言');
-  form.set('_template', 'table');
-  form.set('姓名 / Naam', name);
-  form.set('联系方式 / Contact', contact);
-  form.set('留言 / Bericht', message);
+  const payload = {
+    _subject: 'evkerk.nl 新留言',
+    _template: 'table',
+    _url: 'https://evkerk.nl/',
+    '姓名 / Naam': name,
+    '联系方式 / Contact': contact,
+    '留言 / Bericht': message,
+  };
 
   const response = await fetch(FORMSUBMIT_ENDPOINT, {
     method: 'POST',
-    headers: { Accept: 'application/json' },
-    body: form,
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      Origin: 'https://evkerk.nl',
+      Referer: 'https://evkerk.nl/',
+    },
+    body: JSON.stringify(payload),
   });
   const result = await response.json().catch(() => ({}));
   if (!response.ok || result.success === false) {
-    throw new Error(result.message || `FormSubmit HTTP ${response.status}`);
+    const detail = clean(result.message || result.error || '', 300);
+    throw new Error(detail || `FormSubmit HTTP ${response.status}`);
   }
 }
 
