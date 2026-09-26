@@ -51,7 +51,7 @@
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 12 16-8-5 16-3.2-6.1L4 12Zm7.8 1.9L20 4"/></svg>
         </button>
       </form>
-      <div class="evk-ai-note">${isNl ? 'Deel hier geen gevoelige persoonlijke gegevens.' : '请勿在这里提交私密或敏感个人信息。'}</div>
+      <div class="evk-ai-note">${isNl ? 'AI-antwoorden kunnen fouten of hallucinaties bevatten. Controleer twijfelachtige informatie bij een pastor. Deel hier geen gevoelige persoonlijke gegevens.' : 'AI生成的答案可能存在错误或幻觉；如发现问题或有疑问，请务必向牧者核实。请勿在这里提交私密或敏感个人信息。'}</div>
     </section>`;
 
   const style = document.createElement('style');
