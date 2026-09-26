@@ -140,7 +140,7 @@ async function forwardMessage(env, { name, contact, message }) {
   await env.PASSWORD_RESET_EMAIL.send({
     to: 'emsitao@gmail.com',
     from: 'contact@evkerk.nl',
-    subject: 'evkerk.nl 新留言',
+    subject: `evkerk.nl 新留言：${clean(name, 60)}`,
     text,
   });
 }
