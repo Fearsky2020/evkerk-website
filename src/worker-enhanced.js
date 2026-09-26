@@ -43,7 +43,8 @@ async function route(request, env, ctx) {
   const url = new URL(request.url);
   const hostHeader = request.headers.get('host') || '';
   const isLocal = Boolean(env.LOCAL_DEV) || url.hostname === '127.0.0.1' || url.hostname === 'localhost' || /^(?:127\.0\.0\.1|localhost)(?::\d+)?$/i.test(hostHeader);
-  if (!isLocal && (url.hostname === 'www.evkerk.nl' || url.protocol === 'http:')) {
+  const canonicalRedirectHosts = new Set(['www.evkerk.nl', 'evkerk.com', 'www.evkerk.com']);
+  if (!isLocal && (canonicalRedirectHosts.has(url.hostname) || url.protocol === 'http:')) {
     url.protocol = 'https:';
     url.hostname = 'evkerk.nl';
     return Response.redirect(url.toString(), 301);
