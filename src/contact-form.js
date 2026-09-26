@@ -122,31 +122,27 @@ async function verifyTurnstile(request, env, token) {
   return { success: result.success === true, result };
 }
 
-async function forwardMessage({ name, contact, message }) {
-  const payload = {
-    _subject: 'evkerk.nl 新留言',
-    _template: 'table',
-    _url: 'https://evkerk.nl/',
-    '姓名 / Naam': name,
-    '联系方式 / Contact': contact,
-    '留言 / Bericht': message,
-  };
-
-  const response = await fetch(FORMSUBMIT_ENDPOINT, {
-    method: 'POST',
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-      Origin: 'https://evkerk.nl',
-      Referer: 'https://evkerk.nl/',
-    },
-    body: JSON.stringify(payload),
-  });
-  const result = await response.json().catch(() => ({}));
-  if (!response.ok || result.success === false) {
-    const detail = clean(result.message || result.error || '', 300);
-    throw new Error(detail || `FormSubmit HTTP ${response.status}`);
+async function forwardMessage(env, { name, contact, message }) {
+  if (!env.PASSWORD_RESET_EMAIL || typeof env.PASSWORD_RESET_EMAIL.send !== 'function') {
+    throw new Error('email_binding_unavailable');
   }
+
+  const text = [
+    'evkerk.nl 新留言',
+    '',
+    `姓名 / Naam: ${name}`,
+    `联系方式 / Contact: ${contact}`,
+    '',
+    '留言 / Bericht:',
+    message,
+  ].join('\n');
+
+  await env.PASSWORD_RESET_EMAIL.send({
+    to: 'emsitao@gmail.com',
+    from: 'contact@evkerk.nl',
+    subject: 'evkerk.nl 新留言',
+    text,
+  });
 }
 
 function sameOrigin(request, url) {
@@ -214,7 +210,7 @@ export async function handleContactApi(request, env, url) {
   }
 
   try {
-    await forwardMessage({ name, contact, message });
+    await forwardMessage(env, { name, contact, message });
     return json({ ok: true, accepted: true });
   } catch (error) {
     console.error('contact forward failed', error);
