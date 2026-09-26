@@ -170,6 +170,23 @@ function directFactAnswer(kind, context, message) {
   return null;
 }
 
+function bibleSourceUnavailableAnswer(message) {
+  const lang = userLanguage(message);
+  if (lang === 'zh') return '目前没有从教会圣经资料库查到可核实的对应经文，因此我不会凭记忆补写或冒充圣经原文。请换一个关键词，或直接输入“书卷名 章:节”（例如：马太福音 26:52）重新查询。';
+  if (lang === 'nl') return 'Ik heb in de Bijbeldatabase van de kerk geen verifieerbare overeenkomst gevonden. Daarom zal ik geen Bijbeltekst uit het geheugen aanvullen of als letterlijk citaat presenteren. Probeer andere zoekwoorden of voer rechtstreeks een verwijzing in, bijvoorbeeld Matteüs 26:52.';
+  return 'I could not find a verifiable matching passage in the church Bible database, so I will not reconstruct or present Bible wording from memory as a quotation. Try different keywords or enter a direct reference such as Matthew 26:52.';
+}
+
+function directBibleReferenceAnswer(context, message) {
+  if (!context?.ok || context?.mode !== 'reference' || !Array.isArray(context.results) || !context.results.length) return null;
+  const lang = userLanguage(message);
+  const label = context.version_label || '和合本（简体）';
+  const lines = context.results.map((item) => `${item.reference}：${item.text}`);
+  if (lang === 'zh') return [`《${label}》：`, ...lines].join('\n');
+  if (lang === 'nl') return [`Bijbelbron: ${label}`, ...lines].join('\n');
+  return [`Bible source: ${label}`, ...lines].join('\n');
+}
+
 function buildSystemPrompt(contextKind, context) {
   const contextJson = JSON.stringify(context || {}, null, 2);
   return `你是福音教会官网的公开信息助手。你服务 evkerk.nl 的访客，语气友善、清楚、简洁。
@@ -182,7 +199,8 @@ function buildSystemPrompt(contextKind, context) {
 2. 教会自己的讲道、聚会时间、地址、活动、公告，以“实时资料”字段为最高优先级。实时资料和你已有知识冲突时，一律采用实时资料。
 3. 不得凭记忆编造教会日期、时间、地址、讲道标题、讲员或活动。资料没有就直接说目前没有查到。
 4. 如果实时资料里有 page_url / open_url，可在有帮助时把完整链接直接给访客。
-5. 如果是圣经查询，只把实时资料中 results 的经文文字当作逐字经文来源；可以做简短解释，但不要把自己记忆中的文字冒充网站经文原文。
+5. 如果是圣经查询，逐字经文只能复制实时资料 results[].text，绝不可凭记忆补写、改写、拼接或“纠正”经文。若 results 为空，必须明确说没有查到，禁止继续生成任何所谓“圣经原文”。
+5a. 当用户询问“原文、和合本、某章某节是什么、准确经文”等精确文本问题时，只允许逐字返回实时资料中的经文，不得用模型记忆补充。
 6. “上周、最近、最新、本周、今天、这个星期日”等都按上面的荷兰当前时间理解。
 7. 回答通常控制在 2–6 个短段落，不要长篇推理，不要展示内部思考过程。
 8. 不主动索取身份证件、健康资料、财务资料或其他敏感个人信息。若访客要谈私密牧养问题，提醒不要在公开聊天助手里提交敏感细节，并建议直接联系教会牧者或小组长。
@@ -304,6 +322,32 @@ export async function handleAssistantChat(request, env, url = new URL(request.ur
     const context = contextKind === 'bible'
       ? await bibleContext(env, message)
       : await liveContext(env, contextKind);
+
+    if (contextKind === 'bible') {
+      const exactReference = directBibleReferenceAnswer(context, message);
+      if (exactReference) {
+        return json({
+          ok: true,
+          answer: exactReference,
+          context: 'bible',
+          provider: 'bible-database',
+          model: 'deterministic',
+          version: context.version || 'cuvs',
+          version_label: context.version_label || '和合本（简体）',
+        });
+      }
+      if (!context?.ok || !Array.isArray(context.results) || context.results.length === 0) {
+        return json({
+          ok: true,
+          answer: bibleSourceUnavailableAnswer(message),
+          context: 'bible',
+          provider: 'bible-database',
+          model: 'deterministic',
+          version: context?.version || 'cuvs',
+          version_label: context?.version_label || '和合本（简体）',
+        });
+      }
+    }
 
     const direct = directFactAnswer(contextKind, context, message);
     if (direct) {
