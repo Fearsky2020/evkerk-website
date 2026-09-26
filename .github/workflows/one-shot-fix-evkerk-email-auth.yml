@@ -1,0 +1,94 @@
+name: one-shot-fix-evkerk-email-auth
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/one-shot-fix-evkerk-email-auth.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  fix-dns:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+    steps:
+      - name: Merge Cloudflare into SPF and create monitor-only DMARC
+        shell: python
+        run: |
+          import json, os, re, urllib.parse, urllib.request
+
+          token = os.environ["CLOUDFLARE_API_TOKEN"]
+          zone_id = "c6d745a085ba98dd65b5f27387c6a154"
+          api = "https://api.cloudflare.com/client/v4"
+          headers = {
+              "Authorization": f"Bearer {token}",
+              "Content-Type": "application/json",
+              "User-Agent": "evkerk-dns-auth-fix/1.0",
+          }
+
+          def request(method, path, payload=None):
+              data = None if payload is None else json.dumps(payload).encode()
+              req = urllib.request.Request(api + path, data=data, headers=headers, method=method)
+              with urllib.request.urlopen(req, timeout=30) as resp:
+                  body = json.load(resp)
+              if not body.get("success"):
+                  raise SystemExit("CLOUDFLARE_API_FAILED:" + json.dumps(body.get("errors", [])))
+              return body["result"]
+
+          def list_txt(name):
+              q = urllib.parse.urlencode({"type": "TXT", "name": name, "per_page": 100})
+              return request("GET", f"/zones/{zone_id}/dns_records?{q}")
+
+          root = list_txt("evkerk.nl")
+          spf = [r for r in root if str(r.get("content", "")).lower().startswith("v=spf1")]
+          if len(spf) != 1:
+              raise SystemExit(f"SPF_RECORD_COUNT_UNEXPECTED={len(spf)}")
+
+          old = spf[0]["content"].strip()
+          include_cf = "include:_spf.mx.cloudflare.net"
+          if include_cf in old:
+              new = old
+          else:
+              m = re.search(r"\s([?~+\-]all)\s*$", old, flags=re.I)
+              if not m:
+                  raise SystemExit("SPF_TERMINATOR_NOT_FOUND")
+              new = old[:m.start()] + " " + include_cf + " " + m.group(1)
+
+          if "include:zohomail.eu" not in new:
+              raise SystemExit("ZOHO_INCLUDE_MISSING_ABORT")
+
+          if new != old:
+              request("PATCH", f"/zones/{zone_id}/dns_records/{spf[0]['id']}", {"content": new})
+              print("SPF_UPDATED=YES")
+          else:
+              print("SPF_UPDATED=NO_ALREADY_PRESENT")
+          print("SPF_VALUE=" + new)
+
+          dmarc = list_txt("_dmarc.evkerk.nl")
+          if len(dmarc) == 0:
+              created = request("POST", f"/zones/{zone_id}/dns_records", {
+                  "type": "TXT",
+                  "name": "_dmarc.evkerk.nl",
+                  "content": "v=DMARC1; p=none;",
+                  "ttl": 1,
+              })
+              print("DMARC_CREATED=YES")
+              print("DMARC_ID=" + created["id"])
+          elif len(dmarc) == 1:
+              print("DMARC_CREATED=NO_ALREADY_EXISTS")
+              print("DMARC_VALUE=" + dmarc[0]["content"])
+          else:
+              raise SystemExit(f"DMARC_RECORD_COUNT_UNEXPECTED={len(dmarc)}")
+
+          root2 = list_txt("evkerk.nl")
+          spf2 = [r["content"] for r in root2 if str(r.get("content", "")).lower().startswith("v=spf1")]
+          dmarc2 = [r["content"] for r in list_txt("_dmarc.evkerk.nl")]
+          if spf2 != [new]:
+              raise SystemExit("SPF_VERIFY_FAILED")
+          if len(dmarc2) != 1:
+              raise SystemExit("DMARC_VERIFY_FAILED")
+          print("DNS_AUTH_FIX=PASS")
