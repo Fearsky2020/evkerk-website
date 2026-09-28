@@ -101,3 +101,10 @@ test('group prayer handling is limited to direct group leaders or pastors',()=>{
   assert.match(api,/\/api\/organization\/group-prayers/);
   assert.doesNotMatch(api,/canManageGroupPrayer[\s\S]{0,220}clusters\(x\)/);
 });
+
+
+test('cluster leaders cannot browse child-group member rosters',()=>{
+  assert.match(api,/if\(kind==='members'\)[\s\S]{0,900}managedGroupIds=groups\(x\)/);
+  assert.match(api,/m\.group_id IN/);
+  assert.doesNotMatch(api,/if\(kind==='members'\)[\s\S]{0,900}scope\(x/);
+});

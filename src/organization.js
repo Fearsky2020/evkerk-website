@@ -139,9 +139,13 @@ async function overview(request,env,kind,url){
     return json({ok:true,role:x.level,groups:r.results||[]});
   }
   if(kind==='members'){
-    const where=[s.sql],args=[...s.args],gid=clean(url.searchParams.get('group_id'),100),st=clean(url.searchParams.get('status'),30);
+    const managedGroupIds=groups(x),where=[],args=[],gid=clean(url.searchParams.get('group_id'),100),st=clean(url.searchParams.get('status'),30);
+    if(x.level!=='pastor'){
+      if(!managedGroupIds.length)return json({ok:true,role:x.level,members:[]});
+      where.push('m.group_id IN ('+managedGroupIds.map(()=>'?').join(',')+')');args.push(...managedGroupIds);
+    }else where.push('1=1');
     if(gid){where.push('m.group_id=?');args.push(gid)}if(st){where.push('m.status=?');args.push(st)}
-    const r=await env.DB.prepare(`SELECT m.*,g.name group_name,g.group_number,c.name cluster_name FROM church_members m
+    const r=await env.DB.prepare(`SELECT m.id,m.display_name,m.phone,m.email,m.postcode,m.group_id,m.cluster_id,m.status,m.member_role,m.joined_at,g.name group_name,g.group_number,c.name cluster_name FROM church_members m
       JOIN church_groups g ON g.id=m.group_id LEFT JOIN church_clusters c ON c.id=m.cluster_id
       WHERE ${where.join(' AND ')} ORDER BY c.sort_order,g.group_number,m.display_name`).bind(...args).all();
     return json({ok:true,role:x.level,members:r.results||[]});
