@@ -60,6 +60,13 @@ async function injectPublicScripts(response, url) {
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+    const groupJoinMatch = url.pathname.match(/^\/join\/([^/]+)$/);
+    if (groupJoinMatch && request.method === 'GET') {
+      const target = new URL('/join.html', url);
+      target.searchParams.set('token', decodeURIComponent(groupJoinMatch[1]));
+      return Response.redirect(target.toString(), 302);
+    }
+
 
     const bibleSearchResponse = await handleBibleSearch(request, env, url);
     if (bibleSearchResponse) return bibleSearchResponse;
