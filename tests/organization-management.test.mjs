@@ -51,3 +51,28 @@ test('public invite resolution exposes only safe group application context',()=>
   assert.match(api,/postcode/);
   assert.doesNotMatch(api,/resolveGroupJoinInvite[\s\S]{0,1800}meeting_address/);
 });
+
+
+const jointMigration=fs.readFileSync(new URL('../migrations/0034_joint_group_meeting_points.sql',import.meta.url),'utf8');
+test('joint groups remain one group entity with multiple meeting points',()=>{
+  assert.match(jointMigration,/ADD COLUMN group_kind/);
+  assert.match(jointMigration,/CREATE TABLE IF NOT EXISTS group_meeting_points/);
+  assert.match(jointMigration,/CREATE TABLE IF NOT EXISTS group_meeting_overrides/);
+  assert.match(jointMigration,/UNIQUE \(group_id,meeting_date\)/);
+  assert.match(api,/jointMeetingContext/);
+  assert.match(api,/group_kind:'joint'/);
+  assert.match(api,/current_meeting_point/);
+});
+test('joint group rotation never guesses a fifth-week meeting point',()=>{
+  assert.match(api,/parseWeekSlots/);
+  assert.match(api,/meetingDate\.weekSlot===5/);
+  assert.match(api,/第 5 周聚会点待后台确认/);
+  assert.match(api,/current_week_slot/);
+});
+test('meeting-point edits are limited to direct group leaders or pastors',()=>{
+  assert.match(api,/canDirectlyManageGroup/);
+  assert.match(api,/只有本小组组长或牧者可以修改聚会点/);
+  assert.match(api,/只有本小组组长或牧者可以修改临时安排/);
+  assert.match(api,/meeting-points/);
+  assert.match(api,/meeting-overrides/);
+});

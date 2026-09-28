@@ -4,8 +4,8 @@ import { authenticateMemberAppToken } from './member-auth.js';
 import { expectedPhotoCount, normalizeFaithStatus, normalizeReceptionSite, presentWelcomeCase } from './welcome-normalization.js';
 
 const ROLE_ORDER={none:0,group_leader:1,cluster_leader:2,pastor:3};
-const GROUP_FIELDS=['name','cluster_id','leader_name','deputy_leader_name','meeting_day','meeting_time','meeting_frequency','meeting_address','postcode','navigation_address','contact_phone','current_size','capacity_max','reception_status','audience_profile','weekly_status','temporary_change','announcement','welcome_message','status','schedule_note','language_profile','family_profile','children_profile','occupation_profile','age_profile','background_profile','capacity_note'];
-const VALID={status:['active','inactive','paused'],reception_status:['open','near_full','closed','paused'],weekly_status:['normal','cancelled','changed']};
+const GROUP_FIELDS=['name','cluster_id','leader_name','deputy_leader_name','meeting_day','meeting_time','meeting_frequency','meeting_address','postcode','navigation_address','contact_phone','current_size','capacity_max','reception_status','audience_profile','weekly_status','temporary_change','announcement','welcome_message','group_kind','status','schedule_note','language_profile','family_profile','children_profile','occupation_profile','age_profile','background_profile','capacity_note'];
+const VALID={status:['active','inactive','paused'],reception_status:['open','near_full','closed','paused'],weekly_status:['normal','cancelled','changed'],group_kind:['regular','joint']};
 const json=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store'}});
 const clean=(v,max=500)=>String(v??'').trim().slice(0,max);
 const id=p=>p+'_'+crypto.randomUUID();
@@ -41,6 +41,82 @@ function scope(x,alias='g'){
 const canCluster=(x,c)=>x.level==='pastor'||clusters(x).includes(c);
 const canGroup=(x,g)=>Boolean(g)&&(x.level==='pastor'||clusters(x).includes(g.cluster_id)||groups(x).includes(g.id));
 const getGroup=(env,g)=>env.DB.prepare("SELECT g.*,c.name cluster_display_name FROM church_groups g LEFT JOIN church_clusters c ON c.id=g.cluster_id WHERE g.id=? AND g.is_demo=0").bind(g).first();
+
+const canDirectlyManageGroup=(x,g)=>Boolean(g)&&(x.level==='pastor'||groups(x).includes(g.id));
+function parseWeekSlots(value){
+  return new Set(String(value||'').split(',').map(v=>Number(v.trim())).filter(v=>Number.isInteger(v)&&v>=1&&v<=5));
+}
+function weekdayIndex(value){
+  const raw=String(value||'').trim().toLowerCase();
+  const map=new Map([
+    ['周一',1],['星期一',1],['monday',1],['mon',1],['maandag',1],
+    ['周二',2],['星期二',2],['tuesday',2],['tue',2],['dinsdag',2],
+    ['周三',3],['星期三',3],['wednesday',3],['wed',3],['woensdag',3],
+    ['周四',4],['星期四',4],['thursday',4],['thu',4],['donderdag',4],
+    ['周五',5],['星期五',5],['friday',5],['fri',5],['vrijdag',5],
+    ['周六',6],['星期六',6],['saturday',6],['sat',6],['zaterdag',6],
+    ['周日',7],['周天',7],['星期日',7],['星期天',7],['sunday',7],['sun',7],['zondag',7]
+  ]);
+  return map.get(raw)||null;
+}
+function amsterdamTodayParts(now=new Date()){
+  const parts=Object.fromEntries(
+    new Intl.DateTimeFormat('en-CA',{
+      timeZone:'Europe/Amsterdam',year:'numeric',month:'2-digit',day:'2-digit',weekday:'short'
+    }).formatToParts(now).filter(p=>p.type!=='literal').map(p=>[p.type,p.value])
+  );
+  const weekdays={Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6,Sun:7};
+  return{year:Number(parts.year),month:Number(parts.month),day:Number(parts.day),weekday:weekdays[parts.weekday]||1};
+}
+function addCalendarDays(parts,days){
+  const d=new Date(Date.UTC(parts.year,parts.month-1,parts.day+days,12,0,0));
+  const year=d.getUTCFullYear(),month=d.getUTCMonth()+1,day=d.getUTCDate();
+  return{
+    year,month,day,
+    date:[year,String(month).padStart(2,'0'),String(day).padStart(2,'0')].join('-'),
+    weekSlot:Math.ceil(day/7)
+  };
+}
+async function jointMeetingContext(env,g){
+  if(g.group_kind!=='joint')return{
+    group_kind:g.group_kind||'regular',meeting_points:[],current_meeting_point:null,
+    current_meeting_status:null,current_meeting_note:null,current_meeting_date:null,current_week_slot:null
+  };
+  const pr=await env.DB.prepare("SELECT id,group_id,name,leader_name,meeting_day,meeting_time,meeting_address,postcode,navigation_address,contact_phone,week_slots,status,sort_order FROM group_meeting_points WHERE group_id=? AND status='active' ORDER BY sort_order,name").bind(g.id).all();
+  const points=pr.results||[];
+  const today=amsterdamTodayParts();
+  const targetWeekday=weekdayIndex(g.meeting_day)||weekdayIndex(points[0]?.meeting_day)||today.weekday;
+  const meetingDate=addCalendarDays(today,targetWeekday-today.weekday);
+  const override=await env.DB.prepare("SELECT id,meeting_point_id,status,note FROM group_meeting_overrides WHERE group_id=? AND meeting_date=?").bind(g.id,meetingDate.date).first();
+
+  let current=null,status='scheduled',note='';
+  if(override){
+    status=override.status;
+    note=override.note||'';
+    if(override.status==='scheduled'&&override.meeting_point_id){
+      current=points.find(p=>p.id===override.meeting_point_id)||null;
+    }
+  }else if(meetingDate.weekSlot===5){
+    status='pending';
+    note='第 5 周聚会点待后台确认';
+  }else{
+    current=points.find(p=>parseWeekSlots(p.week_slots).has(meetingDate.weekSlot))||null;
+    if(!current){
+      status='pending';
+      note='本周聚会点尚未安排';
+    }
+  }
+
+  return{
+    group_kind:'joint',
+    meeting_points:points,
+    current_meeting_point:current,
+    current_meeting_status:status,
+    current_meeting_note:note||null,
+    current_meeting_date:meetingDate.date,
+    current_week_slot:meetingDate.weekSlot
+  };
+}
 async function audit(env,x,action,type,entity,before,after,member=null){await env.DB.prepare("INSERT INTO organization_audit_log(id,actor_user_id,actor_member_id,action,entity_type,entity_id,before_json,after_json) VALUES(?,?,?,?,?,?,?,?)").bind(id('AUD'),x?.user?.id||null,member,action,type,entity,before==null?null:JSON.stringify(before),after==null?null:JSON.stringify(after)).run()}
 
 async function overview(request,env,kind,url){
@@ -121,7 +197,7 @@ async function appoint(request,env){
  const a=await requireHuman(request,env);if(a.response)return a.response;const x=a.x,b=await request.json().catch(()=>({})),role=clean(b.role,30),uid=clean(b.user_id,100),cid=clean(b.cluster_id,100)||null,gid=clean(b.group_id,100)||null;
  if(!['pastor','cluster_leader','group_leader'].includes(role))return json({ok:false,error:'角色不正确'},400);if(role!=='group_leader'&&x.level!=='pastor')return json({ok:false,error:'只有牧师可以任命牧师或大组长'},403);
  if(role==='group_leader'){const g=await getGroup(env,gid);if(!g||!canCluster(x,g.cluster_id))return json({ok:false,error:'不得任命其他大组的小组长'},403)}
- const u=await env.DB.prepare("SELECT id FROM admin_users WHERE id=? AND status='active'").bind(uid).first();if(!u)return json({ok:false,error:'同工账号不存在'},404);const rid=id('ROLE');
+ const u=await env.DB.prepare("SELECT id FROM admin_users WHERE id=? AND status='active'").bind(uid).first();if(!u)return json({ok:false,error:'同工账号���存在'},404);const rid=id('ROLE');
  await env.DB.prepare("INSERT INTO organization_role_assignments(id,user_id,role,cluster_id,group_id,appointed_by) VALUES(?,?,?,?,?,?)").bind(rid,uid,role,cid,gid,x.user.id).run();await audit(env,x,'role.appoint','role_assignment',rid,null,{uid,role,cid,gid});return json({ok:true,id:rid},201);
 }
 async function roleManagement(request,env,assignmentId=''){
@@ -151,6 +227,69 @@ async function welcome(request,env,caseId='',action=''){
  const b=await request.json().catch(()=>({})),item=await env.DB.prepare("SELECT * FROM welcome_cases WHERE id=?").bind(caseId).first();if(!item)return json({ok:false,error:'新人记录不存在'},404);
  if(action==='assign'){if(x.level==='group_leader')return json({ok:false,error:'最终分配须由牧师或大组长确认'},403);const g=await getGroup(env,clean(b.group_id,100));if(!canGroup(x,g))return json({ok:false,error:'不得跨范围分配'},403);await env.DB.batch([env.DB.prepare("UPDATE welcome_assignments SET active=0,ended_at=datetime('now') WHERE case_id=? AND active=1").bind(caseId),env.DB.prepare("INSERT INTO welcome_assignments(id,case_id,group_id,carer_user_id,carer_name,reason,assigned_by) VALUES(?,?,?,?,?,?,?)").bind(id('ASN'),caseId,g.id,clean(b.carer_user_id,100)||null,clean(b.carer_name,120),clean(b.reason,1000),x.user.id),env.DB.prepare("UPDATE welcome_cases SET assigned_group_id=?,assigned_cluster_id=?,primary_carer_user_id=?,primary_carer_name=?,status='assigned',updated_at=datetime('now') WHERE id=?").bind(g.id,g.cluster_id,clean(b.carer_user_id,100)||null,clean(b.carer_name,120),caseId)]);await audit(env,x,'welcome.assign','welcome_case',caseId,item,{group_id:g.id});return json({ok:true})}
  if(item.assigned_group_id&&!canGroup(x,await getGroup(env,item.assigned_group_id)))return json({ok:false,error:'不得跟进其他范围新人'},403);const fid=id('FUP');await env.DB.prepare("INSERT INTO welcome_followups(id,case_id,actor_user_id,outcome,note,next_followup_at,contact_date,contact_method,welcome_sent,attended,assigned_cluster_id,assigned_group_id) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)").bind(fid,caseId,x.user.id,clean(b.outcome,120),clean(b.note,2000),clean(b.next_followup_at,50)||null,clean(b.contact_date,50)||null,clean(b.contact_method,80),b.welcome_sent?1:0,b.attended==null?null:(b.attended?1:0),item.assigned_cluster_id,item.assigned_group_id).run();await env.DB.prepare("UPDATE welcome_cases SET welcome_sent=MAX(welcome_sent,?),next_followup_at=?,updated_at=datetime('now') WHERE id=?").bind(b.welcome_sent?1:0,clean(b.next_followup_at,50)||null,caseId).run();await audit(env,x,'welcome.followup','welcome_case',caseId,null,{fid});return json({ok:true,id:fid},201);
+}
+async function groupMeetingPoints(request,env,groupId,pointId=''){
+ const a=await requireHuman(request,env);if(a.response)return a.response;const x=a.x,g=await getGroup(env,groupId);
+ if(!g||g.status==='inactive')return json({ok:false,error:'小组不存在或已停用'},404);
+ if(!canGroup(x,g))return json({ok:false,error:'无权查看这个小组的聚会点'},403);
+
+ if(request.method==='GET'){
+  const r=await env.DB.prepare("SELECT id,group_id,name,leader_name,meeting_day,meeting_time,meeting_address,postcode,navigation_address,contact_phone,week_slots,status,sort_order FROM group_meeting_points WHERE group_id=? ORDER BY sort_order,name").bind(groupId).all();
+  return json({ok:true,group:{id:g.id,name:g.name,group_kind:g.group_kind||'regular'},meeting_points:r.results||[]});
+ }
+
+ if(!canDirectlyManageGroup(x,g))return json({ok:false,error:'只有本小组组长或牧者可以修改聚会点'},403);
+ const b=await request.json().catch(()=>({})),name=clean(b.name,120);
+ if(!name)return json({ok:false,error:'请填写聚会点名称'},400);
+ const slots=[...parseWeekSlots(b.week_slots)].filter(v=>v<=4).sort((a,b)=>a-b).join(',');
+ const values=[
+  name,clean(b.leader_name,120),clean(b.meeting_day,30),clean(b.meeting_time,30),
+  clean(b.meeting_address,500),pc(b.postcode),clean(b.navigation_address,500),
+  clean(b.contact_phone,80),slots,b.status==='inactive'?'inactive':'active',
+  Number.isFinite(Number(b.sort_order))?Number(b.sort_order):0
+ ];
+ if(pointId){
+  const before=await env.DB.prepare("SELECT * FROM group_meeting_points WHERE id=? AND group_id=?").bind(pointId,groupId).first();
+  if(!before)return json({ok:false,error:'聚会点不存在'},404);
+  await env.DB.prepare("UPDATE group_meeting_points SET name=?,leader_name=?,meeting_day=?,meeting_time=?,meeting_address=?,postcode=?,navigation_address=?,contact_phone=?,week_slots=?,status=?,sort_order=?,updated_at=datetime('now') WHERE id=? AND group_id=?").bind(...values,pointId,groupId).run();
+  const after=await env.DB.prepare("SELECT * FROM group_meeting_points WHERE id=?").bind(pointId).first();
+  await env.DB.prepare("UPDATE church_groups SET group_kind='joint',updated_at=datetime('now') WHERE id=?").bind(groupId).run();
+  await audit(env,x,'group.meeting_point.update','meeting_point',pointId,before,after);
+  return json({ok:true,meeting_point:after});
+ }
+ const pid=id('POINT');
+ await env.DB.batch([
+  env.DB.prepare("INSERT INTO group_meeting_points(id,group_id,name,leader_name,meeting_day,meeting_time,meeting_address,postcode,navigation_address,contact_phone,week_slots,status,sort_order) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)").bind(pid,groupId,...values),
+  env.DB.prepare("UPDATE church_groups SET group_kind='joint',updated_at=datetime('now') WHERE id=?").bind(groupId)
+ ]);
+ const point=await env.DB.prepare("SELECT * FROM group_meeting_points WHERE id=?").bind(pid).first();
+ await audit(env,x,'group.meeting_point.create','meeting_point',pid,null,point);
+ return json({ok:true,meeting_point:point},201);
+}
+async function groupMeetingOverrides(request,env,groupId){
+ const a=await requireHuman(request,env);if(a.response)return a.response;const x=a.x,g=await getGroup(env,groupId);
+ if(!g||g.status==='inactive')return json({ok:false,error:'小组不存在或已停用'},404);
+ if(!canGroup(x,g))return json({ok:false,error:'无权查看这个小组的临时安排'},403);
+
+ if(request.method==='GET'){
+  const r=await env.DB.prepare("SELECT o.id,o.group_id,o.meeting_date,o.meeting_point_id,o.status,o.note,p.name meeting_point_name FROM group_meeting_overrides o LEFT JOIN group_meeting_points p ON p.id=o.meeting_point_id WHERE o.group_id=? ORDER BY o.meeting_date DESC LIMIT 100").bind(groupId).all();
+  return json({ok:true,overrides:r.results||[]});
+ }
+
+ if(!canDirectlyManageGroup(x,g))return json({ok:false,error:'只有本小组组长或牧者可以修改临时安排'},403);
+ const b=await request.json().catch(()=>({})),date=clean(b.meeting_date,20),status=['scheduled','cancelled','pending'].includes(b.status)?b.status:'scheduled',pointId=clean(b.meeting_point_id,100)||null,note=clean(b.note,500);
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(date))return json({ok:false,error:'聚会日期格式应为 YYYY-MM-DD'},400);
+ if(status==='scheduled'){
+  if(!pointId)return json({ok:false,error:'请指定本次聚会点'},400);
+  const point=await env.DB.prepare("SELECT id FROM group_meeting_points WHERE id=? AND group_id=? AND status='active'").bind(pointId,groupId).first();
+  if(!point)return json({ok:false,error:'指定聚会点不存在或已停用'},404);
+ }
+ const before=await env.DB.prepare("SELECT * FROM group_meeting_overrides WHERE group_id=? AND meeting_date=?").bind(groupId,date).first();
+ const oid=before?.id||id('OVR');
+ await env.DB.prepare("INSERT INTO group_meeting_overrides(id,group_id,meeting_date,meeting_point_id,status,note,created_by) VALUES(?,?,?,?,?,?,?) ON CONFLICT(group_id,meeting_date) DO UPDATE SET meeting_point_id=excluded.meeting_point_id,status=excluded.status,note=excluded.note,updated_at=datetime('now')").bind(oid,groupId,date,pointId,status,note,x.user.id).run();
+ const after=await env.DB.prepare("SELECT * FROM group_meeting_overrides WHERE group_id=? AND meeting_date=?").bind(groupId,date).first();
+ await audit(env,x,'group.meeting_override.save','meeting_override',oid,before,after);
+ return json({ok:true,override:after},before?200:201);
 }
 async function createGroupJoinInvite(request,env,groupId){
  const a=await requireHuman(request,env);if(a.response)return a.response;const x=a.x,g=await getGroup(env,groupId);
@@ -232,7 +371,7 @@ async function app(request,env,kind){
  const u=await appIdentity(request,env);if(!u)return json({ok:false,error:'App 登录已失效'},401);
  if(kind==='my-group'){
   if(!u.scope_list.includes('my-group:read'))return json({ok:false,error:'当前账号没有读取小组资料的权限'},403);
-  const g=await env.DB.prepare("SELECT g.id,g.group_number,g.name group_name,c.name cluster_name,g.cluster_leader_name,g.leader_name,g.meeting_day,g.meeting_time,g.meeting_frequency,g.meeting_address,g.postcode,g.navigation_address,g.contact_phone,g.reception_status,g.weekly_status,g.temporary_change,g.announcement,g.welcome_message,g.schedule_note FROM church_groups g JOIN church_clusters c ON c.id=g.cluster_id WHERE g.id=? AND g.status='active'").bind(u.group_id).first();
+  const g=await env.DB.prepare("SELECT g.id,g.group_number,g.name group_name,c.name cluster_name,g.cluster_leader_name,g.leader_name,g.group_kind,g.meeting_day,g.meeting_time,g.meeting_frequency,g.meeting_address,g.postcode,g.navigation_address,g.contact_phone,g.reception_status,g.weekly_status,g.temporary_change,g.announcement,g.welcome_message,g.schedule_note FROM church_groups g JOIN church_clusters c ON c.id=g.cluster_id WHERE g.id=? AND g.status='active'").bind(u.group_id).first();
   if(!g)return json({ok:false,error:'尚未分配有效小组'},404);
   const [ar,n,qr,pr]=await Promise.all([
    env.DB.prepare("SELECT m.id,m.display_name FROM group_assistants a JOIN church_members m ON m.id=a.member_id WHERE a.group_id=? AND m.status='active' ORDER BY m.display_name").bind(u.group_id).all(),
@@ -242,7 +381,8 @@ async function app(request,env,kind){
   ]);
   const questions=(qr.results||[]).map(q=>({...q,created_at:isoTime(q.created_at)}));
   const prayers=(pr.results||[]).map(p=>({...p,is_anonymous:Boolean(p.is_anonymous),created_at:isoTime(p.created_at)}));
-  return json({ok:true,member:{id:u.member_id,name:u.display_name},group:{...g,assistants:ar.results||[],questions,prayers},notifications:n.results||[],pending_question_count:questions.filter(q=>q.status==='pending').length});
+  const meeting=await jointMeetingContext(env,g);
+  return json({ok:true,member:{id:u.member_id,name:u.display_name},group:{...g,...meeting,assistants:ar.results||[],questions,prayers},notifications:n.results||[],pending_question_count:questions.filter(q=>q.status==='pending').length});
  }
  if(!u.scope_list.includes('welcome:submit'))return json({ok:false,error:'当前账号没有新人接待提交权限'},403);const b=await request.json().catch(()=>({})),postcode=pc(b.postcode),clientRequestId=clean(b.client_request_id,120),photoCount=expectedPhotoCount(b.expected_photo_count??b.photo_count),submissionStatus=photoCount?'photo_pending':'complete',faithStatus=normalizeFaithStatus(b.faith_status),receptionSite=normalizeReceptionSite(b.reception_site,b.reception_site_confidence??b.ocr_confidence);if(!postcode)return json({ok:false,error:'请填写新人邮编'},400);if(!clientRequestId||!/^[A-Za-z0-9._:-]{8,120}$/.test(clientRequestId))return json({ok:false,error:'client_request_id 格式不正确'},400);const previous=await env.DB.prepare("SELECT id,status,submission_status,expected_photo_count FROM welcome_cases WHERE submitted_by_member_id=? AND client_request_id=?").bind(u.member_id,clientRequestId).first();if(previous)return json({ok:true,id:previous.id,status:previous.status,submission_status:previous.submission_status,expected_photo_count:Number(previous.expected_photo_count||0),existing:true});const wid=id('welcome');try{await env.DB.prepare("INSERT INTO welcome_cases(id,display_name,contact_note,postcode,age_band,family_status,children_note,occupation_stage,preferred_days,language_note,background_note,reception_site,invited_by,faith_status,status,source,submitted_by_member_id,client_request_id,submission_status,expected_photo_count) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,'new','app',?,?,?,?)").bind(wid,clean(b.display_name,120)||'新朋友',clean(b.contact_note,1000),postcode,clean(b.age_band,80),clean(b.family_status,120),clean(b.children_note,500),clean(b.occupation_stage,120),clean(b.preferred_days,300),clean(b.language_note,300),clean(b.background_note,1000),receptionSite,clean(b.invited_by,120),faithStatus,u.member_id,clientRequestId,submissionStatus,photoCount).run()}catch{const same=await env.DB.prepare("SELECT id,status,submission_status,expected_photo_count FROM welcome_cases WHERE submitted_by_member_id=? AND client_request_id=?").bind(u.member_id,clientRequestId).first();if(same)return json({ok:true,id:same.id,status:same.status,submission_status:same.submission_status,expected_photo_count:Number(same.expected_photo_count||0),existing:true});return json({ok:false,error:'新人资料保存失败'},500)}await audit(env,null,'welcome.app_submit','welcome_case',wid,null,{source:'app',client_request_id:clientRequestId,submission_status:submissionStatus},u.member_id);return json({ok:true,id:wid,status:'new',submission_status:submissionStatus,expected_photo_count:photoCount,existing:false},201);
 }
@@ -256,6 +396,9 @@ export async function handleOrganizationApi(request,env,url){
  if(url.pathname==='/api/organization/staff'&&request.method==='GET')return staff(request,env);if(url.pathname==='/api/organization/roles'&&request.method==='POST')return appoint(request,env);if(url.pathname==='/api/organization/roles'&&request.method==='GET')return roleManagement(request,env);if(url.pathname==='/api/organization/requests'&&request.method==='GET')return changeRequests(request,env);if(url.pathname==='/api/organization/audit'&&request.method==='GET')return auditLog(request,env,url);if(url.pathname==='/api/organization/notifications')return notices(request,env);
  if(url.pathname==='/api/organization/welcome'&&request.method==='GET')return welcome(request,env);if(url.pathname==='/api/organization/group-questions'&&request.method==='GET')return groupQuestions(request,env,url);
  let m=url.pathname.match(/^\/api\/organization\/group-questions\/([^/]+)$/);if(m&&request.method==='POST')return groupQuestions(request,env,url,decodeURIComponent(m[1]));
+ m=url.pathname.match(/^\/api\/organization\/groups\/([^/]+)\/meeting-points$/);if(m&&(request.method==='GET'||request.method==='POST'))return groupMeetingPoints(request,env,decodeURIComponent(m[1]));
+ m=url.pathname.match(/^\/api\/organization\/groups\/([^/]+)\/meeting-points\/([^/]+)$/);if(m&&request.method==='POST')return groupMeetingPoints(request,env,decodeURIComponent(m[1]),decodeURIComponent(m[2]));
+ m=url.pathname.match(/^\/api\/organization\/groups\/([^/]+)\/meeting-overrides$/);if(m&&(request.method==='GET'||request.method==='POST'))return groupMeetingOverrides(request,env,decodeURIComponent(m[1]));
   m=url.pathname.match(/^\/api\/organization\/groups\/([^/]+)\/join-invite$/);if(m&&request.method==='POST')return createGroupJoinInvite(request,env,decodeURIComponent(m[1]));
   m=url.pathname.match(/^\/api\/organization\/groups\/([^/]+)$/);if(m&&request.method==='POST')return saveGroup(request,env,decodeURIComponent(m[1]));
  m=url.pathname.match(/^\/api\/organization\/members\/([^/]+)$/);if(m&&request.method==='POST')return saveMember(request,env,decodeURIComponent(m[1]));
