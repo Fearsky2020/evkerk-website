@@ -122,7 +122,7 @@ async function applications(request,env,url){
  if(request.method==='GET'){
   const r=await env.DB.prepare("SELECT a.id,a.display_name,a.phone,a.email,a.postcode,a.requested_group_id,a.requested_group_number,a.note,a.status,a.member_id,a.created_at,a.reviewed_at,g.name requested_group_name,g.cluster_id requested_cluster_id,c.name requested_cluster_name FROM member_registration_applications a LEFT JOIN church_groups g ON g.id=a.requested_group_id LEFT JOIN church_clusters c ON c.id=g.cluster_id ORDER BY a.created_at DESC LIMIT 200").all();
   let rows=r.results||[];
-  if(u.level!=='pastor')rows=rows.filter(a=>(a.requested_group_id&&u.group_ids.includes(a.requested_group_id))||(a.requested_cluster_id&&u.cluster_ids.includes(a.requested_cluster_id)));
+  if(u.level!=='pastor')rows=rows.filter(a=>a.requested_group_id&&u.group_ids.includes(a.requested_group_id));
   return json({ok:true,role:u.level,applications:rows});
  }
  const m=url.pathname.match(/^\/api\/organization\/member-applications\/([^/]+)\/review$/);if(!m)return null;

@@ -76,3 +76,12 @@ test('meeting-point edits are limited to direct group leaders or pastors',()=>{
   assert.match(api,/meeting-points/);
   assert.match(api,/meeting-overrides/);
 });
+
+
+test('cluster leaders can observe their cluster but cannot mutate child-group pastoral content',()=>{
+  assert.match(api,/canDirectlyManageGroup/);
+  assert.match(api,/只有本小组组长或牧者可以修改小组资料/);
+  assert.match(api,/只有本小组组长或牧者可以管理成员/);
+  assert.match(api,/canManageGroupQuestion\(x,row\).*groups\(x\)\.includes\(row\.group_id\)/s);
+  assert.doesNotMatch(api,/canManageGroupQuestion\(x,row\).*clusters\(x\)\.includes/s);
+});

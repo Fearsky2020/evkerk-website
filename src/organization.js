@@ -161,7 +161,7 @@ function groupChanges(body){
 }
 async function saveGroup(request,env,gid=''){
   const a=await requireHuman(request,env);if(a.response)return a.response;const x=a.x,b=await request.json().catch(()=>({}));
-  if(gid){const before=await getGroup(env,gid);if(!before)return json({ok:false,error:'小组不存在'},404);if(!canGroup(x,before))return json({ok:false,error:'不得修改其他大组或小组'},403);
+  if(gid){const before=await getGroup(env,gid);if(!before)return json({ok:false,error:'小组不存在'},404);if(!canDirectlyManageGroup(x,before))return json({ok:false,error:'只有本小组组长或牧者可以修改小组资料'},403);
     const c=groupChanges(b);if(c.cluster_id&&c.cluster_id!==before.cluster_id&&x.level!=='pastor')return json({ok:false,error:'只有牧师可以跨大组移动小组'},403);
     const keys=Object.keys(c);if(!keys.length)return json({ok:false,error:'没有可保存字段'},400);const resetGeo=Object.hasOwn(c,'postcode')&&c.postcode!==before.postcode?',latitude=NULL,longitude=NULL':'';
     await env.DB.prepare("UPDATE church_groups SET "+keys.map(k=>k+'=?').join(',')+resetGeo+",updated_at=datetime('now') WHERE id=?").bind(...keys.map(k=>c[k]),gid).run();
@@ -176,10 +176,10 @@ async function saveGroup(request,env,gid=''){
 }
 async function saveMember(request,env,mid=''){
   const a=await requireHuman(request,env);if(a.response)return a.response;const x=a.x,b=await request.json().catch(()=>({})),g=await getGroup(env,clean(b.group_id,100));
-  if(!canGroup(x,g))return json({ok:false,error:'不得管理其他范围的成员'},403);const v=[clean(b.display_name,120),clean(b.phone,80),clean(b.email,200),clean(b.address,500),pc(b.postcode),g.cluster_id,g.id,b.member_role==='assistant'?'assistant':'member',clean(b.family_note,500),clean(b.language_note,500),clean(b.private_note,2000)];
+  if(!canDirectlyManageGroup(x,g))return json({ok:false,error:'只有本小组组长或牧者可以管理成员'},403);const v=[clean(b.display_name,120),clean(b.phone,80),clean(b.email,200),clean(b.address,500),pc(b.postcode),g.cluster_id,g.id,b.member_role==='assistant'?'assistant':'member',clean(b.family_note,500),clean(b.language_note,500),clean(b.private_note,2000)];
   if(!v[0])return json({ok:false,error:'请填写成员姓名'},400);
   if(!mid){mid=id('MEM');await env.DB.prepare("INSERT INTO church_members(id,display_name,phone,email,address,postcode,cluster_id,group_id,member_role,family_note,language_note,private_note,joined_at,created_by) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,datetime('now'),?)").bind(mid,...v,x.user.id).run();const after=await env.DB.prepare("SELECT * FROM church_members WHERE id=?").bind(mid).first();await audit(env,x,'member.create','member',mid,null,after);return json({ok:true,member:after},201)}
-  const before=await env.DB.prepare("SELECT * FROM church_members WHERE id=?").bind(mid).first();if(!before)return json({ok:false,error:'成员不存在'},404);const old=await getGroup(env,before.group_id);if(!canGroup(x,old))return json({ok:false,error:'不得修改其他小组成员'},403);
+  const before=await env.DB.prepare("SELECT * FROM church_members WHERE id=?").bind(mid).first();if(!before)return json({ok:false,error:'成员不存在'},404);const old=await getGroup(env,before.group_id);if(!canDirectlyManageGroup(x,old))return json({ok:false,error:'只有本小组组长或牧者可以修改成员'},403);
   if(before.group_id!==g.id&&x.level==='group_leader')return changeRequest(env,x,'member_transfer',mid,before.group_id,g.cluster_id,g.id,b);
   await env.DB.prepare("UPDATE church_members SET display_name=?,phone=?,email=?,address=?,postcode=?,cluster_id=?,group_id=?,member_role=?,family_note=?,language_note=?,private_note=?,updated_at=datetime('now') WHERE id=?").bind(...v,mid).run();
   const after=await env.DB.prepare("SELECT * FROM church_members WHERE id=?").bind(mid).first();await audit(env,x,'member.update','member',mid,before,after);return json({ok:true,member:after});
@@ -187,7 +187,7 @@ async function saveMember(request,env,mid=''){
 async function changeRequest(env,x,type,mid,gid,tc,tg,b){const rid=id('REQ');await env.DB.prepare("INSERT INTO organization_change_requests(id,request_type,member_id,group_id,target_cluster_id,target_group_id,payload_json,reason,requested_by) VALUES(?,?,?,?,?,?,?,?,?)").bind(rid,type,mid,gid,tc,tg,JSON.stringify(b),clean(b.reason,1000),x.user.id).run();await audit(env,x,'request.create','change_request',rid,null,{type,mid,gid,tc,tg});return json({ok:true,pending:true,request_id:rid},202)}
 async function memberAction(request,env,mid,action){
  const a=await requireHuman(request,env);if(a.response)return a.response;const x=a.x,b=await request.json().catch(()=>({})),before=await env.DB.prepare("SELECT * FROM church_members WHERE id=?").bind(mid).first();
- if(!before)return json({ok:false,error:'成员不存在'},404);const old=await getGroup(env,before.group_id);if(!canGroup(x,old))return json({ok:false,error:'无权操作'},403);
+ if(!before)return json({ok:false,error:'成员不存在'},404);const old=await getGroup(env,before.group_id);if(!canDirectlyManageGroup(x,old))return json({ok:false,error:'只有本小组组长或牧者可以操作成员'},403);
  if(x.level==='group_leader')return changeRequest(env,x,action==='leave'?'member_leave':'member_transfer',mid,before.group_id,null,clean(b.target_group_id,100)||null,b);
  if(action==='leave')await env.DB.prepare("UPDATE church_members SET status='left',left_at=datetime('now'),updated_at=datetime('now') WHERE id=?").bind(mid).run();
  else{const g=await getGroup(env,clean(b.target_group_id,100));if(!canGroup(x,g))return json({ok:false,error:'目标小组不在管理范围'},403);await env.DB.prepare("UPDATE church_members SET cluster_id=?,group_id=?,status='active',updated_at=datetime('now') WHERE id=?").bind(g.cluster_id,g.id,mid).run()}
@@ -351,11 +351,11 @@ async function appQuestions(request,env,url){
  const created=await env.DB.prepare("SELECT created_at FROM group_questions WHERE id=?").bind(qid).first();await audit(env,null,'group_question.submit','group_question',qid,null,{reference,source},u.member_id);
  return json({id:qid,status:'pending',reference,group:{number:group.group_number,name:group.name},created_at:isoTime(created?.created_at||new Date().toISOString())},201);
 }
-export function canManageGroupQuestion(x,row){return Boolean(x&&row)&&(x.level==='pastor'||clusters(x).includes(row.cluster_id)||groups(x).includes(row.group_id))}
+export function canManageGroupQuestion(x,row){return Boolean(x&&row)&&(x.level==='pastor'||groups(x).includes(row.group_id))}
 async function groupQuestions(request,env,url,qid=''){
  const a=await requireHuman(request,env);if(a.response)return a.response;const x=a.x;
  if(request.method==='GET'){
-  const s=scope(x,'g'),where=[s.sql],args=[...s.args],status=clean(url.searchParams.get('status'),20),clusterId=clean(url.searchParams.get('cluster_id'),100),groupId=clean(url.searchParams.get('group_id'),100),order=url.searchParams.get('order')==='asc'?'ASC':'DESC';
+  const managedGroupIds=groups(x),where=[],args=[],status=clean(url.searchParams.get('status'),20),clusterId=clean(url.searchParams.get('cluster_id'),100),groupId=clean(url.searchParams.get('group_id'),100),order=url.searchParams.get('order')==='asc'?'ASC':'DESC';if(x.level!=='pastor'){if(!managedGroupIds.length)return json({ok:true,role:x.level,questions:[]});where.push('q.group_id IN ('+managedGroupIds.map(()=>'?').join(',')+')');args.push(...managedGroupIds)}else where.push('1=1');
   if(status){if(!QUESTION_STATUSES.has(status))return json({ok:false,error:'问题状态不正确'},400);where.push('q.status=?');args.push(status)}if(clusterId){where.push('q.cluster_id=?');args.push(clusterId)}if(groupId){where.push('q.group_id=?');args.push(groupId)}
   const r=await env.DB.prepare(`SELECT q.id,q.member_id,q.cluster_id,q.group_id,q.book,q.chapter,q.verse_start,q.verse_end,q.reference,q.scripture_text,q.question,q.status,q.source,q.created_at,q.updated_at,q.discussed_at,q.closed_at,q.handler_note,q.handled_by_user_id,m.display_name member_name,g.group_number,g.name group_name,c.name cluster_name,u.name handler_name
    FROM group_questions q JOIN church_members m ON m.id=q.member_id JOIN church_groups g ON g.id=q.group_id JOIN church_clusters c ON c.id=q.cluster_id LEFT JOIN admin_users u ON u.id=q.handled_by_user_id WHERE ${where.join(' AND ')} ORDER BY q.created_at ${order},q.id ${order} LIMIT 500`).bind(...args).all();

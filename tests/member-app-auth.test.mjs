@@ -16,3 +16,9 @@ test('group member join flow requires a target group and exposes a safe public g
 test('group join review is scoped to the requested group leader while pastors can override',()=>{assert.match(src,/只有该小组组长或牧者可以审批这份申请/);assert.match(src,/u\.group_ids\.includes\(requestedGroup\.id\)/);assert.match(src,/u\.level==='pastor'/);assert.match(src,/小组长只能批准加入申请人选择的本组/);});
 
 test('an active member cannot silently join a second independent group',()=>{assert.match(src,/你已经属于其他小组/);assert.match(src,/该申请人已经属于其他小组，请使用转组流程/);});
+
+
+test('large-group leaders do not inherit child-group join applications',()=>{
+  assert.match(src,/rows=rows\.filter\(a=>a\.requested_group_id&&u\.group_ids\.includes\(a\.requested_group_id\)\)/);
+  assert.doesNotMatch(src,/requested_cluster_id&&u\.cluster_ids\.includes/);
+});
