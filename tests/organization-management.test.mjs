@@ -85,3 +85,19 @@ test('cluster leaders can observe their cluster but cannot mutate child-group pa
   assert.match(api,/canManageGroupQuestion\(x,row\).*groups\(x\)\.includes\(row\.group_id\)/s);
   assert.doesNotMatch(api,/canManageGroupQuestion\(x,row\).*clusters\(x\)\.includes/s);
 });
+
+
+const prayerMigration=fs.readFileSync(new URL('../migrations/0035_group_prayer_submission.sql',import.meta.url),'utf8');
+test('member prayer submissions support privacy and idempotency',()=>{
+  assert.match(prayerMigration,/client_request_id/);
+  assert.match(prayerMigration,/idx_group_prayer_member_request/);
+  assert.match(api,/\/api\/app\/my-group\/prayers/);
+  assert.match(api,/visibility=b\.visibility==='leaders'\?'leaders':'group'/);
+  assert.match(api,/p\.visibility='group' OR p\.member_id=\?/);
+});
+test('group prayer handling is limited to direct group leaders or pastors',()=>{
+  assert.match(api,/function canManageGroupPrayer/);
+  assert.match(api,/x\.level==='pastor'\|\|groups\(x\)\.includes\(row\.group_id\)/);
+  assert.match(api,/\/api\/organization\/group-prayers/);
+  assert.doesNotMatch(api,/canManageGroupPrayer[\s\S]{0,220}clusters\(x\)/);
+});

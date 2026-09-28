@@ -351,6 +351,54 @@ async function appQuestions(request,env,url){
  const created=await env.DB.prepare("SELECT created_at FROM group_questions WHERE id=?").bind(qid).first();await audit(env,null,'group_question.submit','group_question',qid,null,{reference,source},u.member_id);
  return json({id:qid,status:'pending',reference,group:{number:group.group_number,name:group.name},created_at:isoTime(created?.created_at||new Date().toISOString())},201);
 }
+async function appPrayers(request,env,url){
+ const u=await appIdentity(request,env);if(!u)return json({ok:false,error:'App 登录已失效'},401);
+ const group=await env.DB.prepare("SELECT id,name,group_number,cluster_id FROM church_groups WHERE id=? AND cluster_id=? AND status='active' AND is_demo=0").bind(u.group_id,u.cluster_id).first();
+ if(!group)return json({ok:false,error:'当前成员没有绑定有效小组'},404);
+
+ if(request.method==='GET'){
+  const r=await env.DB.prepare("SELECT p.id,p.content,p.is_anonymous,p.visibility,p.status,p.created_at,p.updated_at,p.answered_at,CASE WHEN p.is_anonymous=1 THEN '匿名' ELSE COALESCE(m.display_name,'组员') END author_name FROM group_prayer_items p LEFT JOIN church_members m ON m.id=p.member_id WHERE p.member_id=? ORDER BY p.created_at DESC LIMIT 100").bind(u.member_id).all();
+  return json({ok:true,prayers:(r.results||[]).map(p=>({...p,is_anonymous:Boolean(p.is_anonymous),created_at:isoTime(p.created_at),updated_at:isoTime(p.updated_at),answered_at:isoTime(p.answered_at)}))});
+ }
+
+ const b=await request.json().catch(()=>({})),content=clean(b.content,2000),visibility=b.visibility==='leaders'?'leaders':'group',isAnonymous=b.is_anonymous?1:0,clientRequestId=clean(b.client_request_id,120);
+ if(!content)return json({ok:false,error:'请填写代祷内容'},400);
+ if(!/^[A-Za-z0-9._:-]{8,120}$/.test(clientRequestId))return json({ok:false,error:'client_request_id 格式不正确'},400);
+ const existing=await env.DB.prepare("SELECT id,status,visibility,created_at FROM group_prayer_items WHERE member_id=? AND client_request_id=?").bind(u.member_id,clientRequestId).first();
+ if(existing)return json({ok:true,existing:true,id:existing.id,status:existing.status,visibility:existing.visibility,created_at:isoTime(existing.created_at)},200);
+ const recent=await env.DB.prepare("SELECT COUNT(*) count FROM group_prayer_items WHERE member_id=? AND datetime(created_at)>=datetime('now','-10 minutes')").bind(u.member_id).first();
+ if(Number(recent?.count||0)>=5)return json({ok:false,error:'代祷提交过于频繁，请稍后再试'},429);
+ const pid=id('PRAY');
+ await env.DB.prepare("INSERT INTO group_prayer_items(id,group_id,member_id,content,is_anonymous,visibility,status,client_request_id) VALUES(?,?,?,?,?,?,'active',?)").bind(pid,group.id,u.member_id,content,isAnonymous,visibility,clientRequestId).run();
+ const created=await env.DB.prepare("SELECT created_at FROM group_prayer_items WHERE id=?").bind(pid).first();
+ await audit(env,null,'group_prayer.submit','group_prayer',pid,null,{group_id:group.id,visibility,is_anonymous:Boolean(isAnonymous)},u.member_id);
+ return json({ok:true,id:pid,status:'active',visibility,created_at:isoTime(created?.created_at||new Date().toISOString())},201);
+}
+function canManageGroupPrayer(x,row){return Boolean(x&&row)&&(x.level==='pastor'||groups(x).includes(row.group_id))}
+async function groupPrayers(request,env,url,pid=''){
+ const a=await requireHuman(request,env);if(a.response)return a.response;const x=a.x;
+ if(request.method==='GET'){
+  const managedGroupIds=groups(x),where=[],args=[],groupId=clean(url.searchParams.get('group_id'),100),status=clean(url.searchParams.get('status'),20);
+  if(x.level!=='pastor'){
+   if(!managedGroupIds.length)return json({ok:true,role:x.level,prayers:[]});
+   where.push('p.group_id IN ('+managedGroupIds.map(()=>'?').join(',')+')');args.push(...managedGroupIds);
+  }else where.push('1=1');
+  if(groupId){where.push('p.group_id=?');args.push(groupId)}
+  if(status){if(!['active','answered','archived'].includes(status))return json({ok:false,error:'代祷状态不正确'},400);where.push('p.status=?');args.push(status)}
+  const r=await env.DB.prepare(`SELECT p.id,p.group_id,p.member_id,p.content,p.is_anonymous,p.visibility,p.status,p.created_at,p.updated_at,p.answered_at,p.handler_note,m.display_name member_name,g.name group_name,g.group_number
+   FROM group_prayer_items p LEFT JOIN church_members m ON m.id=p.member_id JOIN church_groups g ON g.id=p.group_id WHERE ${where.join(' AND ')} ORDER BY CASE p.status WHEN 'active' THEN 0 WHEN 'answered' THEN 1 ELSE 2 END,p.created_at DESC LIMIT 500`).bind(...args).all();
+  return json({ok:true,role:x.level,prayers:(r.results||[]).map(p=>({...p,is_anonymous:Boolean(p.is_anonymous),created_at:isoTime(p.created_at),updated_at:isoTime(p.updated_at),answered_at:isoTime(p.answered_at)}))});
+ }
+ const item=await env.DB.prepare("SELECT * FROM group_prayer_items WHERE id=?").bind(pid).first();
+ if(!item)return json({ok:false,error:'代祷事项不存在'},404);
+ if(!canManageGroupPrayer(x,item))return json({ok:false,error:'不得处理其他小组的代祷事项'},403);
+ const b=await request.json().catch(()=>({})),status=['active','answered','archived'].includes(b.status)?b.status:item.status,note=clean(b.handler_note,2000);
+ await env.DB.prepare("UPDATE group_prayer_items SET status=?,handler_note=?,handled_by_user_id=?,answered_at=CASE WHEN ?='answered' AND answered_at IS NULL THEN datetime('now') ELSE answered_at END,updated_at=datetime('now') WHERE id=?").bind(status,note,x.user.id,status,pid).run();
+ const after=await env.DB.prepare("SELECT * FROM group_prayer_items WHERE id=?").bind(pid).first();
+ await audit(env,x,'group_prayer.update','group_prayer',pid,item,after);
+ return json({ok:true,prayer:{id:pid,status:after.status,handler_note:after.handler_note,answered_at:isoTime(after.answered_at)}});
+}
+
 export function canManageGroupQuestion(x,row){return Boolean(x&&row)&&(x.level==='pastor'||groups(x).includes(row.group_id))}
 async function groupQuestions(request,env,url,qid=''){
  const a=await requireHuman(request,env);if(a.response)return a.response;const x=a.x;
@@ -377,7 +425,7 @@ async function app(request,env,kind){
    env.DB.prepare("SELECT m.id,m.display_name FROM group_assistants a JOIN church_members m ON m.id=a.member_id WHERE a.group_id=? AND m.status='active' ORDER BY m.display_name").bind(u.group_id).all(),
    env.DB.prepare("SELECT id,title,body,scope_type,starts_at,ends_at FROM group_notifications WHERE status='active' AND (scope_type='church' OR (scope_type='cluster' AND cluster_id=?) OR (scope_type='group' AND group_id=?)) AND (starts_at IS NULL OR datetime(starts_at)<=datetime('now')) AND (ends_at IS NULL OR datetime(ends_at)>=datetime('now')) ORDER BY created_at DESC").bind(u.cluster_id,u.group_id).all(),
    env.DB.prepare("SELECT q.id,q.reference,q.question,q.status,q.created_at,m.display_name member_name FROM group_questions q JOIN church_members m ON m.id=q.member_id WHERE q.group_id=? AND q.status IN ('pending','discussed') ORDER BY CASE q.status WHEN 'pending' THEN 0 ELSE 1 END,q.created_at DESC LIMIT 30").bind(u.group_id).all(),
-   env.DB.prepare("SELECT p.id,p.content,p.is_anonymous,p.status,p.created_at,CASE WHEN p.is_anonymous=1 THEN '匿名' ELSE COALESCE(m.display_name,'组员') END author_name FROM group_prayer_items p LEFT JOIN church_members m ON m.id=p.member_id WHERE p.group_id=? AND p.visibility='group' AND p.status IN ('active','answered') ORDER BY CASE p.status WHEN 'active' THEN 0 ELSE 1 END,p.created_at DESC LIMIT 30").bind(u.group_id).all()
+   env.DB.prepare("SELECT p.id,p.content,p.is_anonymous,p.visibility,p.status,p.created_at,CASE WHEN p.is_anonymous=1 THEN '匿名' ELSE COALESCE(m.display_name,'组员') END author_name FROM group_prayer_items p LEFT JOIN church_members m ON m.id=p.member_id WHERE p.group_id=? AND (p.visibility='group' OR p.member_id=?) AND p.status IN ('active','answered') ORDER BY CASE p.status WHEN 'active' THEN 0 ELSE 1 END,p.created_at DESC LIMIT 30").bind(u.group_id,u.member_id).all()
   ]);
   const questions=(qr.results||[]).map(q=>({...q,created_at:isoTime(q.created_at)}));
   const prayers=(pr.results||[]).map(p=>({...p,is_anonymous:Boolean(p.is_anonymous),created_at:isoTime(p.created_at)}));
@@ -389,13 +437,14 @@ async function app(request,env,kind){
 export async function handleOrganizationApi(request,env,url){
  if(!url.pathname.startsWith('/api/organization/')&&!url.pathname.startsWith('/api/app/'))return null;
  let joinInvite=url.pathname.match(/^\/api\/app\/join-invite\/([^/]+)$/);if(joinInvite&&request.method==='GET')return resolveGroupJoinInvite(env,decodeURIComponent(joinInvite[1]));
- if(url.pathname==='/api/app/my-group'&&request.method==='GET')return app(request,env,'my-group');if(url.pathname==='/api/app/my-group/questions'&&(request.method==='GET'||request.method==='POST'))return appQuestions(request,env,url);if(url.pathname==='/api/app/welcome'&&request.method==='POST')return app(request,env,'welcome');let appMatch=url.pathname.match(/^\/api\/app\/welcome\/submissions\/([^/]+)(\/photos)?$/);if(appMatch&&request.method==='GET'&&!appMatch[2])return appSubmission(request,env,decodeURIComponent(appMatch[1]),false);if(appMatch&&request.method==='POST'&&appMatch[2])return appSubmission(request,env,decodeURIComponent(appMatch[1]),true);
+ if(url.pathname==='/api/app/my-group'&&request.method==='GET')return app(request,env,'my-group');if(url.pathname==='/api/app/my-group/questions'&&(request.method==='GET'||request.method==='POST'))return appQuestions(request,env,url);if(url.pathname==='/api/app/my-group/prayers'&&(request.method==='GET'||request.method==='POST'))return appPrayers(request,env,url);if(url.pathname==='/api/app/welcome'&&request.method==='POST')return app(request,env,'welcome');let appMatch=url.pathname.match(/^\/api\/app\/welcome\/submissions\/([^/]+)(\/photos)?$/);if(appMatch&&request.method==='GET'&&!appMatch[2])return appSubmission(request,env,decodeURIComponent(appMatch[1]),false);if(appMatch&&request.method==='POST'&&appMatch[2])return appSubmission(request,env,decodeURIComponent(appMatch[1]),true);
  if(url.pathname==='/api/organization/dashboard'&&request.method==='GET')return overview(request,env,'dashboard',url);if(url.pathname==='/api/organization/tree'&&request.method==='GET')return overview(request,env,'tree',url);
  if(url.pathname==='/api/organization/groups'&&request.method==='GET')return overview(request,env,'groups',url);if(url.pathname==='/api/organization/groups'&&request.method==='POST')return saveGroup(request,env);
  if(url.pathname==='/api/organization/members'&&request.method==='GET')return overview(request,env,'members',url);if(url.pathname==='/api/organization/members'&&request.method==='POST')return saveMember(request,env);
  if(url.pathname==='/api/organization/staff'&&request.method==='GET')return staff(request,env);if(url.pathname==='/api/organization/roles'&&request.method==='POST')return appoint(request,env);if(url.pathname==='/api/organization/roles'&&request.method==='GET')return roleManagement(request,env);if(url.pathname==='/api/organization/requests'&&request.method==='GET')return changeRequests(request,env);if(url.pathname==='/api/organization/audit'&&request.method==='GET')return auditLog(request,env,url);if(url.pathname==='/api/organization/notifications')return notices(request,env);
- if(url.pathname==='/api/organization/welcome'&&request.method==='GET')return welcome(request,env);if(url.pathname==='/api/organization/group-questions'&&request.method==='GET')return groupQuestions(request,env,url);
+ if(url.pathname==='/api/organization/welcome'&&request.method==='GET')return welcome(request,env);if(url.pathname==='/api/organization/group-questions'&&request.method==='GET')return groupQuestions(request,env,url);if(url.pathname==='/api/organization/group-prayers'&&request.method==='GET')return groupPrayers(request,env,url);
  let m=url.pathname.match(/^\/api\/organization\/group-questions\/([^/]+)$/);if(m&&request.method==='POST')return groupQuestions(request,env,url,decodeURIComponent(m[1]));
+ m=url.pathname.match(/^\/api\/organization\/group-prayers\/([^/]+)$/);if(m&&request.method==='POST')return groupPrayers(request,env,url,decodeURIComponent(m[1]));
  m=url.pathname.match(/^\/api\/organization\/groups\/([^/]+)\/meeting-points$/);if(m&&(request.method==='GET'||request.method==='POST'))return groupMeetingPoints(request,env,decodeURIComponent(m[1]));
  m=url.pathname.match(/^\/api\/organization\/groups\/([^/]+)\/meeting-points\/([^/]+)$/);if(m&&request.method==='POST')return groupMeetingPoints(request,env,decodeURIComponent(m[1]),decodeURIComponent(m[2]));
  m=url.pathname.match(/^\/api\/organization\/groups\/([^/]+)\/meeting-overrides$/);if(m&&(request.method==='GET'||request.method==='POST'))return groupMeetingOverrides(request,env,decodeURIComponent(m[1]));
