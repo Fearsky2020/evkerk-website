@@ -152,6 +152,28 @@ async function welcome(request,env,caseId='',action=''){
  if(action==='assign'){if(x.level==='group_leader')return json({ok:false,error:'最终分配须由牧师或大组长确认'},403);const g=await getGroup(env,clean(b.group_id,100));if(!canGroup(x,g))return json({ok:false,error:'不得跨范围分配'},403);await env.DB.batch([env.DB.prepare("UPDATE welcome_assignments SET active=0,ended_at=datetime('now') WHERE case_id=? AND active=1").bind(caseId),env.DB.prepare("INSERT INTO welcome_assignments(id,case_id,group_id,carer_user_id,carer_name,reason,assigned_by) VALUES(?,?,?,?,?,?,?)").bind(id('ASN'),caseId,g.id,clean(b.carer_user_id,100)||null,clean(b.carer_name,120),clean(b.reason,1000),x.user.id),env.DB.prepare("UPDATE welcome_cases SET assigned_group_id=?,assigned_cluster_id=?,primary_carer_user_id=?,primary_carer_name=?,status='assigned',updated_at=datetime('now') WHERE id=?").bind(g.id,g.cluster_id,clean(b.carer_user_id,100)||null,clean(b.carer_name,120),caseId)]);await audit(env,x,'welcome.assign','welcome_case',caseId,item,{group_id:g.id});return json({ok:true})}
  if(item.assigned_group_id&&!canGroup(x,await getGroup(env,item.assigned_group_id)))return json({ok:false,error:'不得跟进其他范围新人'},403);const fid=id('FUP');await env.DB.prepare("INSERT INTO welcome_followups(id,case_id,actor_user_id,outcome,note,next_followup_at,contact_date,contact_method,welcome_sent,attended,assigned_cluster_id,assigned_group_id) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)").bind(fid,caseId,x.user.id,clean(b.outcome,120),clean(b.note,2000),clean(b.next_followup_at,50)||null,clean(b.contact_date,50)||null,clean(b.contact_method,80),b.welcome_sent?1:0,b.attended==null?null:(b.attended?1:0),item.assigned_cluster_id,item.assigned_group_id).run();await env.DB.prepare("UPDATE welcome_cases SET welcome_sent=MAX(welcome_sent,?),next_followup_at=?,updated_at=datetime('now') WHERE id=?").bind(b.welcome_sent?1:0,clean(b.next_followup_at,50)||null,caseId).run();await audit(env,x,'welcome.followup','welcome_case',caseId,null,{fid});return json({ok:true,id:fid},201);
 }
+async function createGroupJoinInvite(request,env,groupId){
+ const a=await requireHuman(request,env);if(a.response)return a.response;const x=a.x,g=await getGroup(env,groupId);
+ if(!g||g.status!=='active')return json({ok:false,error:'小组不存在或已停用'},404);
+ if(x.level!=='pastor'&&!groups(x).includes(g.id))return json({ok:false,error:'只有本小组组长或牧者可以生成邀请卡'},403);
+ const raw=token(),iid=id('GINV'),digest=await hash(raw);
+ await env.DB.batch([
+  env.DB.prepare("UPDATE group_join_invites SET status='revoked',revoked_at=datetime('now') WHERE group_id=? AND status='active'").bind(g.id),
+  env.DB.prepare("INSERT INTO group_join_invites(id,group_id,token_hash,status,created_by) VALUES(?,?,?,'active',?)").bind(iid,g.id,digest,x.user.id)
+ ]);
+ await audit(env,x,'group.join_invite.rotate','group',g.id,null,{invite_id:iid});
+ return json({ok:true,group:{id:g.id,name:g.name,number:g.group_number},invite_url:'https://evkerk.nl/join/'+raw,token:raw,notice:'生成新邀请卡后，旧二维码已失效'},201);
+}
+async function resolveGroupJoinInvite(env,raw){
+ const value=clean(raw,300);if(!value)return json({ok:false,error:'邀请链接无效'},404);
+ const digest=await hash(value);
+ const row=await env.DB.prepare(`SELECT i.id invite_id,g.id,g.group_number,g.name,c.name cluster_name,g.meeting_day,g.meeting_time,g.meeting_frequency,g.postcode,g.reception_status,g.status
+  FROM group_join_invites i JOIN church_groups g ON g.id=i.group_id JOIN church_clusters c ON c.id=g.cluster_id
+  WHERE i.token_hash=? AND i.status='active' AND g.is_demo=0`).bind(digest).first();
+ if(!row||row.status!=='active')return json({ok:false,error:'邀请链接已失效'},404);
+ if(!['open','near_full'].includes(row.reception_status))return json({ok:false,error:'该小组目前暂停接纳新组员'},409);
+ return json({ok:true,group:{id:row.id,group_number:row.group_number,name:row.name,cluster_name:row.cluster_name,meeting_day:row.meeting_day,meeting_time:row.meeting_time,meeting_frequency:row.meeting_frequency,postcode:row.postcode,reception_status:row.reception_status}});
+}
 async function appIdentity(request,env){return authenticateMemberAppToken(request,env)}
 async function issueToken(request,env,mid){const a=await requireHuman(request,env);if(a.response)return a.response;if(a.x.level!=='pastor')return json({ok:false,error:'只有牧师可签发 App 令牌'},403);const m=await env.DB.prepare("SELECT id FROM church_members WHERE id=? AND status='active'").bind(mid).first();if(!m)return json({ok:false,error:'成员不存在'},404);const raw=token(),tid=id('TOK');await env.DB.prepare("INSERT INTO member_app_tokens(id,member_id,token_hash,label,created_by) VALUES(?,?,?,?,?)").bind(tid,mid,await hash(raw),'教会 App',a.x.user.id).run();await audit(env,a.x,'app_token.create','member',mid,null,{tid});return json({ok:true,token:raw,notice:'只显示一次'},201)}
 const APP_PHOTO_TYPES=new Map([['image/jpeg','jpg'],['image/png','png'],['image/webp','webp'],['image/heic','heic'],['image/heif','heif']]);
@@ -213,6 +235,7 @@ async function app(request,env,kind){
 }
 export async function handleOrganizationApi(request,env,url){
  if(!url.pathname.startsWith('/api/organization/')&&!url.pathname.startsWith('/api/app/'))return null;
+ let joinInvite=url.pathname.match(/^\/api\/app\/join-invite\/([^/]+)$/);if(joinInvite&&request.method==='GET')return resolveGroupJoinInvite(env,decodeURIComponent(joinInvite[1]));
  if(url.pathname==='/api/app/my-group'&&request.method==='GET')return app(request,env,'my-group');if(url.pathname==='/api/app/my-group/questions'&&(request.method==='GET'||request.method==='POST'))return appQuestions(request,env,url);if(url.pathname==='/api/app/welcome'&&request.method==='POST')return app(request,env,'welcome');let appMatch=url.pathname.match(/^\/api\/app\/welcome\/submissions\/([^/]+)(\/photos)?$/);if(appMatch&&request.method==='GET'&&!appMatch[2])return appSubmission(request,env,decodeURIComponent(appMatch[1]),false);if(appMatch&&request.method==='POST'&&appMatch[2])return appSubmission(request,env,decodeURIComponent(appMatch[1]),true);
  if(url.pathname==='/api/organization/dashboard'&&request.method==='GET')return overview(request,env,'dashboard',url);if(url.pathname==='/api/organization/tree'&&request.method==='GET')return overview(request,env,'tree',url);
  if(url.pathname==='/api/organization/groups'&&request.method==='GET')return overview(request,env,'groups',url);if(url.pathname==='/api/organization/groups'&&request.method==='POST')return saveGroup(request,env);
@@ -220,6 +243,7 @@ export async function handleOrganizationApi(request,env,url){
  if(url.pathname==='/api/organization/staff'&&request.method==='GET')return staff(request,env);if(url.pathname==='/api/organization/roles'&&request.method==='POST')return appoint(request,env);if(url.pathname==='/api/organization/roles'&&request.method==='GET')return roleManagement(request,env);if(url.pathname==='/api/organization/requests'&&request.method==='GET')return changeRequests(request,env);if(url.pathname==='/api/organization/audit'&&request.method==='GET')return auditLog(request,env,url);if(url.pathname==='/api/organization/notifications')return notices(request,env);
  if(url.pathname==='/api/organization/welcome'&&request.method==='GET')return welcome(request,env);if(url.pathname==='/api/organization/group-questions'&&request.method==='GET')return groupQuestions(request,env,url);
  let m=url.pathname.match(/^\/api\/organization\/group-questions\/([^/]+)$/);if(m&&request.method==='POST')return groupQuestions(request,env,url,decodeURIComponent(m[1]));
+  m=url.pathname.match(/^\/api\/organization\/groups\/([^/]+)\/join-invite$/);if(m&&request.method==='POST')return createGroupJoinInvite(request,env,decodeURIComponent(m[1]));
   m=url.pathname.match(/^\/api\/organization\/groups\/([^/]+)$/);if(m&&request.method==='POST')return saveGroup(request,env,decodeURIComponent(m[1]));
  m=url.pathname.match(/^\/api\/organization\/members\/([^/]+)$/);if(m&&request.method==='POST')return saveMember(request,env,decodeURIComponent(m[1]));
  m=url.pathname.match(/^\/api\/organization\/members\/([^/]+)\/(transfer|leave)$/);if(m&&request.method==='POST')return memberAction(request,env,decodeURIComponent(m[1]),m[2]);

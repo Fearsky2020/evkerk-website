@@ -8,4 +8,11 @@ test('registration review is audited and initial code is shown once',()=>{assert
 test('staff can invite members and revoke individual app sessions',()=>{assert.match(src,/\/api\/organization\/member-invitations/);assert.match(src,/app-sessions/);assert.match(src,/member_account\.invite/);assert.match(src,/member_session\.revoke/);assert.match(src,/staff_revoke/)});
 
 const postcodeMigration=fs.readFileSync(new URL('../migrations/0028_member_application_postcode.sql',import.meta.url),'utf8');
-test('member group application requires and preserves a normalized Dutch postcode',()=>{assert.match(postcodeMigration,/ADD COLUMN postcode TEXT NOT NULL/);assert.match(src,/normalizePostcode/);assert.match(src,/\^\[1-9\]\\d\{3\}\[A-Z\]\{2\}\$/);assert.match(src,/phone,email,postcode,requested_group_number/);assert.match(src,/a\.postcode/);});
+const groupJoinMigration=fs.readFileSync(new URL('../migrations/0031_group_member_join_target.sql',import.meta.url),'utf8');
+test('member group application requires and preserves a normalized Dutch postcode',()=>{assert.match(postcodeMigration,/ADD COLUMN postcode TEXT NOT NULL/);assert.match(src,/normalizePostcode/);assert.match(src,/\^\[1-9\]\\d\{3\}\[A-Z\]\{2\}\$/);assert.match(src,/phone,email,postcode,requested_group_id,requested_group_number/);assert.match(src,/a\.postcode/);});
+
+test('group member join flow requires a target group and exposes a safe public group list',()=>{assert.match(groupJoinMigration,/ADD COLUMN requested_group_id/);assert.match(src,/\/api\/app\/groups/);assert.match(src,/请先选择要加入的小组/);assert.match(src,/reception_status IN \('open','near_full'\)/);assert.match(src,/requested_group_id/);});
+
+test('group join review is scoped to the requested group leader while pastors can override',()=>{assert.match(src,/只有该小组组长或牧者可以审批这份申请/);assert.match(src,/u\.group_ids\.includes\(requestedGroup\.id\)/);assert.match(src,/u\.level==='pastor'/);assert.match(src,/小组长只能批准加入申请人选择的本组/);});
+
+test('an active member cannot silently join a second independent group',()=>{assert.match(src,/你已经属于其他小组/);assert.match(src,/该申请人已经属于其他小组，请使用转组流程/);});

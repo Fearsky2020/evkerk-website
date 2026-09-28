@@ -31,3 +31,23 @@ test('group management UI uses server APIs',()=>{
   for(const route of ['/api/organization/tree','/api/organization/groups','/api/organization/members','/api/organization/welcome'])
     assert.ok(ui.includes(route),route);
 });
+
+
+const inviteMigration=fs.readFileSync(new URL('../migrations/0032_group_join_invites.sql',import.meta.url),'utf8');
+test('group invitation QR tokens are revocable and do not store raw tokens',()=>{
+  assert.match(inviteMigration,/group_join_invites/);
+  assert.match(inviteMigration,/token_hash TEXT NOT NULL UNIQUE/);
+  assert.doesNotMatch(inviteMigration,/token TEXT/);
+  assert.match(api,/createGroupJoinInvite/);
+  assert.match(api,/只有本小组组长或牧者可以生成邀请卡/);
+  assert.match(api,/UPDATE group_join_invites SET status='revoked'/);
+  assert.match(api,/https:\/\/evkerk\.nl\/join\//);
+});
+test('public invite resolution exposes only safe group application context',()=>{
+  assert.match(api,/join-invite/);
+  assert.match(api,/resolveGroupJoinInvite/);
+  assert.match(api,/meeting_day/);
+  assert.match(api,/meeting_time/);
+  assert.match(api,/postcode/);
+  assert.doesNotMatch(api,/resolveGroupJoinInvite[\s\S]{0,1800}meeting_address/);
+});

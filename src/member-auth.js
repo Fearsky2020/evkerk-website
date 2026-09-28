@@ -28,7 +28,11 @@ async function staff(request,env){
  const u=await authenticateHumanSession(request,env);if(!u)return null;
  const services=await servicesForUser(env,u.id);
  if(u.role!=='owner'&&!services.includes('admin')&&!services.includes('organization'))return null;
- return u;
+ const r=await env.DB.prepare("SELECT role,cluster_id,group_id FROM organization_role_assignments WHERE user_id=? AND active=1").bind(u.id).all();
+ const assignments=r.results||[];
+ if(u.role==='owner'||services.includes('admin'))assignments.unshift({role:'pastor',cluster_id:null,group_id:null});
+ const level=assignments.some(x=>x.role==='pastor')?'pastor':assignments.some(x=>x.role==='cluster_leader')?'cluster_leader':assignments.some(x=>x.role==='group_leader')?'group_leader':'none';
+ return{...u,services,assignments,level,cluster_ids:assignments.filter(x=>x.role==='cluster_leader'&&x.cluster_id).map(x=>x.cluster_id),group_ids:assignments.filter(x=>x.role==='group_leader'&&x.group_id).map(x=>x.group_id)};
 }
 async function issue(env,memberId,scopes,deviceId,createdBy=null){
  scopes=parseMemberScopes([...scopes,'my-group:read','my-group:question:submit']);
@@ -39,15 +43,33 @@ async function issue(env,memberId,scopes,deviceId,createdBy=null){
   .bind(tid,memberId,await hash(access),'教会 App',createdBy,scopes.join(' '),clean(deviceId,200),accessExpiresAt,await hash(refresh),refreshExpiresAt).run();
  return{access_token:access,refresh_token:refresh,token_type:'Bearer',expires_in:3600,scopes};
 }
+async function publicGroups(env){
+ const r=await env.DB.prepare("SELECT g.id,g.group_number,g.name,c.name cluster_name,g.meeting_day,g.meeting_time,g.meeting_frequency,g.postcode,g.reception_status FROM church_groups g JOIN church_clusters c ON c.id=g.cluster_id WHERE g.status='active' AND g.is_demo=0 AND g.reception_status IN ('open','near_full') ORDER BY c.sort_order,g.group_number").all();
+ return json({ok:true,groups:r.results||[]});
+}
 async function register(request,env){
- const b=await request.json().catch(()=>({})),name=clean(b.display_name,120),phone=normalizeIdentifier(b.phone),email=normalizeIdentifier(b.email),postcode=normalizePostcode(b.postcode);
- if(!name||(!phone&&!email))return json({ok:false,error:'请填写姓名，并提供手机号或邮箱'},400);
+ const b=await request.json().catch(()=>({})),name=clean(b.display_name,120),phone=normalizeIdentifier(b.phone),email=normalizeIdentifier(b.email),postcode=normalizePostcode(b.postcode),requestedGroupId=clean(b.requested_group_id,100);
+ if(!name||!phone)return json({ok:false,error:'请填写姓名和手机号'},400);
  if(!/^[1-9]\d{3}[A-Z]{2}$/.test(postcode))return json({ok:false,error:'请输入有效的荷兰住址邮编，例如 2511EC'},400);
+ if(!requestedGroupId)return json({ok:false,error:'请先选择要加入的小组'},400);
+ const group=await env.DB.prepare("SELECT id,group_number,name,cluster_id,reception_status FROM church_groups WHERE id=? AND status='active' AND is_demo=0").bind(requestedGroupId).first();
+ if(!group)return json({ok:false,error:'所选小组不存在或暂不可加入'},404);
+ if(['closed','paused'].includes(group.reception_status))return json({ok:false,error:'该小组目前暂停接纳新组员，请选择其他小组或联系牧者'},409);
+ const existing=await env.DB.prepare("SELECT id,display_name,group_id,status FROM church_members WHERE status='active' AND phone=? LIMIT 1").bind(phone).first();
+ if(existing){
+  if(existing.group_id===group.id)return json({ok:false,error:'你已经是这个小组的组员，请直接登录我的小组'},409);
+  return json({ok:false,error:'你已经属于其他小组；如需转组，请联系现任小组长或牧者'},409);
+ }
  const aid=id('APP');
- try{await env.DB.prepare("INSERT INTO member_registration_applications(id,display_name,phone,email,postcode,requested_group_number,note) VALUES(?,?,?,?,?,?,?)")
-  .bind(aid,name,phone,email,postcode,null,clean(b.note,1000)).run()}
- catch{return json({ok:true,status:'pending',message:'申请已收到，请等待教会审核'},202)}
- return json({ok:true,application_id:aid,status:'pending',message:'申请已收到，请等待教会审核'},202);
+ try{
+  await env.DB.prepare("INSERT INTO member_registration_applications(id,display_name,phone,email,postcode,requested_group_id,requested_group_number,note) VALUES(?,?,?,?,?,?,?,?)")
+   .bind(aid,name,phone,email,postcode,group.id,group.group_number,clean(b.note,1000)).run();
+ }catch{
+  const pending=await env.DB.prepare("SELECT id,requested_group_id FROM member_registration_applications WHERE status='pending' AND phone=? ORDER BY created_at DESC LIMIT 1").bind(phone).first();
+  if(pending)return json({ok:true,application_id:pending.id,status:'pending',message:'申请已经提交，正在等待小组长审核'},202);
+  return json({ok:false,error:'加入小组申请暂时无法保存，请稍后重试'},500);
+ }
+ return json({ok:true,application_id:aid,status:'pending',requested_group:{id:group.id,name:group.name,number:group.group_number},message:'申请已收到，等待'+group.name+'小组长审核'},202);
 }
 async function login(request,env){
  const b=await request.json().catch(()=>({})),identifier=normalizeIdentifier(b.identifier),code=clean(b.login_code,120);
@@ -96,20 +118,59 @@ async function changeCode(request,env){
  return json({ok:true,relogin_required:true});
 }
 async function applications(request,env,url){
- const u=await staff(request,env);if(!u)return json({ok:false,error:'没有会友账号审核权限'},403);
- if(request.method==='GET'){const r=await env.DB.prepare("SELECT id,display_name,phone,email,postcode,requested_group_number,note,status,member_id,created_at,reviewed_at FROM member_registration_applications ORDER BY created_at DESC LIMIT 200").all();return json({ok:true,applications:r.results||[]})}
+ const u=await staff(request,env);if(!u)return json({ok:false,error:'没有小组申请审核权限'},403);
+ if(request.method==='GET'){
+  const r=await env.DB.prepare("SELECT a.id,a.display_name,a.phone,a.email,a.postcode,a.requested_group_id,a.requested_group_number,a.note,a.status,a.member_id,a.created_at,a.reviewed_at,g.name requested_group_name,g.cluster_id requested_cluster_id,c.name requested_cluster_name FROM member_registration_applications a LEFT JOIN church_groups g ON g.id=a.requested_group_id LEFT JOIN church_clusters c ON c.id=g.cluster_id ORDER BY a.created_at DESC LIMIT 200").all();
+  let rows=r.results||[];
+  if(u.level!=='pastor')rows=rows.filter(a=>(a.requested_group_id&&u.group_ids.includes(a.requested_group_id))||(a.requested_cluster_id&&u.cluster_ids.includes(a.requested_cluster_id)));
+  return json({ok:true,role:u.level,applications:rows});
+ }
  const m=url.pathname.match(/^\/api\/organization\/member-applications\/([^/]+)\/review$/);if(!m)return null;
  const aid=decodeURIComponent(m[1]),b=await request.json().catch(()=>({})),decision=b.decision==='approved'?'approved':b.decision==='rejected'?'rejected':'';
  if(!decision)return json({ok:false,error:'审核结果不正确'},400);
- const a=await env.DB.prepare("SELECT * FROM member_registration_applications WHERE id=? AND status='pending'").bind(aid).first();if(!a)return json({ok:false,error:'申请不存在或已经处理'},404);
- if(decision==='rejected'){await env.DB.prepare("UPDATE member_registration_applications SET status='rejected',rejection_reason=?,reviewed_by=?,reviewed_at=datetime('now'),updated_at=datetime('now') WHERE id=?").bind(clean(b.reason,500),u.id,aid).run();return json({ok:true,status:'rejected'})}
- let mid=clean(b.member_id,100),group=null;if(!mid&&b.group_id)group=await env.DB.prepare("SELECT id,cluster_id FROM church_groups WHERE id=? AND status='active' AND is_demo=0").bind(clean(b.group_id,100)).first();
- if(!mid){mid=id('MEM');await env.DB.prepare("INSERT INTO church_members(id,display_name,phone,email,postcode,cluster_id,group_id,status,joined_at,created_by) VALUES(?,?,?,?,?,?,?,'active',datetime('now'),?)").bind(mid,a.display_name,a.phone,a.email,a.postcode||'',group?.cluster_id||null,group?.id||null,u.id).run()}
- const identifier=normalizeIdentifier(b.identifier||a.email||a.phone);if(!identifier)return json({ok:false,error:'审核通过前须设置手机号或邮箱登录账号'},400);
- const code=loginCode();await env.DB.prepare("INSERT INTO member_app_credentials(member_id,identifier,login_code_hash,created_by) VALUES(?,?,?,?) ON CONFLICT(member_id) DO UPDATE SET identifier=excluded.identifier,login_code_hash=excluded.login_code_hash,status='active',must_change_code=1,updated_at=datetime('now')").bind(mid,identifier,await hash(code),u.id).run();
+ const a=await env.DB.prepare("SELECT a.*,g.cluster_id requested_cluster_id,g.name requested_group_name FROM member_registration_applications a LEFT JOIN church_groups g ON g.id=a.requested_group_id WHERE a.id=? AND a.status='pending'").bind(aid).first();
+ if(!a)return json({ok:false,error:'申请不存在或已经处理'},404);
+ const requestedGroupId=clean(a.requested_group_id,100);
+ if(!requestedGroupId)return json({ok:false,error:'这是旧版申请，尚未选择目标小组，请由牧者处理'},409);
+ const requestedGroup=await env.DB.prepare("SELECT id,group_number,name,cluster_id,status,reception_status FROM church_groups WHERE id=? AND is_demo=0").bind(requestedGroupId).first();
+ if(!requestedGroup)return json({ok:false,error:'申请的小组已不存在'},409);
+ const mayReview=u.level==='pastor'||u.group_ids.includes(requestedGroup.id);
+ if(!mayReview)return json({ok:false,error:'只有该小组组长或牧者可以审批这份申请'},403);
+ if(decision==='rejected'){
+  await env.DB.prepare("UPDATE member_registration_applications SET status='rejected',rejection_reason=?,reviewed_by=?,reviewed_at=datetime('now'),updated_at=datetime('now') WHERE id=?").bind(clean(b.reason,500),u.id,aid).run();
+  return json({ok:true,status:'rejected'});
+ }
+ let targetGroup=requestedGroup;
+ const overrideGroupId=clean(b.group_id,100);
+ if(overrideGroupId&&overrideGroupId!==requestedGroup.id){
+  if(u.level!=='pastor')return json({ok:false,error:'小组长只能批准加入申请人选择的本组'},403);
+  targetGroup=await env.DB.prepare("SELECT id,group_number,name,cluster_id,status,reception_status FROM church_groups WHERE id=? AND status='active' AND is_demo=0").bind(overrideGroupId).first();
+  if(!targetGroup)return json({ok:false,error:'牧者指定的目标小组不存在'},404);
+ }
+ let mid=clean(b.member_id,100);
+ if(mid){
+  const existing=await env.DB.prepare("SELECT id,group_id,status FROM church_members WHERE id=?").bind(mid).first();
+  if(!existing)return json({ok:false,error:'指定成员不存在'},404);
+  if(existing.status==='active'&&existing.group_id&&existing.group_id!==targetGroup.id)return json({ok:false,error:'该成员已经属于其他小组，请使用转组流程'},409);
+  await env.DB.prepare("UPDATE church_members SET display_name=?,phone=?,email=?,postcode=?,cluster_id=?,group_id=?,status='active',updated_at=datetime('now') WHERE id=?")
+   .bind(a.display_name,a.phone,a.email,a.postcode||'',targetGroup.cluster_id,targetGroup.id,mid).run();
+ }else{
+  const duplicate=await env.DB.prepare("SELECT id,group_id,status FROM church_members WHERE status='active' AND phone=? LIMIT 1").bind(a.phone).first();
+  if(duplicate){
+   if(duplicate.group_id!==targetGroup.id)return json({ok:false,error:'该申请人已经属于其他小组，请使用转组流程'},409);
+   mid=duplicate.id;
+  }else{
+   mid=id('MEM');
+   await env.DB.prepare("INSERT INTO church_members(id,display_name,phone,email,postcode,cluster_id,group_id,status,joined_at,created_by) VALUES(?,?,?,?,?,?,?,'active',datetime('now'),?)")
+    .bind(mid,a.display_name,a.phone,a.email,a.postcode||'',targetGroup.cluster_id,targetGroup.id,u.id).run();
+  }
+ }
+ const identifier=normalizeIdentifier(b.identifier||a.phone||a.email);if(!identifier)return json({ok:false,error:'审核通过前须设置手机号登录账号'},400);
+ const code=loginCode();
+ await env.DB.prepare("INSERT INTO member_app_credentials(member_id,identifier,login_code_hash,created_by) VALUES(?,?,?,?) ON CONFLICT(member_id) DO UPDATE SET identifier=excluded.identifier,login_code_hash=excluded.login_code_hash,status='active',must_change_code=1,updated_at=datetime('now')").bind(mid,identifier,await hash(code),u.id).run();
  await env.DB.prepare("UPDATE member_registration_applications SET status='approved',member_id=?,reviewed_by=?,reviewed_at=datetime('now'),updated_at=datetime('now') WHERE id=?").bind(mid,u.id,aid).run();
- await env.DB.prepare("INSERT INTO organization_audit_log(id,actor_user_id,action,entity_type,entity_id,after_json) VALUES(?,?,?,?,?,?)").bind(id('AUD'),u.id,'member_account.approve','member',mid,JSON.stringify({application_id:aid,identifier})).run();
- return json({ok:true,status:'approved',member_id:mid,identifier,initial_login_code:code,notice:'初始登录码只显示一次'});
+ await env.DB.prepare("INSERT INTO organization_audit_log(id,actor_user_id,action,entity_type,entity_id,after_json) VALUES(?,?,?,?,?,?)").bind(id('AUD'),u.id,'member_account.approve','member',mid,JSON.stringify({application_id:aid,identifier,group_id:targetGroup.id})).run();
+ return json({ok:true,status:'approved',member_id:mid,group:{id:targetGroup.id,name:targetGroup.name,number:targetGroup.group_number},identifier,initial_login_code:code,notice:'初始登录码只显示一次'});
 }
 async function inviteMember(request,env){
  const u=await staff(request,env);if(!u)return json({ok:false,error:'没有会友账号管理权限'},403);
@@ -132,6 +193,7 @@ async function memberSessions(request,env,url){
  return json({ok:false,error:'not found'},404);
 }
 export async function handleMemberAuthApi(request,env,url){
+ if(url.pathname==='/api/app/groups'&&request.method==='GET')return publicGroups(env);
  if(url.pathname==='/api/app/register'&&request.method==='POST')return register(request,env);
  if(url.pathname==='/api/app/auth/login'&&request.method==='POST')return login(request,env);
  if(url.pathname==='/api/app/auth/exchange'&&request.method==='POST')return exchange(request,env);
