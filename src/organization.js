@@ -4,7 +4,7 @@ import { authenticateMemberAppToken } from './member-auth.js';
 import { expectedPhotoCount, normalizeFaithStatus, normalizeReceptionSite, presentWelcomeCase } from './welcome-normalization.js';
 
 const ROLE_ORDER={none:0,group_leader:1,cluster_leader:2,pastor:3};
-const GROUP_FIELDS=['name','cluster_id','leader_name','deputy_leader_name','meeting_day','meeting_time','meeting_frequency','meeting_address','postcode','navigation_address','contact_phone','current_size','capacity_max','reception_status','audience_profile','weekly_status','temporary_change','announcement','welcome_message','group_kind','status','schedule_note','language_profile','family_profile','children_profile','occupation_profile','age_profile','background_profile','capacity_note'];
+const GROUP_FIELDS=['name','cluster_id','leader_name','deputy_leader_name','meeting_day','meeting_time','meeting_frequency','meeting_address','postcode','navigation_address','contact_phone','current_size','capacity_max','reception_status','audience_profile','weekly_status','temporary_change','announcement','welcome_message','weekly_scripture_reference','weekly_scripture_text','discussion_theme','group_kind','status','schedule_note','language_profile','family_profile','children_profile','occupation_profile','age_profile','background_profile','capacity_note'];
 const VALID={status:['active','inactive','paused'],reception_status:['open','near_full','closed','paused'],weekly_status:['normal','cancelled','changed'],group_kind:['regular','joint']};
 const json=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store'}});
 const clean=(v,max=500)=>String(v??'').trim().slice(0,max);
@@ -43,6 +43,18 @@ const canGroup=(x,g)=>Boolean(g)&&(x.level==='pastor'||clusters(x).includes(g.cl
 const getGroup=(env,g)=>env.DB.prepare("SELECT g.*,c.name cluster_display_name FROM church_groups g LEFT JOIN church_clusters c ON c.id=g.cluster_id WHERE g.id=? AND g.is_demo=0").bind(g).first();
 
 const canDirectlyManageGroup=(x,g)=>Boolean(g)&&(x.level==='pastor'||groups(x).includes(g.id));
+function presentManagedGroup(x,g){
+  const canManage=canDirectlyManageGroup(x,g);
+  if(canManage)return{...g,can_manage:true};
+  return{
+    id:g.id,group_number:g.group_number,name:g.name,cluster_id:g.cluster_id,
+    cluster_display_name:g.cluster_display_name,leader_name:g.leader_name,
+    group_kind:g.group_kind,status:g.status,reception_status:g.reception_status,
+    weekly_status:g.weekly_status,meeting_day:g.meeting_day,meeting_time:g.meeting_time,
+    meeting_frequency:g.meeting_frequency,postcode:g.postcode,
+    member_count:g.member_count,capacity_max:g.capacity_max,can_manage:false
+  };
+}
 function parseWeekSlots(value){
   return new Set(String(value||'').split(',').map(v=>Number(v.trim())).filter(v=>Number.isInteger(v)&&v>=1&&v<=5));
 }
@@ -128,7 +140,7 @@ async function overview(request,env,kind,url){
       (SELECT COUNT(*) FROM welcome_cases w WHERE w.assigned_cluster_id=c.id AND w.status IN ('new','triaged','assigned','contacted')) pending_newcomers
       FROM church_clusters c JOIN church_groups g ON g.cluster_id=c.id AND g.is_demo=0
       LEFT JOIN church_members m ON m.group_id=g.id WHERE ${s.sql} GROUP BY c.id ORDER BY c.sort_order`).bind(...s.args).all();
-    return json({ok:true,role:x.level,clusters:r.results||[]});
+    const rows=(r.results||[]).map(v=>x.services.includes('welcome')?v:{...v,pending_newcomers:null});return json({ok:true,role:x.level,clusters:rows});
   }
   if(kind==='groups'){
     const where=[s.sql],args=[...s.args];for(const [q,col] of [['cluster_id','g.cluster_id'],['reception_status','g.reception_status']]){const v=clean(url.searchParams.get(q),80);if(v){where.push(col+'=?');args.push(v)}}
@@ -136,7 +148,7 @@ async function overview(request,env,kind,url){
     const leader=clean(url.searchParams.get('leader'),120);if(leader){where.push('g.leader_name LIKE ?');args.push('%'+leader+'%')}
     const r=await env.DB.prepare(`SELECT g.*,c.name cluster_display_name,(SELECT COUNT(*) FROM church_members m WHERE m.group_id=g.id AND m.status='active') member_count
       FROM church_groups g LEFT JOIN church_clusters c ON c.id=g.cluster_id WHERE g.is_demo=0 AND ${where.join(' AND ')} ORDER BY c.sort_order,g.group_number`).bind(...args).all();
-    return json({ok:true,role:x.level,groups:r.results||[]});
+    return json({ok:true,role:x.level,groups:(r.results||[]).map(g=>presentManagedGroup(x,g))});
   }
   if(kind==='members'){
     const managedGroupIds=groups(x),where=[],args=[],gid=clean(url.searchParams.get('group_id'),100),st=clean(url.searchParams.get('status'),30);
@@ -150,17 +162,16 @@ async function overview(request,env,kind,url){
       WHERE ${where.join(' AND ')} ORDER BY c.sort_order,g.group_number,m.display_name`).bind(...args).all();
     return json({ok:true,role:x.level,members:r.results||[]});
   }
-  const gr=await env.DB.prepare(`SELECT g.id,g.group_number,g.name,g.cluster_id,g.leader_name,g.status,g.reception_status,c.name cluster_name
+  const gr=await env.DB.prepare(`SELECT g.id,g.group_number,g.name,g.cluster_id,g.leader_name,g.status,g.reception_status,c.name cluster_name,
+    (SELECT COUNT(*) FROM church_members m WHERE m.group_id=g.id AND m.status='active') member_count
     FROM church_groups g JOIN church_clusters c ON c.id=g.cluster_id WHERE g.is_demo=0 AND ${s.sql} ORDER BY c.sort_order,g.group_number`).bind(...s.args).all();
-  const mr=await env.DB.prepare(`SELECT m.id,m.display_name,m.group_id,m.member_role FROM church_members m JOIN church_groups g ON g.id=m.group_id
-    WHERE m.status='active' AND ${s.sql} ORDER BY m.display_name`).bind(...s.args).all();
   const rr=await env.DB.prepare("SELECT r.role,r.cluster_id,r.group_id,u.id user_id,u.name FROM organization_role_assignments r JOIN admin_users u ON u.id=r.user_id WHERE r.active=1").all();
-  const out={};for(const g of gr.results||[]){const c=out[g.cluster_id]??={id:g.cluster_id,name:g.cluster_name,leaders:[],groups:[]};c.groups.push({...g,leaders:(rr.results||[]).filter(v=>v.role==='group_leader'&&v.group_id===g.id),members:(mr.results||[]).filter(v=>v.group_id===g.id)})}
+  const out={};for(const g of gr.results||[]){const c=out[g.cluster_id]??={id:g.cluster_id,name:g.cluster_name,leaders:[],groups:[]};c.groups.push({...g,leaders:(rr.results||[]).filter(v=>v.role==='group_leader'&&v.group_id===g.id)})}
   for(const c of Object.values(out))c.leaders=(rr.results||[]).filter(v=>v.role==='cluster_leader'&&v.cluster_id===c.id);
   return json({ok:true,role:x.level,clusters:Object.values(out)});
 }
 function groupChanges(body){
-  const o={};for(const k of GROUP_FIELDS)if(Object.hasOwn(body,k))o[k]=['current_size','capacity_max'].includes(k)?(body[k]===''?null:Number(body[k])):clean(body[k],k==='announcement'?3000:500);
+  const o={};for(const k of GROUP_FIELDS)if(Object.hasOwn(body,k))o[k]=['current_size','capacity_max'].includes(k)?(body[k]===''?null:Number(body[k])):clean(body[k],k==='weekly_scripture_text'?10000:(k==='announcement'||k==='discussion_theme'?3000:500));
   if(Object.hasOwn(o,'postcode'))o.postcode=pc(o.postcode);for(const k of Object.keys(VALID))if(Object.hasOwn(o,k)&&!VALID[k].includes(o[k]))delete o[k];return o;
 }
 async function saveGroup(request,env,gid=''){
@@ -199,8 +210,8 @@ async function memberAction(request,env,mid,action){
 }
 async function appoint(request,env){
  const a=await requireHuman(request,env);if(a.response)return a.response;const x=a.x,b=await request.json().catch(()=>({})),role=clean(b.role,30),uid=clean(b.user_id,100),cid=clean(b.cluster_id,100)||null,gid=clean(b.group_id,100)||null;
- if(!['pastor','cluster_leader','group_leader'].includes(role))return json({ok:false,error:'角色不正确'},400);if(role!=='group_leader'&&x.level!=='pastor')return json({ok:false,error:'只有牧师可以任命牧师或大组长'},403);
- if(role==='group_leader'){const g=await getGroup(env,gid);if(!g||!canCluster(x,g.cluster_id))return json({ok:false,error:'不得任命其他大组的小组长'},403)}
+  if(!['pastor','cluster_leader','group_leader'].includes(role))return json({ok:false,error:'角色不正确'},400);if(x.level!=='pastor')return json({ok:false,error:'只有牧者可以任命组织角色'},403);
+  if(role==='group_leader'){const g=await getGroup(env,gid);if(!g)return json({ok:false,error:'小组不存在'},404)}
  const u=await env.DB.prepare("SELECT id FROM admin_users WHERE id=? AND status='active'").bind(uid).first();if(!u)return json({ok:false,error:'同工账号���存在'},404);const rid=id('ROLE');
  await env.DB.prepare("INSERT INTO organization_role_assignments(id,user_id,role,cluster_id,group_id,appointed_by) VALUES(?,?,?,?,?,?)").bind(rid,uid,role,cid,gid,x.user.id).run();await audit(env,x,'role.appoint','role_assignment',rid,null,{uid,role,cid,gid});return json({ok:true,id:rid},201);
 }
@@ -211,8 +222,8 @@ async function roleManagement(request,env,assignmentId=''){
  await env.DB.prepare("UPDATE organization_role_assignments SET active=0,ended_at=datetime('now') WHERE id=?").bind(assignmentId).run();await audit(env,x,'role.revoke','role_assignment',assignmentId,before,{active:0});return json({ok:true});
 }
 async function changeRequests(request,env,rid=''){
- const a=await requireHuman(request,env);if(a.response)return a.response;const x=a.x,s=scope(x),r=await env.DB.prepare(`SELECT q.*,m.display_name,g.cluster_id source_cluster_id,g.name source_group_name,tg.name target_group_name FROM organization_change_requests q LEFT JOIN church_members m ON m.id=q.member_id LEFT JOIN church_groups g ON g.id=q.group_id LEFT JOIN church_groups tg ON tg.id=q.target_group_id WHERE ${s.sql} ORDER BY q.created_at DESC`).bind(...s.args).all();
- if(request.method==='GET')return json({ok:true,requests:r.results||[]});if(ROLE_ORDER[x.level]<ROLE_ORDER.cluster_leader)return json({ok:false,error:'申请须由牧师或大组长审批'},403);
+  const a=await requireHuman(request,env);if(a.response)return a.response;const x=a.x,directGroupIds=groups(x),where=x.level==='pastor'?'1=1':(directGroupIds.length?'g.id IN ('+directGroupIds.map(()=>'?').join(',')+')':'0=1'),args=x.level==='pastor'?[]:directGroupIds,r=await env.DB.prepare(`SELECT q.*,m.display_name,g.cluster_id source_cluster_id,g.name source_group_name,tg.name target_group_name FROM organization_change_requests q LEFT JOIN church_members m ON m.id=q.member_id LEFT JOIN church_groups g ON g.id=q.group_id LEFT JOIN church_groups tg ON tg.id=q.target_group_id WHERE ${where} ORDER BY q.created_at DESC`).bind(...args).all();
+ if(request.method==='GET')return json({ok:true,requests:r.results||[]});if(x.level!=='pastor')return json({ok:false,error:'成员离组或转组须由牧者审批'},403);
  const item=(r.results||[]).find(v=>v.id===rid);if(!item)return json({ok:false,error:'申请不存在或不在管理范围'},404);if(item.status!=='pending')return json({ok:false,error:'申请已经处理'},409);const b=await request.json().catch(()=>({})),decision=b.decision==='approved'?'approved':b.decision==='rejected'?'rejected':'';
  if(!decision)return json({ok:false,error:'审批结果不正确'},400);const before=await env.DB.prepare("SELECT * FROM church_members WHERE id=?").bind(item.member_id).first();
  if(decision==='approved'&&item.request_type==='member_leave')await env.DB.prepare("UPDATE church_members SET status='left',left_at=datetime('now'),updated_at=datetime('now') WHERE id=?").bind(item.member_id).run();
@@ -220,14 +231,14 @@ async function changeRequests(request,env,rid=''){
  await env.DB.prepare("UPDATE organization_change_requests SET status=?,reviewed_by=?,reviewed_at=datetime('now') WHERE id=?").bind(decision,x.user.id,rid).run();const after=await env.DB.prepare("SELECT * FROM church_members WHERE id=?").bind(item.member_id).first();await audit(env,x,'request.'+decision,'change_request',rid,item,{member_before:before,member_after:after});return json({ok:true,status:decision});
 }
 async function auditLog(request,env,url){const a=await requireHuman(request,env);if(a.response)return a.response;const x=a.x;if(x.level!=='pastor')return json({ok:false,error:'只有牧师可查看完整审计记录'},403);const limit=Math.min(200,Math.max(1,Number(url.searchParams.get('limit'))||100));const r=await env.DB.prepare("SELECT a.*,u.name actor_name FROM organization_audit_log a LEFT JOIN admin_users u ON u.id=a.actor_user_id ORDER BY a.created_at DESC LIMIT ?").bind(limit).all();return json({ok:true,audit:r.results||[]})}
-async function staff(request,env){const a=await requireHuman(request,env);if(a.response)return a.response;const r=await env.DB.prepare("SELECT id,name,email,role,status FROM admin_users WHERE status='active' ORDER BY name").all();return json({ok:true,staff:r.results||[]})}
+async function staff(request,env){const a=await requireHuman(request,env);if(a.response)return a.response;if(a.x.level!=='pastor')return json({ok:false,error:'只有牧者可以查看同工账号列表'},403);const r=await env.DB.prepare("SELECT id,name,email,role,status FROM admin_users WHERE status='active' ORDER BY name").all();return json({ok:true,staff:r.results||[]})}
 async function notices(request,env){
  const a=await requireHuman(request,env);if(a.response)return a.response;const x=a.x;if(request.method==='GET'){const s=scope(x);const r=await env.DB.prepare(`SELECT n.* FROM group_notifications n WHERE n.scope_type='church' OR (n.scope_type='cluster' AND n.cluster_id IN(SELECT DISTINCT g.cluster_id FROM church_groups g WHERE ${s.sql})) OR (n.scope_type='group' AND n.group_id IN(SELECT g.id FROM church_groups g WHERE ${s.sql})) ORDER BY n.created_at DESC`).bind(...s.args,...s.args).all();return json({ok:true,notifications:r.results||[]})}
- const b=await request.json().catch(()=>({})),st=clean(b.scope_type,20),cid=clean(b.cluster_id,100)||null,gid=clean(b.group_id,100)||null;if(st==='church'&&x.level!=='pastor')return json({ok:false,error:'只有牧师可发布全教会通知'},403);if(st==='cluster'&&!canCluster(x,cid))return json({ok:false,error:'无权发布'},403);if(st==='group'&&!canGroup(x,await getGroup(env,gid)))return json({ok:false,error:'无权发布'},403);const nid=id('NOT');
+ const b=await request.json().catch(()=>({})),st=clean(b.scope_type,20),cid=clean(b.cluster_id,100)||null,gid=clean(b.group_id,100)||null;if(st==='church'&&x.level!=='pastor')return json({ok:false,error:'只有牧师可发布全教会通知'},403);if(st==='cluster'&&x.level!=='pastor')return json({ok:false,error:'只有牧者可发布大组通知'},403);if(st==='group'&&!canDirectlyManageGroup(x,await getGroup(env,gid)))return json({ok:false,error:'只有本小组组长或牧者可以发布小组通知'},403);const nid=id('NOT');
  await env.DB.prepare("INSERT INTO group_notifications(id,scope_type,cluster_id,group_id,title,body,starts_at,ends_at,status,created_by) VALUES(?,?,?,?,?,?,?,?,?,?)").bind(nid,st,cid,gid,clean(b.title,200),clean(b.body,3000),clean(b.starts_at,50)||null,clean(b.ends_at,50)||null,b.status==='draft'?'draft':'active',x.user.id).run();await audit(env,x,'notification.create','notification',nid,null,b);return json({ok:true,id:nid},201);
 }
 async function welcome(request,env,caseId='',action=''){
- const a=await requireHuman(request,env);if(a.response)return a.response;const x=a.x;if(!caseId){const r=await env.DB.prepare("SELECT w.*,g.name assigned_group_name,c.name assigned_cluster_name FROM welcome_cases w LEFT JOIN church_groups g ON g.id=w.assigned_group_id LEFT JOIN church_clusters c ON c.id=w.assigned_cluster_id ORDER BY w.updated_at DESC").all();let rows=r.results||[];if(x.level!=='pastor')rows=rows.filter(v=>groups(x).includes(v.assigned_group_id)||clusters(x).includes(v.assigned_cluster_id));return json({ok:true,cases:rows.map(presentWelcomeCase)})}
+ const a=await requireHuman(request,env);if(a.response)return a.response;const x=a.x;if(!x.services.includes('welcome'))return json({ok:false,error:'没有新人接待权限'},403);if(!caseId){const r=await env.DB.prepare("SELECT w.*,g.name assigned_group_name,c.name assigned_cluster_name FROM welcome_cases w LEFT JOIN church_groups g ON g.id=w.assigned_group_id LEFT JOIN church_clusters c ON c.id=w.assigned_cluster_id ORDER BY w.updated_at DESC").all();let rows=r.results||[];if(x.level!=='pastor')rows=rows.filter(v=>groups(x).includes(v.assigned_group_id)||clusters(x).includes(v.assigned_cluster_id));return json({ok:true,cases:rows.map(presentWelcomeCase)})}
  const b=await request.json().catch(()=>({})),item=await env.DB.prepare("SELECT * FROM welcome_cases WHERE id=?").bind(caseId).first();if(!item)return json({ok:false,error:'新人记录不存在'},404);
  if(action==='assign'){if(x.level==='group_leader')return json({ok:false,error:'最终分配须由牧师或大组长确认'},403);const g=await getGroup(env,clean(b.group_id,100));if(!canGroup(x,g))return json({ok:false,error:'不得跨范围分配'},403);await env.DB.batch([env.DB.prepare("UPDATE welcome_assignments SET active=0,ended_at=datetime('now') WHERE case_id=? AND active=1").bind(caseId),env.DB.prepare("INSERT INTO welcome_assignments(id,case_id,group_id,carer_user_id,carer_name,reason,assigned_by) VALUES(?,?,?,?,?,?,?)").bind(id('ASN'),caseId,g.id,clean(b.carer_user_id,100)||null,clean(b.carer_name,120),clean(b.reason,1000),x.user.id),env.DB.prepare("UPDATE welcome_cases SET assigned_group_id=?,assigned_cluster_id=?,primary_carer_user_id=?,primary_carer_name=?,status='assigned',updated_at=datetime('now') WHERE id=?").bind(g.id,g.cluster_id,clean(b.carer_user_id,100)||null,clean(b.carer_name,120),caseId)]);await audit(env,x,'welcome.assign','welcome_case',caseId,item,{group_id:g.id});return json({ok:true})}
  if(item.assigned_group_id&&!canGroup(x,await getGroup(env,item.assigned_group_id)))return json({ok:false,error:'不得跟进其他范围新人'},403);const fid=id('FUP');await env.DB.prepare("INSERT INTO welcome_followups(id,case_id,actor_user_id,outcome,note,next_followup_at,contact_date,contact_method,welcome_sent,attended,assigned_cluster_id,assigned_group_id) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)").bind(fid,caseId,x.user.id,clean(b.outcome,120),clean(b.note,2000),clean(b.next_followup_at,50)||null,clean(b.contact_date,50)||null,clean(b.contact_method,80),b.welcome_sent?1:0,b.attended==null?null:(b.attended?1:0),item.assigned_cluster_id,item.assigned_group_id).run();await env.DB.prepare("UPDATE welcome_cases SET welcome_sent=MAX(welcome_sent,?),next_followup_at=?,updated_at=datetime('now') WHERE id=?").bind(b.welcome_sent?1:0,clean(b.next_followup_at,50)||null,caseId).run();await audit(env,x,'welcome.followup','welcome_case',caseId,null,{fid});return json({ok:true,id:fid},201);
@@ -423,7 +434,7 @@ async function app(request,env,kind){
  const u=await appIdentity(request,env);if(!u)return json({ok:false,error:'App 登录已失效'},401);
  if(kind==='my-group'){
   if(!u.scope_list.includes('my-group:read'))return json({ok:false,error:'当前账号没有读取小组资料的权限'},403);
-  const g=await env.DB.prepare("SELECT g.id,g.group_number,g.name group_name,c.name cluster_name,g.cluster_leader_name,g.leader_name,g.group_kind,g.meeting_day,g.meeting_time,g.meeting_frequency,g.meeting_address,g.postcode,g.navigation_address,g.contact_phone,g.reception_status,g.weekly_status,g.temporary_change,g.announcement,g.welcome_message,g.schedule_note FROM church_groups g JOIN church_clusters c ON c.id=g.cluster_id WHERE g.id=? AND g.status='active'").bind(u.group_id).first();
+  const g=await env.DB.prepare("SELECT g.id,g.group_number,g.name group_name,c.name cluster_name,g.cluster_leader_name,g.leader_name,g.group_kind,g.meeting_day,g.meeting_time,g.meeting_frequency,g.meeting_address,g.postcode,g.navigation_address,g.contact_phone,g.reception_status,g.weekly_status,g.temporary_change,g.announcement,g.welcome_message,g.weekly_scripture_reference,g.weekly_scripture_text,g.discussion_theme,g.schedule_note FROM church_groups g JOIN church_clusters c ON c.id=g.cluster_id WHERE g.id=? AND g.status='active'").bind(u.group_id).first();
   if(!g)return json({ok:false,error:'尚未分配有效小组'},404);
   const [ar,n,qr,pr]=await Promise.all([
    env.DB.prepare("SELECT m.id,m.display_name FROM group_assistants a JOIN church_members m ON m.id=a.member_id WHERE a.group_id=? AND m.status='active' ORDER BY m.display_name").bind(u.group_id).all(),

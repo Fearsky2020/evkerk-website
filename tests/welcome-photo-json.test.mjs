@@ -10,6 +10,14 @@ test('iOS JSON welcome photo route requires app authentication', async()=>{
   assert.equal(body.ok,false);
 });
 
+test('staff iOS JSON welcome photo route requires welcome service authentication', async()=>{
+  const request=new Request('https://evkerk.nl/api/welcome/cases/case-1/photo-json',{method:'POST',headers:{'content-type':'application/json'},body:'{}'});
+  const response=await handleWelcomePhotoJson(request,{},new URL(request.url));
+  assert.equal(response.status,401);
+  const body=await response.json();
+  assert.equal(body.ok,false);
+});
+
 test('unrelated route is ignored', async()=>{
   const request=new Request('https://evkerk.nl/api/app/welcome',{method:'POST'});
   const response=await handleWelcomePhotoJson(request,{},new URL(request.url));

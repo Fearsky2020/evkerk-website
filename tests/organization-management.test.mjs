@@ -5,6 +5,7 @@ import fs from 'node:fs';
 const migration=fs.readFileSync(new URL('../migrations/0023_group_organization_management.sql',import.meta.url),'utf8');
 const api=fs.readFileSync(new URL('../src/organization.js',import.meta.url),'utf8');
 const ui=fs.readFileSync(new URL('../public/team/groups/app.js',import.meta.url),'utf8');
+const governance=fs.readFileSync(new URL('../public/team/groups/governance.js',import.meta.url),'utf8');
 
 test('four-level organization schema and audit history are durable',()=>{
   for(const table of ['church_clusters','organization_role_assignments','church_members','member_app_tokens','group_notifications','organization_change_requests','organization_audit_log'])
@@ -24,7 +25,7 @@ test('appointments, approvals and audit endpoints are present',()=>{
   for(const route of ['/api/organization/roles','/api/organization/requests','/api/organization/audit','/revoke','/review'])
     assert.ok(api.includes(route),route);
   assert.match(api,/只有牧师可以撤销组织角色/);
-  assert.match(api,/申请须由牧师或大组长审批/);
+  assert.match(api,/成员离组或转组须由牧者审批/);
 });
 
 test('group management UI uses server APIs',()=>{
@@ -107,4 +108,61 @@ test('cluster leaders cannot browse child-group member rosters',()=>{
   assert.match(api,/if\(kind==='members'\)[\s\S]{0,900}managedGroupIds=groups\(x\)/);
   assert.match(api,/m\.group_id IN/);
   assert.doesNotMatch(api,/if\(kind==='members'\)[\s\S]{0,900}scope\(x/);
+});
+
+
+test('tree overview never embeds child-group member names',()=>{
+  assert.doesNotMatch(api,/members:\(mr\.results/);
+  assert.match(api,/member_count/);
+  assert.doesNotMatch(ui,/g\.members\.map\(x=>x\.display_name\)/);
+  assert.match(ui,/组员人数/);
+});
+
+
+test('cluster leaders cannot review member transfer or leave requests',()=>{
+  assert.match(api,/if\(x\.level!==\'pastor\'\)return json\(\{ok:false,error:'成员离组或转组须由牧者审批'\}/);
+  assert.match(governance,/G\.role==='pastor'/);
+  assert.doesNotMatch(governance,/G\.role!==\'group_leader\'/);
+});
+
+
+test('cluster leaders cannot publish cluster or child-group notifications',()=>{
+  assert.match(api,/if\(st==='cluster'&&x\.level!=='pastor'\)return json\(\{ok:false,error:'只有牧者可发布大组通知'\}/);
+  assert.match(api,/if\(st==='group'&&!canDirectlyManageGroup\(x,await getGroup\(env,gid\)\)\)return json\(\{ok:false,error:'只有本小组组长或牧者可以发布小组通知'\}/);
+});
+
+
+test('welcome data requires explicit welcome service',()=>{
+  assert.match(api,/if\(!x\.services\.includes\('welcome'\)\)return json\(\{ok:false,error:'没有新人接待权限'\}/);
+  assert.match(ui,/welcomeAllowed/);
+  assert.match(ui,/welcomeTab\.hidden=!w\.allowed/);
+});
+
+
+test('newcomer dashboard counts are hidden without welcome service',()=>{
+  assert.match(api,/pending_newcomers:null/);
+  assert.match(ui,/S\.welcomeAllowed\?'.*待处理新人/);
+});
+
+
+test('cluster child-group reads are projected to operational summary',()=>{
+  assert.match(api,/function presentManagedGroup/);
+  assert.match(api,/can_manage:false/);
+  for(const field of ['meeting_address','navigation_address','contact_phone','announcement','welcome_message','weekly_scripture_text','discussion_theme'])
+    assert.ok(api.includes(field),field);
+  assert.match(ui,/g\.can_manage\?'<button data-eg=/);
+});
+
+
+test('governance mutations and staff directory are pastor-only',()=>{
+  assert.match(api,/只有牧者可以任命组织角色/);
+  assert.match(api,/只有牧者可以查看同工账号列表/);
+  assert.match(governance,/ga\('\/api\/organization\/staff'\)\.catch/);
+  assert.match(governance,/G\.role==='pastor'\?'<label>同工账号/);
+});
+
+test('cluster leaders cannot read cluster-wide member change requests',()=>{
+  assert.match(api,/directGroupIds=groups\(x\)/);
+  assert.match(api,/where=x\.level==='pastor'\?'1=1'/);
+  assert.match(api,/g\.id IN \('/);
 });

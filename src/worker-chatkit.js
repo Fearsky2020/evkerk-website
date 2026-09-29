@@ -60,6 +60,21 @@ async function injectPublicScripts(response, url) {
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+    if (request.method === 'GET' && url.pathname === '/.well-known/apple-app-site-association') {
+      return new Response(JSON.stringify({
+        applinks: {
+          details: [{
+            appIDs: ['CU2U35ZD7K.nl.evkerk.app'],
+            components: [{ '/': '/join/*', comment: 'EVKERK group invitation links' }],
+          }],
+        },
+      }), {
+        headers: {
+          'content-type': 'application/json; charset=utf-8',
+          'cache-control': 'public, max-age=3600',
+        },
+      });
+    }
     const groupJoinMatch = url.pathname.match(/^\/join\/([^/]+)$/);
     if (groupJoinMatch && request.method === 'GET') {
       const target = new URL('/join.html', url);
