@@ -1,0 +1,66 @@
+name: one-shot-create-google-play-review-account
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/one-shot-create-google-play-review-account.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  seed-review-account:
+    runs-on: [self-hosted, Windows, X64, sinan-church]
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Create Google Play review account
+        shell: powershell
+        run: |
+          $sql = @"
+          INSERT INTO church_members(
+            id,display_name,phone,email,address,postcode,cluster_id,group_id,
+            status,member_role,family_note,language_note,private_note,joined_at
+          ) VALUES(
+            'MEM-GPLAY-REVIEW','Google Play Review','',
+            'review@evkerk.nl','','2511EC','cluster-3','group-01',
+            'active','member','','','Google Play review-only account',datetime('now')
+          )
+          ON CONFLICT(id) DO UPDATE SET
+            display_name=excluded.display_name,
+            email=excluded.email,
+            postcode=excluded.postcode,
+            cluster_id=excluded.cluster_id,
+            group_id=excluded.group_id,
+            status='active',
+            updated_at=datetime('now');
+
+          DELETE FROM member_app_credentials
+          WHERE identifier='review@evkerk.nl'
+            AND member_id<>'MEM-GPLAY-REVIEW';
+
+          INSERT INTO member_app_credentials(
+            member_id,identifier,login_code_hash,status,must_change_code,failed_attempts,locked_until
+          ) VALUES(
+            'MEM-GPLAY-REVIEW','review@evkerk.nl',
+            '5700edc60090729e2ccf77c4b39100ce33a2093fabd85a1746543b5763a1c019',
+            'active',0,0,NULL
+          )
+          ON CONFLICT(member_id) DO UPDATE SET
+            identifier=excluded.identifier,
+            login_code_hash=excluded.login_code_hash,
+            status='active',
+            must_change_code=0,
+            failed_attempts=0,
+            locked_until=NULL,
+            updated_at=datetime('now');
+          "@
+          npx wrangler d1 execute evkerk-website-db --remote --command "$sql"
+          npx wrangler d1 execute evkerk-website-db --remote --command "SELECT m.id,m.email,m.status,m.group_id,c.identifier,c.status credential_status,c.must_change_code FROM church_members m JOIN member_app_credentials c ON c.member_id=m.id WHERE m.id='MEM-GPLAY-REVIEW';"
